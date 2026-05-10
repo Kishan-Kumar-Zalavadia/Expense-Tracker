@@ -1,26 +1,271 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Fonts are loaded via next/font/google in layout.tsx — no CSS import needed */
+
+/* ─── Dark mode via data-theme attribute ────────────────────────────── */
+@custom-variant dark (&:is([data-theme="dark"] *));
+
+/* ─── Design tokens — Light theme ───────────────────────────────────── */
+:root,
+[data-theme="light"] {
+  --bg:             #F4EDD8;
+  --surface:        #FAF3DD;
+  --elevated:       #FEFAEA;
+  --ink:            #1A1612;
+  --ink-muted:      #6B6358;
+  --ink-subtle:     #A39B8E;
+  --border:         #E0D2B0;
+  --border-strong:  #C8BA90;
+
+  --c-primary:      #1F6F7F;
+  --c-need:         #2952B8;
+  --c-want:         #E8553D;
+  --c-save:         #2D8A6A;
+  --c-warn:         #D4A636;
+  --c-berry:        #B84778;
+
+  --tint-need:      #DCE5FB;
+  --tint-want:      #FCE0D6;
+  --tint-save:      #D2EAE0;
+  --tint-warn:      #F8EBC6;
+
+  /* shadcn/ui variable mappings */
+  --background:              var(--bg);
+  --foreground:              var(--ink);
+  --card:                    var(--surface);
+  --card-foreground:         var(--ink);
+  --popover:                 var(--elevated);
+  --popover-foreground:      var(--ink);
+  --primary:                 var(--ink);
+  --primary-foreground:      var(--bg);
+  --secondary:               var(--surface);
+  --secondary-foreground:    var(--ink);
+  --muted:                   var(--surface);
+  --muted-foreground:        var(--ink-muted);
+  --accent:                  var(--surface);
+  --accent-foreground:       var(--ink);
+  --destructive:             var(--c-want);
+  --input:                   var(--border);
+  --ring:                    var(--c-primary);
+  --radius:                  2px;
+
+  /* sidebar */
+  --sidebar:                 var(--surface);
+  --sidebar-foreground:      var(--ink);
+  --sidebar-primary:         var(--ink);
+  --sidebar-primary-foreground: var(--bg);
+  --sidebar-accent:          var(--bg);
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border:          var(--border);
+  --sidebar-ring:            var(--c-primary);
 }
 
+/* ─── Design tokens — Dark theme ────────────────────────────────────── */
+[data-theme="dark"] {
+  --bg:             #161310;
+  --surface:        #1F1B16;
+  --elevated:       #28231C;
+  --ink:            #F2E5C9;
+  --ink-muted:      #B0A693;
+  --ink-subtle:     #6B6358;
+  --border:         #3A322A;
+  --border-strong:  #524A40;
+
+  --c-primary:      #5BA8B8;
+  --c-need:         #6685D9;
+  --c-want:         #F47A65;
+  --c-save:         #54B58A;
+  --c-warn:         #E5BE5C;
+  --c-berry:        #D86B98;
+
+  --tint-need:      #1D2A4A;
+  --tint-want:      #3D1E18;
+  --tint-save:      #1A3328;
+  --tint-warn:      #3D2F11;
+
+  --background:              var(--bg);
+  --foreground:              var(--ink);
+  --card:                    var(--surface);
+  --card-foreground:         var(--ink);
+  --popover:                 var(--elevated);
+  --popover-foreground:      var(--ink);
+  --primary:                 var(--ink);
+  --primary-foreground:      var(--bg);
+  --secondary:               var(--surface);
+  --secondary-foreground:    var(--ink);
+  --muted:                   var(--surface);
+  --muted-foreground:        var(--ink-muted);
+  --accent:                  var(--surface);
+  --accent-foreground:       var(--ink);
+  --destructive:             var(--c-want);
+  --input:                   var(--border);
+  --ring:                    var(--c-primary);
+  --radius:                  2px;
+
+  --sidebar:                 var(--surface);
+  --sidebar-foreground:      var(--ink);
+  --sidebar-primary:         var(--ink);
+  --sidebar-primary-foreground: var(--bg);
+  --sidebar-accent:          var(--bg);
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border:          var(--border);
+  --sidebar-ring:            var(--c-primary);
+}
+
+/* ─── Tailwind theme bridge ─────────────────────────────────────────── */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background:            var(--background);
+  --color-foreground:            var(--foreground);
+  --color-card:                  var(--card);
+  --color-card-foreground:       var(--card-foreground);
+  --color-popover:               var(--popover);
+  --color-popover-foreground:    var(--popover-foreground);
+  --color-primary:               var(--primary);
+  --color-primary-foreground:    var(--primary-foreground);
+  --color-secondary:             var(--secondary);
+  --color-secondary-foreground:  var(--secondary-foreground);
+  --color-muted:                 var(--muted);
+  --color-muted-foreground:      var(--muted-foreground);
+  --color-accent:                var(--accent);
+  --color-accent-foreground:     var(--accent-foreground);
+  --color-destructive:           var(--destructive);
+  --color-border:                var(--border);
+  --color-input:                 var(--input);
+  --color-ring:                  var(--ring);
+  --radius-sm:                   calc(var(--radius) * 0.6);
+  --radius-md:                   calc(var(--radius) * 0.8);
+  --radius-lg:                   var(--radius);
+  --radius-xl:                   calc(var(--radius) * 1.4);
+  --radius-2xl:                  calc(var(--radius) * 1.8);
+  --font-sans:                   var(--font-hanken), system-ui, sans-serif;
+  --font-display:                var(--font-fraunces), Georgia, serif;
+  --font-mono:                   var(--font-jetbrains), monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ─── Base reset ────────────────────────────────────────────────────── */
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
   }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    @apply font-sans;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-hanken), system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  /* Sharp corners everywhere */
+  input, textarea, select, button, [role="dialog"] {
+    border-radius: 2px !important;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+
+  /* Selection */
+  ::selection { background-color: var(--c-primary); color: var(--bg); }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ─── Page entrance animation ───────────────────────────────────────── */
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
+
+.page-enter {
+  animation: page-enter 400ms ease-out both;
+}
+
+/* ─── Typography helpers ────────────────────────────────────────────── */
+.font-display {
+  font-family: var(--font-fraunces), Georgia, serif;
+}
+
+.font-mono,
+.tabular-nums {
+  font-family: var(--font-jetbrains), monospace;
+  font-feature-settings: 'tnum' on, 'lnum' on;
+}
+
+/* ─── Color utilities ───────────────────────────────────────────────── */
+.text-need   { color: var(--c-need); }
+.text-want   { color: var(--c-want); }
+.text-save   { color: var(--c-save); }
+.text-warn   { color: var(--c-warn); }
+.text-primary-brand { color: var(--c-primary); }
+
+.bg-tint-need  { background-color: var(--tint-need); }
+.bg-tint-want  { background-color: var(--tint-want); }
+.bg-tint-save  { background-color: var(--tint-save); }
+.bg-tint-warn  { background-color: var(--tint-warn); }
+
+.border-need   { border-color: var(--c-need); }
+.border-want   { border-color: var(--c-want); }
+.border-save   { border-color: var(--c-save); }
+
+/* ─── Section header bar ─────────────────────────────────────────────── */
+.section-bar {
+  display: inline-block;
+  width: 4px;
+  height: 22px;
+  border-radius: 1px;
+  flex-shrink: 0;
+  background-color: var(--c-primary);
+}
+
+/* ─── Recharts tooltip ──────────────────────────────────────────────── */
+.recharts-default-tooltip {
+  background-color: var(--ink) !important;
+  color: var(--bg) !important;
+  border-radius: 2px !important;
+  font-size: 12px !important;
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25) !important;
+  padding: 8px 12px !important;
+}
+
+.recharts-tooltip-label {
+  color: var(--ink-subtle) !important;
+  font-size: 11px !important;
+  margin-bottom: 4px !important;
+}
+
+/* ─── Primary button style ──────────────────────────────────────────── */
+.btn-primary {
+  background-color: var(--ink);
+  color: var(--bg);
+  border-radius: 2px;
+  font-family: var(--font-hanken), sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  padding: 8px 16px;
+  border: none;
+  cursor: pointer;
+  transition: transform 150ms ease, opacity 150ms ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-primary:hover  { transform: scale(1.02); }
+.btn-primary:active { transform: scale(0.98); }
+.btn-primary:focus-visible {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 2px;
+}
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
