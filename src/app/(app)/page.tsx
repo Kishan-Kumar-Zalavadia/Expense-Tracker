@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
-import { currentYearMonth } from '@/lib/utils'
+import { currentYearMonth, findActiveBudget } from '@/lib/utils'
 import { MonthPicker } from '@/components/dashboard/month-picker'
 import { KpiCards } from '@/components/dashboard/kpi-cards'
 import { BudgetCards } from '@/components/dashboard/budget-cards'
@@ -29,23 +29,19 @@ export default async function DashboardPage({ searchParams }: PageProps) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  // Fetch salary config for this year
-  const { data: salaryRow } = await supabase
-    .from('salary_config')
+  // Fetch budget periods and find the one covering the selected month
+  const currentMonthStr = `${year}-${String(month).padStart(2, '0')}`
+  const { data: budgetPeriods } = await supabase
+    .from('budget_periods')
     .select('*')
     .eq('user_id', user.id)
-    .eq('year', year)
-    .single()
+    .order('start_month', { ascending: true })
 
-  const salary = salaryRow?.salary ?? 0
-  const needsPct = salaryRow?.needs_pct ?? 50
-  const wantsPct = salaryRow?.wants_pct ?? 30
-  const savingsPct = salaryRow?.savings_pct ?? 20
-
-  const needBudget  = (salary * needsPct)  / 100
-  const wantBudget  = (salary * wantsPct)  / 100
-  const saveBudget  = (salary * savingsPct) / 100
-  const monthBudget = salary
+  const activePeriod = findActiveBudget(budgetPeriods ?? [], currentMonthStr)
+  const monthBudget = activePeriod?.monthly_amount ?? 0
+  const needBudget  = (monthBudget * (activePeriod?.needs_pct   ?? 50)) / 100
+  const wantBudget  = (monthBudget * (activePeriod?.wants_pct   ?? 30)) / 100
+  const saveBudget  = (monthBudget * (activePeriod?.savings_pct ?? 20)) / 100
 
   // Fetch user settings
   const { data: settings } = await supabase
@@ -63,14 +59,22 @@ export default async function DashboardPage({ searchParams }: PageProps) {
   const endDate   = new Date(year, month, 0)  // last day of month
   const endDateStr = `${year}-${String(month).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`
 
-  // Fetch expenses for the month with joins
-  const { data: expenses } = await supabase
-    .from('expenses')
-    .select('*, category:categories(*), payment_mode:payment_modes(*)')
-    .eq('user_id', user.id)
-    .gte('date', startDate)
-    .lte('date', endDateStr)
-    .order('date', { ascending: false })
+  // Fetch expenses and incomes for the month
+  const [{ data: expenses }, { data: monthIncomes }] = await Promise.all([
+    supabase
+      .from('expenses')
+      .select('*, category:categories(*), payment_mode:payment_modes(*)')
+      .eq('user_id', user.id)
+      .gte('date', startDate)
+      .lte('date', endDateStr)
+      .order('date', { ascending: false }),
+    supabase
+      .from('incomes')
+      .select('amount')
+      .eq('user_id', user.id)
+      .gte('date', startDate)
+      .lte('date', endDateStr),
+  ])
 
   const expenseList = expenses ?? []
 
@@ -82,6 +86,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
     if (e.type === 'Saving') saveSpent  += Number(e.amount)
   }
   const totalSpent = needSpent + wantSpent + saveSpent
+  const incomeTotal = (monthIncomes ?? []).reduce((s, r) => s + Number(r.amount), 0)
 
   const summary: MonthSummary = {
     total_spent:    totalSpent,
@@ -92,6 +97,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
     need_budget:    needBudget,
     want_budget:    wantBudget,
     save_budget:    saveBudget,
+    income_total:   incomeTotal,
   }
 
   // Category spend aggregation
@@ -162,6 +168,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
           <DashboardRefresher
             categories={categories ?? []}
             paymentModes={paymentModes ?? []}
+            currency={currency}
           />
         </div>
       </div>

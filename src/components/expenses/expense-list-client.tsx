@@ -238,6 +238,7 @@ export function ExpenseListClient({
         categories={categories}
         paymentModes={paymentModes}
         onSuccess={onRefresh}
+        currency={currency}
       />
     </>
   )

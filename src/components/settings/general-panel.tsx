@@ -21,22 +21,13 @@ export function GeneralPanel({ userId, settings, onSave }: GeneralPanelProps) {
     resolver: zodResolver(settingsSchema),
     defaultValues: {
       currency: settings.currency,
-      weekly_limit: String(settings.weekly_limit),
     },
   })
 
   const onSubmit = async (values: SettingsFormValues) => {
-    const weeklyLimitNum = parseFloat(values.weekly_limit)
-    if (isNaN(weeklyLimitNum) || weeklyLimitNum <= 0) {
-      toast.error('Weekly limit must be a positive number')
-      return
-    }
     const { error } = await supabase
       .from('user_settings')
-      .update({
-        currency: values.currency,
-        weekly_limit: weeklyLimitNum,
-      })
+      .update({ currency: values.currency })
       .eq('user_id', userId)
 
     if (error) { toast.error(error.message); return }
@@ -69,22 +60,6 @@ export function GeneralPanel({ userId, settings, onSave }: GeneralPanelProps) {
         />
         {errors.currency && <p className="mt-1 text-xs text-[var(--c-want)]">{errors.currency.message}</p>}
         <p className="mt-1 text-xs text-[var(--ink-subtle)]">Single character or symbol, e.g. ₹, $, €</p>
-      </div>
-
-      <div>
-        <label className="block text-xs font-medium text-[var(--ink-muted)] mb-1 uppercase tracking-wide">
-          Weekly spend limit
-        </label>
-        <input
-          {...register('weekly_limit')}
-          type="number"
-          step="100"
-          min="0"
-          placeholder="10000"
-          className={cn(inputCls(!!errors.weekly_limit), 'tabular-nums')}
-        />
-        {errors.weekly_limit && <p className="mt-1 text-xs text-[var(--c-want)]">{errors.weekly_limit.message as string}</p>}
-        <p className="mt-1 text-xs text-[var(--ink-subtle)]">Used as the reference line in daily/weekly charts</p>
       </div>
 
       <button type="submit" disabled={isSubmitting} className="btn-primary">

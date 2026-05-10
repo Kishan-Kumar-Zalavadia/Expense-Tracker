@@ -10,12 +10,12 @@ export default async function SettingsPage() {
     { data: settings },
     { data: categories },
     { data: paymentModes },
-    { data: salaryConfigs },
+    { data: budgetPeriods },
   ] = await Promise.all([
     supabase.from('user_settings').select('*').eq('user_id', user.id).single(),
     supabase.from('categories').select('*').eq('user_id', user.id).order('sort_order'),
     supabase.from('payment_modes').select('*').eq('user_id', user.id),
-    supabase.from('salary_config').select('*').eq('user_id', user.id).order('year', { ascending: false }),
+    supabase.from('budget_periods').select('*').eq('user_id', user.id).order('start_month', { ascending: false }),
   ])
 
   return (
@@ -24,7 +24,7 @@ export default async function SettingsPage() {
       settings={settings ?? { user_id: user.id, weekly_limit: 10000, currency: '₹', theme: 'light' }}
       categories={categories ?? []}
       paymentModes={paymentModes ?? []}
-      salaryConfigs={salaryConfigs ?? []}
+      budgetPeriods={budgetPeriods ?? []}
     />
   )
 }

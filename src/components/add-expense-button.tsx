@@ -10,6 +10,7 @@ interface AddExpenseButtonProps {
   paymentModes: PaymentMode[]
   onSuccess?: () => void
   variant?: 'sidebar' | 'fab'
+  currency?: string
 }
 
 export function AddExpenseButton({
@@ -17,6 +18,7 @@ export function AddExpenseButton({
   paymentModes,
   onSuccess,
   variant = 'sidebar',
+  currency,
 }: AddExpenseButtonProps) {
   const [open, setOpen] = useState(false)
 
@@ -44,6 +46,7 @@ export function AddExpenseButton({
           categories={categories}
           paymentModes={paymentModes}
           onSuccess={handleSuccess}
+          currency={currency}
         />
       </>
     )

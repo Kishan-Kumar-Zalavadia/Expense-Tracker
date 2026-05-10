@@ -92,8 +92,35 @@ export function toISODate(d: Date): string {
 export const PAGE_COLORS = {
   dashboard: 'var(--c-primary)',
   expenses:  'var(--c-berry)',
+  income:    'var(--c-save)',
   weekly:    'var(--c-need)',
   yearly:    'var(--c-save)',
   settings:  'var(--c-warn)',
 } as const
+
+// Returns current month as YYYY-MM
+export function currentMonthISO(): string {
+  return format(new Date(), 'yyyy-MM')
+}
+
+// Find the budget period that covers a given YYYY-MM month
+export function findActiveBudget(
+  periods: Array<{ start_month: string; end_month: string | null; monthly_amount: number; needs_pct: number; wants_pct: number; savings_pct: number }>,
+  yearMonth: string,
+) {
+  return periods.find((p) => {
+    const inStart = p.start_month <= yearMonth
+    const inEnd = p.end_month === null || p.end_month >= yearMonth
+    return inStart && inEnd
+  }) ?? null
+}
+
+// Check if two budget period ranges overlap
+export function budgetPeriodsOverlap(
+  aStart: string, aEnd: string | null,
+  bStart: string, bEnd: string | null,
+): boolean {
+  const FAR = '9999-12'
+  return aStart <= (bEnd ?? FAR) && bStart <= (aEnd ?? FAR)
+}
 

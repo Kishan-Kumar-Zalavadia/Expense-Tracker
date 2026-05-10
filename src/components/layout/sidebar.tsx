@@ -12,6 +12,7 @@ import {
   Sun,
   Moon,
   Download,
+  TrendingUp,
 } from 'lucide-react'
 import { cn, PAGE_COLORS } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
@@ -23,6 +24,7 @@ import { useState } from 'react'
 const NAV = [
   { href: '/',                 label: 'Dashboard', icon: LayoutDashboard, color: PAGE_COLORS.dashboard },
   { href: '/expenses',         label: 'Expenses',  icon: List,            color: PAGE_COLORS.expenses  },
+  { href: '/income',           label: 'Income',    icon: TrendingUp,      color: PAGE_COLORS.income    },
   { href: '/analysis/weekly',  label: 'Weekly',    icon: BarChart2,       color: PAGE_COLORS.weekly    },
   { href: '/analysis/yearly',  label: 'Yearly',    icon: CalendarDays,    color: PAGE_COLORS.yearly    },
   { href: '/settings',         label: 'Settings',  icon: Settings,        color: PAGE_COLORS.settings  },

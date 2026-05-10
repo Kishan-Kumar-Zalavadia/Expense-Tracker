@@ -5,7 +5,7 @@ export const EXPENSE_TYPES = ['Need', 'Want', 'Saving'] as const
 // Keep amounts as strings in forms — parse manually in submit handlers
 export const expenseSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date'),
-  description: z.string().min(1, 'Description is required').max(200),
+  description: z.string().max(200).optional(),
   category_id: z.string().min(1, 'Select a category'),
   type: z.enum(['Need', 'Want', 'Saving']),
   amount: z.string().min(1, 'Amount is required'),
@@ -47,7 +47,17 @@ export type PaymentModeFormValues = z.infer<typeof paymentModeSchema>
 
 export const settingsSchema = z.object({
   currency: z.string().min(1).max(5),
-  weekly_limit: z.string().min(1, 'Weekly limit is required'),
 })
 
 export type SettingsFormValues = z.infer<typeof settingsSchema>
+
+export const incomeSchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date'),
+  description: z.string().min(1, 'Description is required').max(200),
+  amount: z.string().min(1, 'Amount is required'),
+  payment_mode_id: z.string().min(1, 'Select a payment mode'),
+  budget_period_id: z.string().optional(),
+  notes: z.string().max(500).optional(),
+})
+
+export type IncomeFormValues = z.infer<typeof incomeSchema>

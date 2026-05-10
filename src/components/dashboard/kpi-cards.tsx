@@ -8,7 +8,7 @@ interface KpiCardsProps {
 
 export function KpiCards({ summary, currency }: KpiCardsProps) {
   const {
-    total_spent, monthly_budget,
+    total_spent, monthly_budget, income_total = 0,
     need_spent, need_budget,
     want_spent, want_budget,
     save_spent, save_budget,
@@ -26,17 +26,16 @@ export function KpiCards({ summary, currency }: KpiCardsProps) {
       sub: null,
     },
     {
-      label: 'Monthly Budget',
-      value: formatCurrency(monthly_budget, currency),
-      color: 'var(--c-primary)',
-      sub: null,
+      label: 'Income (this month)',
+      value: formatCurrency(income_total, currency),
+      color: 'var(--c-save)',
+      sub: income_total > 0 ? `${formatCurrency(income_total - total_spent, currency)} net` : null,
     },
     {
-      label: 'Remaining',
+      label: 'Budget remaining',
       value: formatCurrency(Math.abs(remaining), currency),
-      prefix: remaining < 0 ? '-' : '',
       color: remaining >= 0 ? 'var(--c-save)' : 'var(--c-want)',
-      sub: remaining < 0 ? 'Over budget' : 'Available',
+      sub: remaining < 0 ? 'Over budget' : monthly_budget > 0 ? 'Available' : 'No budget set',
     },
     {
       label: 'Score',
@@ -48,7 +47,7 @@ export function KpiCards({ summary, currency }: KpiCardsProps) {
 
   const topColors = [
     'var(--c-want)',
-    'var(--c-primary)',
+    'var(--c-save)',
     remaining >= 0 ? 'var(--c-save)' : 'var(--c-want)',
     sColor,
   ]

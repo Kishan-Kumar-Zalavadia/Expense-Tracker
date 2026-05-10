@@ -2,30 +2,28 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
-import { createClient } from '@/lib/supabase/client'
 import { CategoriesPanel } from './categories-panel'
 import { PaymentModesPanel } from './payment-modes-panel'
-import { SalaryPanel } from './salary-panel'
+import { BudgetPeriodsPanel } from './budget-periods-panel'
 import { GeneralPanel } from './general-panel'
-import type { Category, PaymentMode, SalaryConfig, UserSettings } from '@/lib/types'
+import type { BudgetPeriod, Category, PaymentMode, UserSettings } from '@/lib/types'
 
 interface SettingsClientProps {
   userId: string
   settings: UserSettings
   categories: Category[]
   paymentModes: PaymentMode[]
-  salaryConfigs: SalaryConfig[]
+  budgetPeriods: BudgetPeriod[]
 }
 
-type Tab = 'general' | 'salary' | 'categories' | 'payment'
+type Tab = 'general' | 'budget' | 'categories' | 'payment'
 
 export function SettingsClient({
   userId,
   settings,
   categories,
   paymentModes,
-  salaryConfigs,
+  budgetPeriods,
 }: SettingsClientProps) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<Tab>('general')
@@ -34,7 +32,7 @@ export function SettingsClient({
 
   const tabs: { id: Tab; label: string; color: string }[] = [
     { id: 'general',    label: 'General',        color: 'var(--c-warn)' },
-    { id: 'salary',     label: 'Salary & Budget', color: 'var(--c-primary)' },
+    { id: 'budget',     label: 'Budget',          color: 'var(--c-primary)' },
     { id: 'categories', label: 'Categories',      color: 'var(--c-berry)' },
     { id: 'payment',    label: 'Payment Modes',   color: 'var(--c-need)' },
   ]
@@ -54,12 +52,12 @@ export function SettingsClient({
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-[var(--border)]">
+      <div className="flex gap-1 border-b border-[var(--border)] overflow-x-auto">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className="px-4 py-2.5 text-sm font-medium transition-colors relative"
+            className="px-4 py-2.5 text-sm font-medium transition-colors relative whitespace-nowrap"
             style={{
               color: activeTab === tab.id ? tab.color : 'var(--ink-muted)',
             }}
@@ -78,7 +76,15 @@ export function SettingsClient({
       {/* Panel */}
       <div className="apple-card p-6">
         {activeTab === 'general'    && <GeneralPanel userId={userId} settings={settings} onSave={refresh} />}
-        {activeTab === 'salary'     && <SalaryPanel userId={userId} configs={salaryConfigs} onSave={refresh} />}
+        {activeTab === 'budget'     && (
+          <BudgetPeriodsPanel
+            userId={userId}
+            periods={budgetPeriods}
+            paymentModes={paymentModes.filter((pm) => !pm.archived)}
+            currency={settings.currency}
+            onSave={refresh}
+          />
+        )}
         {activeTab === 'categories' && <CategoriesPanel userId={userId} categories={categories} onSave={refresh} />}
         {activeTab === 'payment'    && <PaymentModesPanel userId={userId} paymentModes={paymentModes} onSave={refresh} />}
       </div>

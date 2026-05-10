@@ -81,6 +81,7 @@ export function ExpensesPageClient({
           paymentModes={paymentModes}
           onSuccess={handleRefresh}
           variant="sidebar"
+          currency={currency}
         />
       </div>
 
@@ -106,6 +107,7 @@ export function ExpensesPageClient({
         paymentModes={paymentModes}
         onSuccess={handleRefresh}
         variant="fab"
+        currency={currency}
       />
     </div>
   )

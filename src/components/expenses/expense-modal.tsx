@@ -17,13 +17,16 @@ import { todayISO, typeColor, typeTint } from '@/lib/utils'
 import type { Category, Expense, PaymentMode } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
+const EXPENSE_TYPES: ExpenseType[] = ['Need', 'Want', 'Saving']
+
 interface ExpenseModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  expense?: Expense | null   // null = add mode
+  expense?: Expense | null
   categories: Category[]
   paymentModes: PaymentMode[]
   onSuccess: () => void
+  currency?: string
 }
 
 export function ExpenseModal({
@@ -33,11 +36,11 @@ export function ExpenseModal({
   categories,
   paymentModes,
   onSuccess,
+  currency = '₹',
 }: ExpenseModalProps) {
   const isEdit = !!expense
   const supabase = createClient()
   const [loading, setLoading] = useState(false)
-  const [currentType, setCurrentType] = useState<ExpenseType>('Need')
 
   const {
     register,
@@ -60,30 +63,30 @@ export function ExpenseModal({
   })
 
   const watchCategory = watch('category_id')
+  const watchType = (watch('type') || 'Need') as ExpenseType
+  const accentColor = typeColor(watchType)
 
-  // Derive type from selected category — always, even in edit mode
+  // When category changes, suggest the matching type (user can still override)
   useEffect(() => {
     const cat = categories.find((c) => c.id === watchCategory)
     if (cat) {
-      setCurrentType(cat.type)
       setValue('type', cat.type)
     }
   }, [watchCategory, categories, setValue])
 
-  // Populate form when editing
+  // Populate form when opening
   useEffect(() => {
     if (open) {
       if (expense) {
         reset({
           date: expense.date,
-          description: expense.description,
+          description: expense.description ?? '',
           category_id: expense.category_id,
           type: expense.type,
           amount: String(expense.amount),
           payment_mode_id: expense.payment_mode_id,
           notes: expense.notes ?? '',
         })
-        setCurrentType(expense.type)
       } else {
         reset({
           date: todayISO(),
@@ -94,7 +97,6 @@ export function ExpenseModal({
           payment_mode_id: paymentModes[0]?.id ?? '',
           notes: '',
         })
-        setCurrentType(categories[0]?.type ?? 'Need')
       }
     }
   }, [open, expense, reset, categories, paymentModes])
@@ -113,7 +115,7 @@ export function ExpenseModal({
     const payload = {
       user_id: user.id,
       date: values.date,
-      description: values.description,
+      description: values.description || null,
       category_id: values.category_id,
       type: values.type,
       amount: parsedAmount,
@@ -144,25 +146,28 @@ export function ExpenseModal({
     setLoading(false)
   }
 
-  const accentColor = typeColor(currentType)
-  const tintColor = typeTint(currentType)
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="p-0 overflow-hidden border border-[var(--border)] bg-[var(--elevated)] max-w-md"
+        className="p-0 border border-[var(--border)] bg-[var(--elevated)] max-w-md
+          flex flex-col max-h-[90dvh] overflow-hidden"
         style={{ borderRadius: 'var(--radius-xl)' }}
       >
-        {/* Type-colored top bar */}
-        <div className="h-1 w-full" style={{ backgroundColor: accentColor }} />
+        {/* Type-colored top bar — stays fixed */}
+        <div className="h-1 w-full shrink-0 transition-colors duration-200"
+          style={{ backgroundColor: accentColor }} />
 
-        <div className="px-6 pt-4 pb-6">
-          <DialogHeader className="mb-5">
+        {/* Fixed header */}
+        <div className="px-6 pt-4 shrink-0">
+          <DialogHeader>
             <DialogTitle className="font-display text-xl font-medium text-[var(--ink)]">
               {isEdit ? 'Edit expense' : 'Add expense'}
             </DialogTitle>
           </DialogHeader>
+        </div>
 
+        {/* Scrollable form area */}
+        <div className="overflow-y-auto flex-1 px-6 pt-4 pb-6">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {/* Date */}
             <Field label="Date" error={errors.date?.message}>
@@ -174,7 +179,7 @@ export function ExpenseModal({
             </Field>
 
             {/* Description */}
-            <Field label="Description" error={errors.description?.message}>
+            <Field label="Description (optional)" error={errors.description?.message}>
               <input
                 {...register('description')}
                 type="text"
@@ -196,39 +201,41 @@ export function ExpenseModal({
               </select>
             </Field>
 
-            {/* Type — read-only, derived from category */}
-            <div>
-              <label className="block text-xs font-medium text-[var(--ink-muted)] mb-1 uppercase tracking-wide">
-                Type
-              </label>
-              <div
-                className="flex items-center gap-2 px-3 py-2 rounded-[var(--radius-sm)] border text-sm min-h-[44px]"
-                style={{
-                  borderColor: accentColor + '50',
-                  borderLeftColor: accentColor,
-                  borderLeftWidth: '3px',
-                  backgroundColor: typeTint(currentType),
-                }}
+            {/* Type — editable, auto-suggested from category */}
+            <Field label="Type" error={errors.type?.message}>
+              <select
+                {...register('type')}
+                className={inputCls(!!errors.type)}
+                style={{ borderLeftColor: accentColor, borderLeftWidth: '3px' }}
               >
-                <span className="font-medium" style={{ color: accentColor }}>
-                  {currentType}
-                </span>
-                <span className="text-xs text-[var(--ink-muted)]">— set by category</span>
-              </div>
-              <input type="hidden" {...register('type')} />
-            </div>
+                {EXPENSE_TYPES.map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+              <p className="mt-1 text-[10px] text-[var(--ink-subtle)]">
+                Auto-suggested from category — you can change it
+              </p>
+            </Field>
 
             {/* Amount */}
             <Field label="Amount" error={errors.amount?.message}>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ink-muted)] text-sm font-mono">₹</span>
+              <div className="relative flex items-center">
+                <span
+                  className="absolute left-0 flex items-center justify-center h-full px-3
+                    text-[var(--ink-muted)] text-sm font-medium pointer-events-none select-none
+                    border-r border-[var(--border)]"
+                  style={{ minWidth: '2.5rem' }}
+                >
+                  {currency}
+                </span>
                 <input
                   {...register('amount')}
                   type="number"
                   step="0.01"
                   min="0"
                   placeholder="0.00"
-                  className={cn(inputCls(!!errors.amount), 'pl-7 tabular-nums')}
+                  className={cn(inputCls(!!errors.amount), 'tabular-nums')}
+                  style={{ paddingLeft: 'calc(2.5rem + 12px)' }}
                 />
               </div>
             </Field>
@@ -269,7 +276,7 @@ export function ExpenseModal({
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 btn-primary justify-center"
+                className="flex-1 btn-primary justify-center transition-colors duration-200"
                 style={{ backgroundColor: accentColor }}
               >
                 {loading ? (
