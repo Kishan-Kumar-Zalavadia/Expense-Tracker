@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Pencil, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
@@ -14,7 +15,6 @@ interface RecentActivityProps {
   categories: Category[]
   paymentModes: PaymentMode[]
   currency: string
-  onRefresh: () => void
 }
 
 export function RecentActivity({
@@ -22,8 +22,8 @@ export function RecentActivity({
   categories,
   paymentModes,
   currency,
-  onRefresh,
 }: RecentActivityProps) {
+  const router = useRouter()
   const [editTarget, setEditTarget] = useState<Expense | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const supabase = createClient()
@@ -33,7 +33,7 @@ export function RecentActivity({
     const { error } = await supabase.from('expenses').delete().eq('id', id)
     if (error) { toast.error(error.message); return }
     toast.success('Expense deleted')
-    onRefresh()
+    router.refresh()
   }
 
   const handleEdit = (expense: Expense) => {
@@ -125,7 +125,7 @@ export function RecentActivity({
         expense={editTarget}
         categories={categories}
         paymentModes={paymentModes}
-        onSuccess={onRefresh}
+        onSuccess={() => router.refresh()}
       />
     </>
   )

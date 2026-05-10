@@ -210,7 +210,6 @@ export default async function DashboardPage({ searchParams }: PageProps) {
           categories={categories ?? []}
           paymentModes={paymentModes ?? []}
           currency={currency}
-          onRefresh={() => {}}
         />
       </section>
     </div>

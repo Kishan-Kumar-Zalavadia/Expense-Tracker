@@ -38,10 +38,8 @@ export default function RootLayout({
       className={`${fraunces.variable} ${hanken.variable} ${jetbrains.variable} h-full`}
       suppressHydrationWarning
     >
-      <head>
-        <ThemeScript />
-      </head>
       <body className="h-full bg-[var(--bg)] text-[var(--ink)]">
+        <ThemeScript />
         {children}
         <Toaster
           position="bottom-right"
