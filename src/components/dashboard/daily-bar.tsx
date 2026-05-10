@@ -19,6 +19,62 @@ interface DailyBarProps {
   currency: string
 }
 
+function CustomTooltip({
+  active, payload, label, currency, dailyLimit,
+}: {
+  active?: boolean
+  payload?: { value: number; dataKey: string; payload: DailySpend & { label: string } }[]
+  label?: string
+  currency: string
+  dailyLimit: number
+}) {
+  if (!active || !payload?.length) return null
+  const d = payload[0].payload
+  const overLimit = d.total > dailyLimit && dailyLimit > 0
+
+  return (
+    <div
+      className="rounded-[var(--radius-md)] border border-[var(--border)] shadow-lg px-3 py-2.5 text-xs space-y-1.5"
+      style={{ backgroundColor: 'var(--elevated)', minWidth: 150 }}
+    >
+      <p className="font-semibold text-[var(--ink)]">
+        {formatDate(d.date, 'EEE, dd MMM')}
+      </p>
+      <div className="space-y-1 pt-0.5">
+        <div className="flex justify-between gap-4 text-[var(--ink-muted)]">
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--c-need)' }} />
+            Needs
+          </span>
+          <span className="tabular-nums font-medium text-[var(--ink)]">
+            {formatCurrency(d.need, currency)}
+          </span>
+        </div>
+        <div className="flex justify-between gap-4 text-[var(--ink-muted)]">
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--c-want)' }} />
+            Wants
+          </span>
+          <span className="tabular-nums font-medium text-[var(--ink)]">
+            {formatCurrency(d.want, currency)}
+          </span>
+        </div>
+      </div>
+      <div className="border-t border-[var(--border)] pt-1.5 flex justify-between gap-4">
+        <span className="font-medium" style={{ color: overLimit ? 'var(--c-want)' : 'var(--ink-muted)' }}>
+          Total {overLimit ? '· Over limit' : ''}
+        </span>
+        <span
+          className="tabular-nums font-semibold"
+          style={{ color: overLimit ? 'var(--c-want)' : 'var(--ink)' }}
+        >
+          {formatCurrency(d.total, currency)}
+        </span>
+      </div>
+    </div>
+  )
+}
+
 export function DailyBar({ data, dailyLimit, currency }: DailyBarProps) {
   if (!data.length) {
     return (
@@ -51,18 +107,17 @@ export function DailyBar({ data, dailyLimit, currency }: DailyBarProps) {
           width={36}
         />
         <Tooltip
-          formatter={(value: unknown) => [formatCurrency(Number(value), currency), 'Spend']}
-          contentStyle={{
-            backgroundColor: 'var(--ink)',
-            color: 'var(--bg)',
-            border: 'none',
-            borderRadius: '2px',
-            fontSize: '12px',
-            padding: '8px 12px',
-          }}
-          itemStyle={{ color: 'var(--bg)' }}
-          labelStyle={{ color: 'var(--ink-subtle)', marginBottom: 4 }}
-          cursor={{ fill: 'var(--border)', opacity: 0.5 }}
+          animationDuration={0}
+          content={(props) => (
+            <CustomTooltip
+              active={props.active}
+              payload={props.payload as unknown as { value: number; dataKey: string; payload: DailySpend & { label: string } }[]}
+              label={props.label != null ? String(props.label) : undefined}
+              currency={currency}
+              dailyLimit={dailyLimit}
+            />
+          )}
+          cursor={{ fill: 'var(--border)', opacity: 0.4 }}
         />
         <ReferenceLine
           y={dailyLimit}
@@ -76,12 +131,8 @@ export function DailyBar({ data, dailyLimit, currency }: DailyBarProps) {
             fill: 'var(--c-warn)',
           }}
         />
-        <Bar
-          dataKey="total"
-          fill="var(--c-need)"
-          radius={[1, 1, 0, 0]}
-          maxBarSize={20}
-        />
+        <Bar dataKey="need" stackId="a" fill="var(--c-need)" radius={[0, 0, 0, 0]} maxBarSize={20} />
+        <Bar dataKey="want" stackId="a" fill="var(--c-want)" radius={[1, 1, 0, 0]} maxBarSize={20} />
       </BarChart>
     </ResponsiveContainer>
   )
