@@ -2,270 +2,348 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* Fonts are loaded via next/font/google in layout.tsx — no CSS import needed */
+/* Fonts loaded via next/font/google in layout.tsx */
 
-/* ─── Dark mode via data-theme attribute ────────────────────────────── */
+/* ─── Dark mode ─────────────────────────────────────────────────────── */
 @custom-variant dark (&:is([data-theme="dark"] *));
 
-/* ─── Design tokens — Light theme ───────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════════
+   APPLE-STYLE DESIGN TOKENS
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ─── Light ─────────────────────────────────────────────────────────── */
 :root,
 [data-theme="light"] {
-  --bg:             #F4EDD8;
-  --surface:        #FAF3DD;
-  --elevated:       #FEFAEA;
-  --ink:            #1A1612;
-  --ink-muted:      #6B6358;
-  --ink-subtle:     #A39B8E;
-  --border:         #E0D2B0;
-  --border-strong:  #C8BA90;
+  /* Backgrounds */
+  --bg:            #F2F2F7;   /* iOS system grouped background */
+  --surface:       #FFFFFF;
+  --elevated:      #FFFFFF;
+  --surface-2:     #F2F2F7;   /* secondary grouped fill */
 
-  --c-primary:      #1F6F7F;
-  --c-need:         #2952B8;
-  --c-want:         #E8553D;
-  --c-save:         #2D8A6A;
-  --c-warn:         #D4A636;
-  --c-berry:        #B84778;
+  /* Ink */
+  --ink:           #000000;
+  --ink-muted:     #6D6D72;   /* label secondary */
+  --ink-subtle:    #AEAEB2;   /* label tertiary */
 
-  --tint-need:      #DCE5FB;
-  --tint-want:      #FCE0D6;
-  --tint-save:      #D2EAE0;
-  --tint-warn:      #F8EBC6;
+  /* Borders & dividers */
+  --border:        rgba(60,60,67,0.13);
+  --border-strong: rgba(60,60,67,0.29);
 
-  /* shadcn/ui variable mappings */
-  --background:              var(--bg);
-  --foreground:              var(--ink);
-  --card:                    var(--surface);
-  --card-foreground:         var(--ink);
-  --popover:                 var(--elevated);
-  --popover-foreground:      var(--ink);
-  --primary:                 var(--ink);
-  --primary-foreground:      var(--bg);
-  --secondary:               var(--surface);
-  --secondary-foreground:    var(--ink);
-  --muted:                   var(--surface);
-  --muted-foreground:        var(--ink-muted);
-  --accent:                  var(--surface);
-  --accent-foreground:       var(--ink);
-  --destructive:             var(--c-want);
-  --input:                   var(--border);
-  --ring:                    var(--c-primary);
-  --radius:                  2px;
+  /* Shadows */
+  --shadow-sm:     0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:     0 4px 12px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
+  --shadow-lg:     0 12px 32px rgba(0,0,0,0.10), 0 4px 12px rgba(0,0,0,0.06);
 
-  /* sidebar */
-  --sidebar:                 var(--surface);
-  --sidebar-foreground:      var(--ink);
-  --sidebar-primary:         var(--ink);
-  --sidebar-primary-foreground: var(--bg);
-  --sidebar-accent:          var(--bg);
-  --sidebar-accent-foreground: var(--ink);
-  --sidebar-border:          var(--border);
-  --sidebar-ring:            var(--c-primary);
+  /* Apple system colors */
+  --c-primary:     #007AFF;   /* iOS blue */
+  --c-need:        #5856D6;   /* iOS purple */
+  --c-want:        #FF3B30;   /* iOS red */
+  --c-save:        #34C759;   /* iOS green */
+  --c-warn:        #AF52DE;   /* iOS purple (system) */
+  --c-berry:       #FF2D55;   /* iOS pink */
+
+  /* Tints */
+  --tint-need:     rgba(88,86,214,0.10);
+  --tint-want:     rgba(255,59,48,0.10);
+  --tint-save:     rgba(52,199,89,0.10);
+  --tint-warn:     rgba(175,82,222,0.10);
+
+  /* Radius */
+  --radius-xs:     6px;
+  --radius-sm:     10px;
+  --radius-md:     12px;
+  --radius-lg:     16px;
+  --radius-xl:     20px;
+  --radius-2xl:    28px;
+
+  /* shadcn mappings */
+  --background:           var(--bg);
+  --foreground:           var(--ink);
+  --card:                 var(--surface);
+  --card-foreground:      var(--ink);
+  --popover:              var(--surface);
+  --popover-foreground:   var(--ink);
+  --primary:              var(--c-primary);
+  --primary-foreground:   #FFFFFF;
+  --secondary:            var(--surface-2);
+  --secondary-foreground: var(--ink);
+  --muted:                var(--surface-2);
+  --muted-foreground:     var(--ink-muted);
+  --accent:               var(--surface-2);
+  --accent-foreground:    var(--ink);
+  --destructive:          var(--c-want);
+  --border:               rgba(60,60,67,0.13);
+  --input:                rgba(60,60,67,0.13);
+  --ring:                 var(--c-primary);
+  --radius:               12px;
 }
 
-/* ─── Design tokens — Dark theme ────────────────────────────────────── */
+/* ─── Dark ──────────────────────────────────────────────────────────── */
 [data-theme="dark"] {
-  --bg:             #161310;
-  --surface:        #1F1B16;
-  --elevated:       #28231C;
-  --ink:            #F2E5C9;
-  --ink-muted:      #B0A693;
-  --ink-subtle:     #6B6358;
-  --border:         #3A322A;
-  --border-strong:  #524A40;
+  --bg:            #000000;
+  --surface:       #1C1C1E;
+  --elevated:      #2C2C2E;
+  --surface-2:     #3A3A3C;
 
-  --c-primary:      #5BA8B8;
-  --c-need:         #6685D9;
-  --c-want:         #F47A65;
-  --c-save:         #54B58A;
-  --c-warn:         #E5BE5C;
-  --c-berry:        #D86B98;
+  --ink:           #FFFFFF;
+  --ink-muted:     #8E8E93;
+  --ink-subtle:    #48484A;
 
-  --tint-need:      #1D2A4A;
-  --tint-want:      #3D1E18;
-  --tint-save:      #1A3328;
-  --tint-warn:      #3D2F11;
+  --border:        rgba(255,255,255,0.10);
+  --border-strong: rgba(255,255,255,0.18);
 
-  --background:              var(--bg);
-  --foreground:              var(--ink);
-  --card:                    var(--surface);
-  --card-foreground:         var(--ink);
-  --popover:                 var(--elevated);
-  --popover-foreground:      var(--ink);
-  --primary:                 var(--ink);
-  --primary-foreground:      var(--bg);
-  --secondary:               var(--surface);
-  --secondary-foreground:    var(--ink);
-  --muted:                   var(--surface);
-  --muted-foreground:        var(--ink-muted);
-  --accent:                  var(--surface);
-  --accent-foreground:       var(--ink);
-  --destructive:             var(--c-want);
-  --input:                   var(--border);
-  --ring:                    var(--c-primary);
-  --radius:                  2px;
+  --shadow-sm:     0 1px 3px rgba(0,0,0,0.40);
+  --shadow-md:     0 4px 12px rgba(0,0,0,0.50);
+  --shadow-lg:     0 12px 32px rgba(0,0,0,0.60);
 
-  --sidebar:                 var(--surface);
-  --sidebar-foreground:      var(--ink);
-  --sidebar-primary:         var(--ink);
-  --sidebar-primary-foreground: var(--bg);
-  --sidebar-accent:          var(--bg);
-  --sidebar-accent-foreground: var(--ink);
-  --sidebar-border:          var(--border);
-  --sidebar-ring:            var(--c-primary);
+  --c-primary:     #0A84FF;
+  --c-need:        #5E5CE6;
+  --c-want:        #FF453A;
+  --c-save:        #30D158;
+  --c-warn:        #BF5AF2;
+  --c-berry:       #FF375F;
+
+  --tint-need:     rgba(94,92,230,0.18);
+  --tint-want:     rgba(255,69,58,0.18);
+  --tint-save:     rgba(48,209,88,0.18);
+  --tint-warn:     rgba(191,90,242,0.18);
+
+  --background:           var(--bg);
+  --foreground:           var(--ink);
+  --card:                 var(--surface);
+  --card-foreground:      var(--ink);
+  --popover:              var(--surface);
+  --popover-foreground:   var(--ink);
+  --primary:              var(--c-primary);
+  --primary-foreground:   #FFFFFF;
+  --secondary:            var(--elevated);
+  --secondary-foreground: var(--ink);
+  --muted:                var(--elevated);
+  --muted-foreground:     var(--ink-muted);
+  --accent:               var(--elevated);
+  --accent-foreground:    var(--ink);
+  --destructive:          var(--c-want);
+  --border:               rgba(255,255,255,0.10);
+  --input:                rgba(255,255,255,0.10);
+  --ring:                 var(--c-primary);
+  --radius:               12px;
 }
 
-/* ─── Tailwind theme bridge ─────────────────────────────────────────── */
+/* ─── Tailwind bridge ───────────────────────────────────────────────── */
 @theme inline {
-  --color-background:            var(--background);
-  --color-foreground:            var(--foreground);
-  --color-card:                  var(--card);
-  --color-card-foreground:       var(--card-foreground);
-  --color-popover:               var(--popover);
-  --color-popover-foreground:    var(--popover-foreground);
-  --color-primary:               var(--primary);
-  --color-primary-foreground:    var(--primary-foreground);
-  --color-secondary:             var(--secondary);
-  --color-secondary-foreground:  var(--secondary-foreground);
-  --color-muted:                 var(--muted);
-  --color-muted-foreground:      var(--muted-foreground);
-  --color-accent:                var(--accent);
-  --color-accent-foreground:     var(--accent-foreground);
-  --color-destructive:           var(--destructive);
-  --color-border:                var(--border);
-  --color-input:                 var(--input);
-  --color-ring:                  var(--ring);
-  --radius-sm:                   calc(var(--radius) * 0.6);
-  --radius-md:                   calc(var(--radius) * 0.8);
-  --radius-lg:                   var(--radius);
-  --radius-xl:                   calc(var(--radius) * 1.4);
-  --radius-2xl:                  calc(var(--radius) * 1.8);
-  --font-sans:                   var(--font-hanken), system-ui, sans-serif;
-  --font-display:                var(--font-fraunces), Georgia, serif;
-  --font-mono:                   var(--font-jetbrains), monospace;
+  --color-background:          var(--background);
+  --color-foreground:          var(--foreground);
+  --color-card:                var(--card);
+  --color-card-foreground:     var(--card-foreground);
+  --color-popover:             var(--popover);
+  --color-popover-foreground:  var(--popover-foreground);
+  --color-primary:             var(--primary);
+  --color-primary-foreground:  var(--primary-foreground);
+  --color-secondary:           var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted:               var(--muted);
+  --color-muted-foreground:    var(--muted-foreground);
+  --color-accent:              var(--accent);
+  --color-accent-foreground:   var(--accent-foreground);
+  --color-destructive:         var(--destructive);
+  --color-border:              var(--border);
+  --color-input:               var(--input);
+  --color-ring:                var(--ring);
+  --radius-sm:                 var(--radius-sm);
+  --radius-md:                 var(--radius-md);
+  --radius-lg:                 var(--radius-lg);
+  --font-sans:                 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  --font-display:              -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
+  --font-mono:                 "SF Mono", ui-monospace, "Cascadia Code", monospace;
 }
 
-/* ─── Base reset ────────────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════════
+   BASE
+   ═══════════════════════════════════════════════════════════════════════ */
 @layer base {
-  *, *::before, *::after {
-    box-sizing: border-box;
-  }
+  *, *::before, *::after { box-sizing: border-box; }
 
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    @apply font-sans;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
   }
 
   body {
     background-color: var(--bg);
     color: var(--ink);
-    font-family: var(--font-hanken), system-ui, sans-serif;
-    font-size: 14px;
+    font-size: 15px;
     line-height: 1.5;
+    /* Prevent content from going under notch / home indicator on iOS */
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
-  * {
-    @apply border-border;
-  }
+  * { @apply border-border; }
 
-  /* Sharp corners everywhere */
-  input, textarea, select, button, [role="dialog"] {
-    border-radius: 2px !important;
-  }
+  /* Scrollbar — thin and minimal */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 99px; }
 
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 5px; height: 5px; }
-  ::-webkit-scrollbar-track { background: var(--bg); }
-  ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+  ::selection { background-color: var(--c-primary); color: #fff; }
 
-  /* Selection */
-  ::selection { background-color: var(--c-primary); color: var(--bg); }
+  /* Override shadcn radius to Apple values */
+  input, textarea, select { border-radius: var(--radius-sm) !important; }
 }
 
-/* ─── Page entrance animation ───────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════════
+   PAGE ANIMATION
+   ═══════════════════════════════════════════════════════════════════════ */
 @keyframes page-enter {
-  from { opacity: 0; transform: translateY(5px); }
+  from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+.page-enter { animation: page-enter 320ms cubic-bezier(0.25,0.46,0.45,0.94) both; }
 
-.page-enter {
-  animation: page-enter 400ms ease-out both;
+/* ═══════════════════════════════════════════════════════════════════════
+   APPLE CARD
+   ═══════════════════════════════════════════════════════════════════════ */
+.apple-card {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
 }
 
-/* ─── Typography helpers ────────────────────────────────────────────── */
-.font-display {
-  font-family: var(--font-fraunces), Georgia, serif;
-}
-
-.font-mono,
-.tabular-nums {
-  font-family: var(--font-jetbrains), monospace;
-  font-feature-settings: 'tnum' on, 'lnum' on;
-}
-
-/* ─── Color utilities ───────────────────────────────────────────────── */
-.text-need   { color: var(--c-need); }
-.text-want   { color: var(--c-want); }
-.text-save   { color: var(--c-save); }
-.text-warn   { color: var(--c-warn); }
-.text-primary-brand { color: var(--c-primary); }
-
-.bg-tint-need  { background-color: var(--tint-need); }
-.bg-tint-want  { background-color: var(--tint-want); }
-.bg-tint-save  { background-color: var(--tint-save); }
-.bg-tint-warn  { background-color: var(--tint-warn); }
-
-.border-need   { border-color: var(--c-need); }
-.border-want   { border-color: var(--c-want); }
-.border-save   { border-color: var(--c-save); }
-
-/* ─── Section header bar ─────────────────────────────────────────────── */
-.section-bar {
-  display: inline-block;
-  width: 4px;
-  height: 22px;
-  border-radius: 1px;
-  flex-shrink: 0;
-  background-color: var(--c-primary);
-}
-
-/* ─── Recharts tooltip ──────────────────────────────────────────────── */
-.recharts-default-tooltip {
-  background-color: var(--ink) !important;
-  color: var(--bg) !important;
-  border-radius: 2px !important;
-  font-size: 12px !important;
-  border: none !important;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.25) !important;
-  padding: 8px 12px !important;
-}
-
-.recharts-tooltip-label {
-  color: var(--ink-subtle) !important;
-  font-size: 11px !important;
-  margin-bottom: 4px !important;
-}
-
-/* ─── Primary button style ──────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════════
+   BUTTONS
+   ═══════════════════════════════════════════════════════════════════════ */
 .btn-primary {
-  background-color: var(--ink);
-  color: var(--bg);
-  border-radius: 2px;
-  font-family: var(--font-hanken), sans-serif;
-  font-weight: 500;
-  font-size: 13px;
-  padding: 8px 16px;
+  background-color: var(--c-primary);
+  color: #FFFFFF;
+  border-radius: var(--radius-xl);
+  font-size: 15px;
+  font-weight: 600;
+  padding: 12px 20px;
   border: none;
   cursor: pointer;
-  transition: transform 150ms ease, opacity 150ms ease;
+  transition: opacity 150ms ease, transform 100ms ease;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
+  min-height: 44px;   /* Apple minimum tap target */
+  letter-spacing: -0.1px;
 }
-.btn-primary:hover  { transform: scale(1.02); }
-.btn-primary:active { transform: scale(0.98); }
-.btn-primary:focus-visible {
-  outline: 2px solid var(--c-primary);
-  outline-offset: 2px;
+.btn-primary:hover  { opacity: 0.88; }
+.btn-primary:active { transform: scale(0.97); opacity: 0.80; }
+.btn-primary:focus-visible { outline: 3px solid var(--c-primary); outline-offset: 3px; }
+.btn-primary:disabled { opacity: 0.38; cursor: not-allowed; transform: none; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   FORM INPUTS — Apple inset grouped style
+   ═══════════════════════════════════════════════════════════════════════ */
+.apple-input {
+  width: 100%;
+  padding: 11px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font-size: 15px;
+  font-family: inherit;
+  transition: border-color 150ms, box-shadow 150ms;
+  min-height: 44px;
 }
-.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.apple-input::placeholder { color: var(--ink-subtle); }
+.apple-input:focus {
+  outline: none;
+  border-color: var(--c-primary);
+  box-shadow: 0 0 0 3px rgba(0,122,255,0.15);
+}
+.apple-input.error {
+  border-color: var(--c-want);
+  box-shadow: 0 0 0 3px rgba(255,59,48,0.12);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   MOBILE BOTTOM SHEET MODAL
+   ═══════════════════════════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+  /* Make Dialog slide up from bottom on mobile */
+  [data-slot="dialog-overlay"] {
+    background: rgba(0,0,0,0.45) !important;
+    backdrop-filter: blur(4px) !important;
+  }
+  [data-slot="dialog-content"] {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    transform: none !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    border-radius: 20px 20px 0 0 !important;
+    max-height: 92dvh !important;
+    overflow-y: auto !important;
+    margin: 0 !important;
+    padding-bottom: max(24px, env(safe-area-inset-bottom)) !important;
+  }
+  [data-slot="dialog-content"]::before {
+    content: '';
+    display: block;
+    width: 36px;
+    height: 4px;
+    background: var(--border-strong);
+    border-radius: 99px;
+    margin: 10px auto 4px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TYPE UTILITIES
+   ═══════════════════════════════════════════════════════════════════════ */
+.text-need  { color: var(--c-need); }
+.text-want  { color: var(--c-want); }
+.text-save  { color: var(--c-save); }
+.text-warn  { color: var(--c-warn); }
+
+.bg-tint-need { background-color: var(--tint-need); }
+.bg-tint-want { background-color: var(--tint-want); }
+.bg-tint-save { background-color: var(--tint-save); }
+.bg-tint-warn { background-color: var(--tint-warn); }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   RECHARTS TOOLTIP
+   ═══════════════════════════════════════════════════════════════════════ */
+.recharts-default-tooltip {
+  background: var(--surface) !important;
+  color: var(--ink) !important;
+  border-radius: 10px !important;
+  font-size: 13px !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--shadow-md) !important;
+  padding: 10px 14px !important;
+}
+.recharts-tooltip-label { color: var(--ink-muted) !important; font-size: 11px !important; margin-bottom: 4px !important; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TABULAR NUMBERS
+   ═══════════════════════════════════════════════════════════════════════ */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' on;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SECTION HEADER
+   ═══════════════════════════════════════════════════════════════════════ */
+.section-bar {
+  display: inline-block;
+  width: 3px;
+  height: 18px;
+  border-radius: 99px;
+  flex-shrink: 0;
+  background: var(--c-primary);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   MOBILE SAFE AREA
+   ═══════════════════════════════════════════════════════════════════════ */
+.pb-safe { padding-bottom: max(16px, env(safe-area-inset-bottom)); }

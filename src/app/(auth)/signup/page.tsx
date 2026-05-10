@@ -68,7 +68,7 @@ export default function SignupPage() {
           <h1 className="font-display text-4xl font-medium tracking-tight text-[var(--ink)] mb-4">
             Ledger<span style={{ color: 'var(--c-want)' }}>.</span>
           </h1>
-          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-sm p-8">
+          <div className="bg-[var(--surface)] border border-[var(--border)] apple-card p-8">
             <div className="w-12 h-12 rounded-full bg-[var(--tint-save)] flex items-center justify-center mx-auto mb-4">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                 <path d="M4 10l4 4 8-8" stroke="var(--c-save)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -102,7 +102,7 @@ export default function SignupPage() {
           </p>
         </div>
 
-        <div className="bg-[var(--surface)] border border-[var(--border)] rounded-sm p-8">
+        <div className="bg-[var(--surface)] border border-[var(--border)] apple-card p-8">
           <h2 className="text-base font-semibold text-[var(--ink)] mb-6">Create account</h2>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -116,9 +116,7 @@ export default function SignupPage() {
                 autoComplete="email"
                 placeholder="you@example.com"
                 className={cn(
-                  'w-full px-3 py-2 text-sm bg-[var(--elevated)] border border-[var(--border)] rounded-sm',
-                  'text-[var(--ink)] placeholder:text-[var(--ink-subtle)]',
-                  'focus:outline-none focus:ring-2 focus:ring-[var(--c-primary)] focus:border-transparent',
+                  'apple-input text-sm',
                   errors.email && 'border-[var(--c-want)]',
                 )}
               />
@@ -138,9 +136,7 @@ export default function SignupPage() {
                   autoComplete="new-password"
                   placeholder="At least 8 characters"
                   className={cn(
-                    'w-full px-3 py-2 pr-10 text-sm bg-[var(--elevated)] border border-[var(--border)] rounded-sm',
-                    'text-[var(--ink)] placeholder:text-[var(--ink-subtle)]',
-                    'focus:outline-none focus:ring-2 focus:ring-[var(--c-primary)] focus:border-transparent',
+                    'apple-input text-sm pr-10',
                     errors.password && 'border-[var(--c-want)]',
                   )}
                 />
@@ -168,9 +164,7 @@ export default function SignupPage() {
                 autoComplete="new-password"
                 placeholder="Repeat password"
                 className={cn(
-                  'w-full px-3 py-2 text-sm bg-[var(--elevated)] border border-[var(--border)] rounded-sm',
-                  'text-[var(--ink)] placeholder:text-[var(--ink-subtle)]',
-                  'focus:outline-none focus:ring-2 focus:ring-[var(--c-primary)] focus:border-transparent',
+                  'apple-input text-sm',
                   errors.confirmPassword && 'border-[var(--c-want)]',
                 )}
               />
@@ -208,9 +202,10 @@ export default function SignupPage() {
             type="button"
             onClick={handleGoogleLogin}
             disabled={googleLoading}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium
-              bg-[var(--elevated)] border border-[var(--border)] rounded-sm text-[var(--ink)]
-              hover:bg-[var(--surface)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--c-primary)]"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium
+              bg-[var(--elevated)] border border-[var(--border)] rounded-[var(--radius-xl)] text-[var(--ink)]
+              hover:bg-[var(--surface-2)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--c-primary)]
+              min-h-[44px]"
           >
             {googleLoading ? (
               <span className="animate-spin inline-block w-4 h-4 border-2 border-[var(--ink-subtle)] border-t-transparent rounded-full" />

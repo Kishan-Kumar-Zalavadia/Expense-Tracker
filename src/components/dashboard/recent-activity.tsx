@@ -55,7 +55,7 @@ export function RecentActivity({
         {expenses.map((expense) => (
           <div
             key={expense.id}
-            className="group flex items-center gap-3 py-3 px-1 hover:bg-[var(--surface)] rounded-sm
+            className="group flex items-center gap-3 py-3 px-2 hover:bg-[var(--surface-2)] rounded-[var(--radius-md)]
               transition-colors cursor-pointer"
             onClick={() => handleEdit(expense)}
           >
@@ -72,7 +72,7 @@ export function RecentActivity({
                 </span>
                 {/* Type badge */}
                 <span
-                  className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-sm"
+                  className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-[var(--radius-xs)]"
                   style={{
                     backgroundColor: typeTint(expense.type),
                     color: typeColor(expense.type),
@@ -100,7 +100,7 @@ export function RecentActivity({
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
               <button
                 onClick={(e) => { e.stopPropagation(); handleEdit(expense) }}
-                className="p-1.5 rounded-sm text-[var(--ink-subtle)] hover:text-[var(--c-primary)]
+                className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)] hover:text-[var(--c-primary)]
                   hover:bg-[var(--elevated)] transition-colors"
                 title="Edit"
               >
@@ -108,7 +108,7 @@ export function RecentActivity({
               </button>
               <button
                 onClick={(e) => { e.stopPropagation(); handleDelete(expense.id) }}
-                className="p-1.5 rounded-sm text-[var(--ink-subtle)] hover:text-[var(--c-want)]
+                className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)] hover:text-[var(--c-want)]
                   hover:bg-[var(--tint-want)] transition-colors"
                 title="Delete"
               >

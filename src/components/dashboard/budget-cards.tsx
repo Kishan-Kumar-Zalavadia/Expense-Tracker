@@ -43,10 +43,11 @@ export function BudgetCards({ summary, currency }: BudgetCardsProps) {
         return (
           <div
             key={key}
-            className="rounded-sm border overflow-hidden"
+            className="rounded-[var(--radius-lg)] overflow-hidden"
             style={{
               backgroundColor: tint,
-              borderColor: color + '40',
+              border: `1px solid ${color}40`,
+              boxShadow: 'var(--shadow-sm)',
             }}
           >
             <div className="p-4">
@@ -55,7 +56,7 @@ export function BudgetCards({ summary, currency }: BudgetCardsProps) {
                   {label}
                 </span>
                 {over && (
-                  <span className="text-xs font-medium px-2 py-0.5 rounded-sm"
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-[var(--radius-md)]"
                     style={{ backgroundColor: color + '20', color }}>
                     Over by {formatCurrency(overBy, currency)}
                   </span>

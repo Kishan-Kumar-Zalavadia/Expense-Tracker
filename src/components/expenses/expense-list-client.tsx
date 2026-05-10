@@ -63,7 +63,7 @@ export function ExpenseListClient({
   }
 
   const selectCls = cn(
-    'px-3 py-1.5 text-xs bg-[var(--elevated)] border border-[var(--border)] rounded-sm',
+    'px-3 py-1.5 text-xs bg-[var(--elevated)] border border-[var(--border)] rounded-[var(--radius-sm)]',
     'text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[var(--c-primary)]',
   )
 
@@ -76,7 +76,7 @@ export function ExpenseListClient({
           placeholder="Search description, notes..."
           value={filters.search}
           onChange={(e) => onFilterChange('search', e.target.value)}
-          className="px-3 py-1.5 text-xs bg-[var(--elevated)] border border-[var(--border)] rounded-sm
+          className="px-3 py-1.5 text-xs bg-[var(--elevated)] border border-[var(--border)] rounded-[var(--radius-sm)]
             text-[var(--ink)] placeholder:text-[var(--ink-subtle)]
             focus:outline-none focus:ring-2 focus:ring-[var(--c-primary)] flex-1 min-w-40"
         />
@@ -122,7 +122,7 @@ export function ExpenseListClient({
           No expenses found
         </div>
       ) : (
-        <div className="border border-[var(--border)] rounded-sm overflow-hidden">
+        <div className="border border-[var(--border)] rounded-[var(--radius-sm)] overflow-hidden">
           <table className="w-full">
             <thead>
               <tr className="bg-[var(--surface)] border-b border-[var(--border)]">
@@ -168,7 +168,7 @@ export function ExpenseListClient({
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <span
-                      className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-sm"
+                      className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-[var(--radius-sm)]"
                       style={{
                         backgroundColor: typeTint(expense.type),
                         color: typeColor(expense.type),
@@ -181,7 +181,7 @@ export function ExpenseListClient({
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={(e) => { e.stopPropagation(); handleEdit(expense) }}
-                        className="p-1.5 rounded-sm text-[var(--ink-subtle)] hover:text-[var(--c-primary)]
+                        className="p-1.5 rounded-[var(--radius-sm)] text-[var(--ink-subtle)] hover:text-[var(--c-primary)]
                           hover:bg-[var(--elevated)] transition-colors"
                         title="Edit"
                       >
@@ -189,7 +189,7 @@ export function ExpenseListClient({
                       </button>
                       <button
                         onClick={(e) => { e.stopPropagation(); handleDelete(expense.id) }}
-                        className="p-1.5 rounded-sm text-[var(--ink-subtle)] hover:text-[var(--c-want)]
+                        className="p-1.5 rounded-[var(--radius-sm)] text-[var(--ink-subtle)] hover:text-[var(--c-want)]
                           hover:bg-[var(--tint-want)] transition-colors"
                         title="Delete"
                       >
@@ -214,7 +214,7 @@ export function ExpenseListClient({
             <button
               onClick={() => onPageChange(page - 1)}
               disabled={page <= 1}
-              className="p-1.5 rounded-sm border border-[var(--border)] text-[var(--ink-muted)]
+              className="p-1.5 rounded-[var(--radius-sm)] border border-[var(--border)] text-[var(--ink-muted)]
                 hover:text-[var(--ink)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               <ChevronLeft size={14} />
@@ -222,7 +222,7 @@ export function ExpenseListClient({
             <button
               onClick={() => onPageChange(page + 1)}
               disabled={page >= totalPages}
-              className="p-1.5 rounded-sm border border-[var(--border)] text-[var(--ink-muted)]
+              className="p-1.5 rounded-[var(--radius-sm)] border border-[var(--border)] text-[var(--ink-muted)]
                 hover:text-[var(--ink)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               <ChevronRight size={14} />

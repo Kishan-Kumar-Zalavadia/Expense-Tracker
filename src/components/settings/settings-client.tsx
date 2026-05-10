@@ -43,7 +43,7 @@ export function SettingsClient({
     <div className="page-enter flex flex-col gap-6 p-6 max-w-4xl mx-auto w-full">
       {/* Header */}
       <div>
-        <div className="inline-flex items-center px-2 py-0.5 mb-2 rounded-sm text-[10px] font-bold
+        <div className="inline-flex items-center px-2 py-0.5 mb-2 rounded-full text-[10px] font-bold
           uppercase tracking-widest text-white"
           style={{ backgroundColor: 'var(--c-warn)' }}>
           Settings
@@ -76,7 +76,7 @@ export function SettingsClient({
       </div>
 
       {/* Panel */}
-      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-sm p-6">
+      <div className="apple-card p-6">
         {activeTab === 'general'    && <GeneralPanel userId={userId} settings={settings} onSave={refresh} />}
         {activeTab === 'salary'     && <SalaryPanel userId={userId} configs={salaryConfigs} onSave={refresh} />}
         {activeTab === 'categories' && <CategoriesPanel userId={userId} categories={categories} onSave={refresh} />}

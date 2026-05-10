@@ -26,7 +26,7 @@ export function MonthPicker({ year, month }: MonthPickerProps) {
     <div className="flex items-center gap-1">
       <button
         onClick={() => navigate(subMonths(current, 1))}
-        className="p-1.5 rounded-sm text-[var(--ink-muted)] hover:text-[var(--ink)]
+        className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-muted)] hover:text-[var(--ink)]
           hover:bg-[var(--surface)] transition-colors"
         aria-label="Previous month"
       >
@@ -37,7 +37,7 @@ export function MonthPicker({ year, month }: MonthPickerProps) {
       </span>
       <button
         onClick={() => navigate(addMonths(current, 1))}
-        className="p-1.5 rounded-sm text-[var(--ink-muted)] hover:text-[var(--ink)]
+        className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-muted)] hover:text-[var(--ink)]
           hover:bg-[var(--surface)] transition-colors"
         aria-label="Next month"
       >

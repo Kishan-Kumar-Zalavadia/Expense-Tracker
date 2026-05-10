@@ -60,7 +60,7 @@ export function PaymentModesPanel({ userId, paymentModes, onSave }: PaymentModes
   }
 
   const inputCls = cn(
-    'px-3 py-1.5 text-sm bg-[var(--elevated)] border border-[var(--border)] rounded-sm',
+    'px-3 py-1.5 text-sm bg-[var(--elevated)] border border-[var(--border)] rounded-[var(--radius-md)]',
     'text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[var(--c-primary)]',
   )
 
@@ -77,7 +77,7 @@ export function PaymentModesPanel({ userId, paymentModes, onSave }: PaymentModes
       <div className="space-y-2">
         {active.map((pm) => (
           <div key={pm.id}
-            className="flex items-center gap-3 px-4 py-3 bg-[var(--elevated)] border border-[var(--border)] rounded-sm">
+            className="flex items-center gap-3 px-4 py-3 bg-[var(--elevated)] border border-[var(--border)] rounded-[var(--radius-md)]">
             {editing === pm.id ? (
               <>
                 <input
@@ -88,11 +88,11 @@ export function PaymentModesPanel({ userId, paymentModes, onSave }: PaymentModes
                   autoFocus
                 />
                 <button onClick={saveEdit}
-                  className="p-1.5 rounded-sm text-[var(--c-save)] hover:bg-[var(--tint-save)] transition-colors">
+                  className="p-1.5 rounded-[var(--radius-md)] text-[var(--c-save)] hover:bg-[var(--tint-save)] transition-colors">
                   <Check size={13} />
                 </button>
                 <button onClick={() => setEditing(null)}
-                  className="p-1.5 rounded-sm text-[var(--ink-muted)] hover:bg-[var(--surface)] transition-colors">
+                  className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-muted)] hover:bg-[var(--surface)] transition-colors">
                   <X size={13} />
                 </button>
               </>
@@ -101,11 +101,11 @@ export function PaymentModesPanel({ userId, paymentModes, onSave }: PaymentModes
                 <span className="flex-1 text-sm text-[var(--ink)]">{pm.name}</span>
                 <button onClick={() => startEdit(pm)}
                   className="px-2 py-1 text-xs text-[var(--ink-muted)] hover:text-[var(--ink)]
-                    border border-[var(--border)] rounded-sm hover:bg-[var(--surface)] transition-colors">
+                    border border-[var(--border)] rounded-[var(--radius-md)] hover:bg-[var(--surface)] transition-colors">
                   Edit
                 </button>
                 <button onClick={() => archive(pm.id)}
-                  className="p-1.5 rounded-sm text-[var(--ink-subtle)] hover:text-[var(--c-warn)]
+                  className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)] hover:text-[var(--c-warn)]
                     hover:bg-[var(--tint-warn)] transition-colors"
                   title="Archive">
                   <Archive size={13} />
@@ -129,7 +129,7 @@ export function PaymentModesPanel({ userId, paymentModes, onSave }: PaymentModes
           />
           <button onClick={saveNew} className="btn-primary text-xs px-3 py-1.5">Add</button>
           <button onClick={() => setAdding(false)}
-            className="px-3 py-1.5 text-xs border border-[var(--border)] rounded-sm
+            className="px-3 py-1.5 text-xs border border-[var(--border)] rounded-[var(--radius-md)]
             text-[var(--ink-muted)] hover:bg-[var(--surface)] transition-colors">
             Cancel
           </button>
@@ -138,7 +138,7 @@ export function PaymentModesPanel({ userId, paymentModes, onSave }: PaymentModes
         <button
           onClick={() => setAdding(true)}
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[var(--ink-muted)]
-            border border-dashed border-[var(--border)] rounded-sm hover:text-[var(--ink)]
+            border border-dashed border-[var(--border)] rounded-[var(--radius-md)] hover:text-[var(--ink)]
             hover:border-[var(--border-strong)] transition-colors"
         >
           <Plus size={12} />
@@ -152,7 +152,7 @@ export function PaymentModesPanel({ userId, paymentModes, onSave }: PaymentModes
           <div className="space-y-1">
             {archived.map((pm) => (
               <div key={pm.id}
-                className="flex items-center gap-3 px-4 py-2.5 opacity-50 border border-[var(--border)] rounded-sm">
+                className="flex items-center gap-3 px-4 py-2.5 opacity-50 border border-[var(--border)] rounded-[var(--radius-md)]">
                 <span className="flex-1 text-sm line-through text-[var(--ink-muted)]">{pm.name}</span>
                 <button onClick={() => unarchive(pm.id)}
                   className="text-xs text-[var(--c-primary)] hover:underline">

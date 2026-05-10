@@ -39,7 +39,7 @@ export function WeeklyClient({ weeklyData, weeklyLimit, currency, year }: Weekly
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="inline-flex items-center px-2 py-0.5 mb-2 rounded-sm text-[10px] font-bold
+          <div className="inline-flex items-center px-2 py-0.5 mb-2 rounded-full text-[10px] font-bold
             uppercase tracking-widest text-white"
             style={{ backgroundColor: 'var(--c-need)' }}>
             Analysis
@@ -51,16 +51,16 @@ export function WeeklyClient({ weeklyData, weeklyLimit, currency, year }: Weekly
         <div className="flex items-center gap-1">
           <button
             onClick={() => navigate(year - 1)}
-            className="px-3 py-1.5 text-sm border border-[var(--border)] rounded-sm
-              text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--surface)] transition-colors"
+            className="px-3 py-1.5 text-sm border border-[var(--border)] rounded-[var(--radius-md)]
+              text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--surface-2)] transition-colors"
           >
             ← {year - 1}
           </button>
           <span className="px-3 py-1.5 text-sm font-semibold tabular-nums text-[var(--ink)]">{year}</span>
           <button
             onClick={() => navigate(year + 1)}
-            className="px-3 py-1.5 text-sm border border-[var(--border)] rounded-sm
-              text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--surface)] transition-colors"
+            className="px-3 py-1.5 text-sm border border-[var(--border)] rounded-[var(--radius-md)]
+              text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--surface-2)] transition-colors"
           >
             {year + 1} →
           </button>
@@ -68,7 +68,7 @@ export function WeeklyClient({ weeklyData, weeklyLimit, currency, year }: Weekly
       </div>
 
       {/* Bar chart */}
-      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-sm p-5">
+      <div className="apple-card p-5">
         <div className="flex items-center gap-2 mb-4">
           <span className="section-bar" style={{ backgroundColor: 'var(--c-need)' }} />
           <h2 className="font-display text-base font-medium text-[var(--ink)]">52-week overview</h2>
@@ -107,7 +107,7 @@ export function WeeklyClient({ weeklyData, weeklyLimit, currency, year }: Weekly
                 backgroundColor: 'var(--ink)',
                 color: 'var(--bg)',
                 border: 'none',
-                borderRadius: '2px',
+                borderRadius: '10px',
                 fontSize: '12px',
                 padding: '8px 12px',
               }}
@@ -141,7 +141,7 @@ export function WeeklyClient({ weeklyData, weeklyLimit, currency, year }: Weekly
 
       {/* Table of non-zero weeks */}
       {nonZeroWeeks.length > 0 && (
-        <div className="bg-[var(--surface)] border border-[var(--border)] rounded-sm p-5">
+        <div className="apple-card p-5">
           <div className="flex items-center gap-2 mb-4">
             <span className="section-bar" style={{ backgroundColor: 'var(--c-need)' }} />
             <h2 className="font-display text-base font-medium text-[var(--ink)]">Week breakdown</h2>

@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { expenseSchema, type ExpenseFormValues, EXPENSE_TYPES } from '@/lib/validations'
+import { expenseSchema, type ExpenseFormValues } from '@/lib/validations'
 import { createClient } from '@/lib/supabase/client'
 import { todayISO, typeColor, typeTint } from '@/lib/utils'
 import type { Category, Expense, PaymentMode } from '@/lib/types'
@@ -25,8 +25,6 @@ interface ExpenseModalProps {
   paymentModes: PaymentMode[]
   onSuccess: () => void
 }
-
-const TYPE_OPTIONS: ExpenseType[] = ['Need', 'Want', 'Saving']
 
 export function ExpenseModal({
   open,
@@ -61,20 +59,16 @@ export function ExpenseModal({
     },
   })
 
-  const watchType = watch('type')
   const watchCategory = watch('category_id')
 
+  // Derive type from selected category — always, even in edit mode
   useEffect(() => {
-    if (watchType) setCurrentType(watchType as ExpenseType)
-  }, [watchType])
-
-  // Auto-fill type from selected category
-  useEffect(() => {
-    if (watchCategory && !isEdit) {
-      const cat = categories.find((c) => c.id === watchCategory)
-      if (cat) setValue('type', cat.type)
+    const cat = categories.find((c) => c.id === watchCategory)
+    if (cat) {
+      setCurrentType(cat.type)
+      setValue('type', cat.type)
     }
-  }, [watchCategory, categories, isEdit, setValue])
+  }, [watchCategory, categories, setValue])
 
   // Populate form when editing
   useEffect(() => {
@@ -157,7 +151,7 @@ export function ExpenseModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className="p-0 overflow-hidden border border-[var(--border)] bg-[var(--elevated)] max-w-md"
-        style={{ borderRadius: '2px' }}
+        style={{ borderRadius: 'var(--radius-xl)' }}
       >
         {/* Type-colored top bar */}
         <div className="h-1 w-full" style={{ backgroundColor: accentColor }} />
@@ -202,23 +196,27 @@ export function ExpenseModal({
               </select>
             </Field>
 
-            {/* Type — left border updates with color */}
-            <Field label="Type" error={errors.type?.message}>
-              <div className="relative">
-                <div
-                  className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-sm"
-                  style={{ backgroundColor: accentColor }}
-                />
-                <select
-                  {...register('type')}
-                  className={cn(inputCls(!!errors.type), 'pl-4')}
-                >
-                  {TYPE_OPTIONS.map((t) => (
-                    <option key={t} value={t}>{t}</option>
-                  ))}
-                </select>
+            {/* Type — read-only, derived from category */}
+            <div>
+              <label className="block text-xs font-medium text-[var(--ink-muted)] mb-1 uppercase tracking-wide">
+                Type
+              </label>
+              <div
+                className="flex items-center gap-2 px-3 py-2 rounded-[var(--radius-sm)] border text-sm min-h-[44px]"
+                style={{
+                  borderColor: accentColor + '50',
+                  borderLeftColor: accentColor,
+                  borderLeftWidth: '3px',
+                  backgroundColor: typeTint(currentType),
+                }}
+              >
+                <span className="font-medium" style={{ color: accentColor }}>
+                  {currentType}
+                </span>
+                <span className="text-xs text-[var(--ink-muted)]">— set by category</span>
               </div>
-            </Field>
+              <input type="hidden" {...register('type')} />
+            </div>
 
             {/* Amount */}
             <Field label="Amount" error={errors.amount?.message}>
@@ -264,7 +262,7 @@ export function ExpenseModal({
                 type="button"
                 onClick={() => onOpenChange(false)}
                 className="flex-1 px-4 py-2 text-sm text-[var(--ink-muted)] border border-[var(--border)]
-                  rounded-sm hover:bg-[var(--surface)] transition-colors"
+                  rounded-[var(--radius-xl)] hover:bg-[var(--surface-2)] transition-colors min-h-[44px]"
               >
                 Cancel
               </button>
@@ -308,10 +306,7 @@ function Field({
 
 function inputCls(hasError: boolean) {
   return cn(
-    'w-full px-3 py-2 text-sm bg-[var(--surface)] border rounded-sm',
-    'text-[var(--ink)] placeholder:text-[var(--ink-subtle)]',
-    'focus:outline-none focus:ring-2 focus:ring-[var(--c-primary)] focus:border-transparent',
-    'transition-colors',
-    hasError ? 'border-[var(--c-want)]' : 'border-[var(--border)]',
+    'apple-input text-sm',
+    hasError && 'error',
   )
 }

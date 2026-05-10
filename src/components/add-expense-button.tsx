@@ -32,8 +32,8 @@ export function AddExpenseButton({
         <button
           onClick={() => setOpen(true)}
           className="md:hidden fixed bottom-20 right-4 z-30 w-14 h-14 rounded-full
-            flex items-center justify-center shadow-lg transition-transform hover:scale-105 active:scale-95"
-          style={{ backgroundColor: 'var(--ink)', color: 'var(--bg)' }}
+            flex items-center justify-center transition-transform hover:scale-105 active:scale-95"
+          style={{ backgroundColor: 'var(--c-primary)', color: '#fff', boxShadow: 'var(--shadow-lg)' }}
           aria-label="Add expense"
         >
           <Plus size={22} />

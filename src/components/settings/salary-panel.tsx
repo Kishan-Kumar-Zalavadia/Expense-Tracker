@@ -93,8 +93,8 @@ export function SalaryPanel({ userId, configs, onSave }: SalaryPanelProps) {
     onSave()
   }
 
-  const inputCls = 'px-2 py-1 text-sm bg-[var(--elevated)] border border-[var(--border)] rounded-sm text-[var(--ink)] tabular-nums focus:outline-none focus:ring-2 focus:ring-[var(--c-primary)] w-full'
-  const pctInputCls = 'px-2 py-1 text-sm bg-[var(--elevated)] border-l-4 border-[var(--border)] rounded-sm text-[var(--ink)] tabular-nums focus:outline-none focus:ring-2 focus:ring-[var(--c-primary)] w-20'
+  const inputCls = 'px-2 py-1 text-sm bg-[var(--elevated)] border border-[var(--border)] rounded-[var(--radius-md)] text-[var(--ink)] tabular-nums focus:outline-none focus:ring-2 focus:ring-[var(--c-primary)] w-full'
+  const pctInputCls = 'px-2 py-1 text-sm bg-[var(--elevated)] border-l-4 border-[var(--border)] rounded-[var(--radius-md)] text-[var(--ink)] tabular-nums focus:outline-none focus:ring-2 focus:ring-[var(--c-primary)] w-20'
 
   return (
     <div className="space-y-5">
@@ -108,7 +108,7 @@ export function SalaryPanel({ userId, configs, onSave }: SalaryPanelProps) {
       </p>
 
       {/* Table */}
-      <div className="border border-[var(--border)] rounded-sm overflow-hidden">
+      <div className="border border-[var(--border)] rounded-[var(--radius-md)] overflow-hidden">
         <table className="w-full">
           <thead>
             <tr className="bg-[var(--surface)] border-b border-[var(--border)]">
@@ -165,7 +165,7 @@ export function SalaryPanel({ userId, configs, onSave }: SalaryPanelProps) {
                           />
                         ) : (
                           <span
-                            className="tabular-nums text-sm font-medium px-2 py-0.5 rounded-sm"
+                            className="tabular-nums text-sm font-medium px-2 py-0.5 rounded-[var(--radius-md)]"
                             style={{ color: colors[idx], backgroundColor: colors[idx] + '15' }}
                           >
                             {config[field]}%
@@ -179,18 +179,18 @@ export function SalaryPanel({ userId, configs, onSave }: SalaryPanelProps) {
                       {isEditingThis ? (
                         <>
                           <button onClick={saveEdit}
-                            className="p-1.5 rounded-sm text-[var(--c-save)] hover:bg-[var(--tint-save)] transition-colors">
+                            className="p-1.5 rounded-[var(--radius-md)] text-[var(--c-save)] hover:bg-[var(--tint-save)] transition-colors">
                             <Check size={13} />
                           </button>
                           <button onClick={() => setEditing(null)}
-                            className="p-1.5 rounded-sm text-[var(--ink-muted)] hover:bg-[var(--surface)] transition-colors">
+                            className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-muted)] hover:bg-[var(--surface)] transition-colors">
                             <X size={13} />
                           </button>
                         </>
                       ) : (
                         <button onClick={() => startEdit(config)}
                           className="px-2 py-1 text-xs text-[var(--ink-muted)] hover:text-[var(--ink)]
-                            border border-[var(--border)] rounded-sm hover:bg-[var(--surface)] transition-colors">
+                            border border-[var(--border)] rounded-[var(--radius-md)] hover:bg-[var(--surface)] transition-colors">
                           Edit
                         </button>
                       )}
@@ -205,7 +205,7 @@ export function SalaryPanel({ userId, configs, onSave }: SalaryPanelProps) {
 
       {/* Add new year */}
       {adding ? (
-        <div className="border border-[var(--border)] rounded-sm p-4 bg-[var(--elevated)] space-y-3">
+        <div className="border border-[var(--border)] rounded-[var(--radius-md)] p-4 bg-[var(--elevated)] space-y-3">
           <h3 className="text-sm font-medium text-[var(--ink)]">New year config</h3>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -239,7 +239,7 @@ export function SalaryPanel({ userId, configs, onSave }: SalaryPanelProps) {
           <div className="flex gap-2">
             <button onClick={saveNew} className="btn-primary text-xs px-3 py-1.5">Add</button>
             <button onClick={() => setAdding(false)}
-              className="px-3 py-1.5 text-xs border border-[var(--border)] rounded-sm
+              className="px-3 py-1.5 text-xs border border-[var(--border)] rounded-[var(--radius-md)]
               text-[var(--ink-muted)] hover:bg-[var(--surface)] transition-colors">
               Cancel
             </button>
@@ -249,7 +249,7 @@ export function SalaryPanel({ userId, configs, onSave }: SalaryPanelProps) {
         <button
           onClick={() => setAdding(true)}
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[var(--ink-muted)]
-            border border-dashed border-[var(--border)] rounded-sm hover:text-[var(--ink)]
+            border border-dashed border-[var(--border)] rounded-[var(--radius-md)] hover:text-[var(--ink)]
             hover:border-[var(--border-strong)] transition-colors"
         >
           <Plus size={12} />

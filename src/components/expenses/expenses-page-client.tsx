@@ -67,7 +67,7 @@ export function ExpensesPageClient({
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="inline-flex items-center px-2 py-0.5 mb-2 rounded-sm text-[10px] font-bold
+          <div className="inline-flex items-center px-2 py-0.5 mb-2 rounded-full text-[10px] font-bold
             uppercase tracking-widest text-white"
             style={{ backgroundColor: 'var(--c-berry)' }}>
             Expenses
@@ -85,7 +85,7 @@ export function ExpensesPageClient({
       </div>
 
       {/* List */}
-      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-sm p-5">
+      <div className="apple-card p-5">
         <ExpenseListClient
           expenses={initialExpenses}
           totalCount={totalCount}

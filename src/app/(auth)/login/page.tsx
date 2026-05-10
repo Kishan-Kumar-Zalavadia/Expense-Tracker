@@ -82,13 +82,13 @@ function LoginPageInner() {
         </div>
 
         {errorParam && (
-          <div className="mb-4 px-4 py-3 bg-[var(--tint-want)] border border-[var(--c-want)] rounded-sm text-sm text-[var(--c-want)]">
+          <div className="mb-4 px-4 py-3 bg-[var(--tint-want)] border border-[var(--c-want)] rounded-[var(--radius-md)] text-sm text-[var(--c-want)]">
             Authentication failed. Please try again.
           </div>
         )}
 
         {/* Card */}
-        <div className="bg-[var(--surface)] border border-[var(--border)] rounded-sm p-8">
+        <div className="apple-card p-8">
           <h2 className="text-base font-semibold text-[var(--ink)] mb-6">Sign in</h2>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -102,7 +102,7 @@ function LoginPageInner() {
                 autoComplete="email"
                 placeholder="you@example.com"
                 className={cn(
-                  'w-full px-3 py-2 text-sm bg-[var(--elevated)] border border-[var(--border)] rounded-sm',
+                  'apple-input text-sm',
                   'text-[var(--ink)] placeholder:text-[var(--ink-subtle)]',
                   'focus:outline-none focus:ring-2 focus:ring-[var(--c-primary)] focus:border-transparent',
                   errors.email && 'border-[var(--c-want)]',
@@ -124,7 +124,7 @@ function LoginPageInner() {
                   autoComplete="current-password"
                   placeholder="••••••••"
                   className={cn(
-                    'w-full px-3 py-2 pr-10 text-sm bg-[var(--elevated)] border border-[var(--border)] rounded-sm',
+                    'apple-input text-sm pr-10',
                     'text-[var(--ink)] placeholder:text-[var(--ink-subtle)]',
                     'focus:outline-none focus:ring-2 focus:ring-[var(--c-primary)] focus:border-transparent',
                     errors.password && 'border-[var(--c-want)]',
@@ -173,9 +173,10 @@ function LoginPageInner() {
             type="button"
             onClick={handleGoogleLogin}
             disabled={googleLoading}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium
-              bg-[var(--elevated)] border border-[var(--border)] rounded-sm text-[var(--ink)]
-              hover:bg-[var(--surface)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--c-primary)]"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium
+              bg-[var(--elevated)] border border-[var(--border)] rounded-[var(--radius-xl)] text-[var(--ink)]
+              hover:bg-[var(--surface-2)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--c-primary)]
+              min-h-[44px]"
           >
             {googleLoading ? (
               <span className="animate-spin inline-block w-4 h-4 border-2 border-[var(--ink-subtle)] border-t-transparent rounded-full" />

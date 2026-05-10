@@ -45,10 +45,8 @@ export function GeneralPanel({ userId, settings, onSave }: GeneralPanelProps) {
   }
 
   const inputCls = (hasErr: boolean) => cn(
-    'w-full px-3 py-2 text-sm bg-[var(--elevated)] border rounded-sm',
-    'text-[var(--ink)] placeholder:text-[var(--ink-subtle)]',
-    'focus:outline-none focus:ring-2 focus:ring-[var(--c-primary)] focus:border-transparent',
-    hasErr ? 'border-[var(--c-want)]' : 'border-[var(--border)]',
+    'apple-input text-sm',
+    hasErr && 'error',
   )
 
   return (

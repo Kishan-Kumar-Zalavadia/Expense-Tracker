@@ -146,7 +146,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
       {/* Page header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="inline-flex items-center px-2 py-0.5 mb-2 rounded-sm text-[10px] font-bold
+          <div className="inline-flex items-center px-2 py-0.5 mb-2 rounded-full text-[10px] font-bold
             uppercase tracking-widest text-white"
             style={{ backgroundColor: 'var(--c-primary)' }}>
             Dashboard
@@ -180,7 +180,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
 
       {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <section className="bg-[var(--surface)] border border-[var(--border)] rounded-sm p-5">
+        <section className="apple-card p-5">
           <div className="flex items-center gap-2 mb-4">
             <span className="section-bar" style={{ backgroundColor: 'var(--c-berry)' }} />
             <h2 className="font-display text-base font-medium text-[var(--ink)]">By category</h2>
@@ -188,7 +188,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
           <CategoryPie data={categorySpend} currency={currency} />
         </section>
 
-        <section className="bg-[var(--surface)] border border-[var(--border)] rounded-sm p-5">
+        <section className="apple-card p-5">
           <div className="flex items-center gap-2 mb-4">
             <span className="section-bar" style={{ backgroundColor: 'var(--c-need)' }} />
             <h2 className="font-display text-base font-medium text-[var(--ink)]">Daily spend</h2>
@@ -199,7 +199,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
       </div>
 
       {/* Recent activity */}
-      <section className="bg-[var(--surface)] border border-[var(--border)] rounded-sm p-5">
+      <section className="apple-card p-5">
         <div className="flex items-center gap-2 mb-4">
           <span className="section-bar" style={{ backgroundColor: 'var(--c-save)' }} />
           <h2 className="font-display text-base font-medium text-[var(--ink)]">Recent activity</h2>

@@ -18,8 +18,8 @@ export function MobileNav() {
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40
-      bg-[var(--surface)] border-t border-[var(--border)]
-      flex items-center justify-around px-2 py-1 safe-area-inset-bottom">
+      bg-[var(--surface)]/90 backdrop-blur-xl border-t border-[var(--border)]
+      flex items-center justify-around px-1 pt-2 pb-safe">
       {NAV.map(({ href, label, icon: Icon, color }) => {
         const active = href === '/' ? pathname === '/' : pathname.startsWith(href)
         return (
@@ -27,12 +27,14 @@ export function MobileNav() {
             key={href}
             href={href}
             className={cn(
-              'flex flex-col items-center gap-0.5 px-3 py-2 rounded-sm transition-colors min-w-0',
+              'flex flex-col items-center gap-1 px-3 py-1.5 rounded-[var(--radius-md)] transition-colors min-w-0',
               active ? 'text-[var(--ink)]' : 'text-[var(--ink-subtle)]',
             )}
           >
-            <Icon size={18} style={{ color: active ? color : undefined }} />
-            <span className="text-[10px] font-medium truncate">{label}</span>
+            <Icon size={22} style={{ color: active ? color : undefined }} />
+            <span className="text-[10px] font-medium truncate" style={{ color: active ? color : undefined }}>
+              {label}
+            </span>
           </Link>
         )
       })}

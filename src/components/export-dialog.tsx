@@ -127,11 +127,11 @@ export function ExportDialog({ open, onOpenChange }: ExportDialogProps) {
     }
   }
 
-  const selectCls = 'px-3 py-2 text-sm bg-[var(--elevated)] border border-[var(--border)] rounded-sm text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[var(--c-primary)]'
+  const selectCls = 'px-3 py-2 text-sm bg-[var(--elevated)] border border-[var(--border)] rounded-[var(--radius-md)] text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[var(--c-primary)]'
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm p-0 border border-[var(--border)] bg-[var(--elevated)]" style={{ borderRadius: '2px' }}>
+      <DialogContent className="max-w-sm p-0 border border-[var(--border)] bg-[var(--elevated)]" style={{ borderRadius: 'var(--radius-xl)' }}>
         <div className="h-[3px]" style={{ backgroundColor: 'var(--c-primary)' }} />
         <div className="px-6 pt-4 pb-6">
           <DialogHeader className="mb-5">
@@ -150,7 +150,7 @@ export function ExportDialog({ open, onOpenChange }: ExportDialogProps) {
                   <button
                     key={p.id}
                     onClick={() => setPreset(p.id)}
-                    className="px-3 py-2 text-sm rounded-sm border transition-colors text-left"
+                    className="px-3 py-2 text-sm rounded-[var(--radius-md)] border transition-colors text-left"
                     style={{
                       backgroundColor: preset === p.id ? 'var(--ink)' : 'var(--surface)',
                       color:           preset === p.id ? 'var(--bg)' : 'var(--ink-muted)',
@@ -168,7 +168,7 @@ export function ExportDialog({ open, onOpenChange }: ExportDialogProps) {
                 onClick={exportCSV}
                 disabled={!!loading}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium
-                  bg-[var(--ink)] text-[var(--bg)] rounded-sm hover:opacity-90 transition-opacity disabled:opacity-50"
+                  bg-[var(--ink)] text-[var(--bg)] rounded-[var(--radius-md)] hover:opacity-90 transition-opacity disabled:opacity-50"
               >
                 {loading === 'csv'
                   ? <span className="animate-spin w-4 h-4 border-2 border-[var(--bg)] border-t-transparent rounded-full" />
@@ -179,7 +179,7 @@ export function ExportDialog({ open, onOpenChange }: ExportDialogProps) {
                 onClick={exportXLSX}
                 disabled={!!loading}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium
-                  border border-[var(--border)] text-[var(--ink)] rounded-sm hover:bg-[var(--surface)]
+                  border border-[var(--border)] text-[var(--ink)] rounded-[var(--radius-md)] hover:bg-[var(--surface)]
                   transition-colors disabled:opacity-50"
               >
                 {loading === 'xlsx'

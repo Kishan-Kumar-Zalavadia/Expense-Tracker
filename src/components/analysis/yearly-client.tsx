@@ -32,10 +32,10 @@ const DAY_LABELS = ['M','T','W','T','F','S','S']
 function dayColor(amount: number, max: number): string {
   if (amount === 0 || max === 0) return 'transparent'
   const intensity = Math.min(1, amount / max)
-  // From var(--border) (#E0D2B0) toward var(--c-want) (#E8553D)
-  const r = Math.round(224 + (232 - 224) * intensity)
-  const g = Math.round(210 + (85  - 210) * intensity)
-  const b = Math.round(176 + (61  - 176) * intensity)
+  // From --border (#E4E6EB) toward --c-primary (#2563EB)
+  const r = Math.round(228 + (37  - 228) * intensity)
+  const g = Math.round(230 + (99  - 230) * intensity)
+  const b = Math.round(235 + (235 - 235) * intensity)
   return `rgb(${r},${g},${b})`
 }
 
@@ -57,7 +57,7 @@ export function YearlyClient({ year, dailyData, maxDay, currency }: YearlyClient
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="inline-flex items-center px-2 py-0.5 mb-2 rounded-sm text-[10px] font-bold
+          <div className="inline-flex items-center px-2 py-0.5 mb-2 rounded-full text-[10px] font-bold
             uppercase tracking-widest text-white"
             style={{ backgroundColor: 'var(--c-save)' }}>
             Analysis
@@ -68,13 +68,13 @@ export function YearlyClient({ year, dailyData, maxDay, currency }: YearlyClient
         </div>
         <div className="flex items-center gap-1">
           <button onClick={() => navigate(year - 1)}
-            className="px-3 py-1.5 text-sm border border-[var(--border)] rounded-sm
+            className="px-3 py-1.5 text-sm border border-[var(--border)] rounded-[var(--radius-md)]
               text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--surface)] transition-colors">
             ← {year - 1}
           </button>
           <span className="px-3 py-1.5 text-sm font-semibold tabular-nums text-[var(--ink)]">{year}</span>
           <button onClick={() => navigate(year + 1)}
-            className="px-3 py-1.5 text-sm border border-[var(--border)] rounded-sm
+            className="px-3 py-1.5 text-sm border border-[var(--border)] rounded-[var(--radius-md)]
               text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--surface)] transition-colors">
             {year + 1} →
           </button>
@@ -82,7 +82,7 @@ export function YearlyClient({ year, dailyData, maxDay, currency }: YearlyClient
       </div>
 
       {/* 12-month grid */}
-      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-sm p-5 relative">
+      <div className="apple-card p-5 relative">
         <div className="flex items-center gap-2 mb-5">
           <span className="section-bar" style={{ backgroundColor: 'var(--c-save)' }} />
           <h2 className="font-display text-base font-medium text-[var(--ink)]">Daily spend intensity</h2>
@@ -161,7 +161,7 @@ export function YearlyClient({ year, dailyData, maxDay, currency }: YearlyClient
       {/* Tooltip portal-style overlay */}
       {tooltip && (
         <div
-          className="fixed z-50 px-3 py-2 pointer-events-none rounded-sm text-xs"
+          className="fixed z-50 px-3 py-2 pointer-events-none rounded-[var(--radius-md)] text-xs"
           style={{
             backgroundColor: 'var(--ink)',
             color: 'var(--bg)',

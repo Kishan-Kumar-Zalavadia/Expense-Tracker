@@ -58,7 +58,7 @@ export function KpiCards({ summary, currency }: KpiCardsProps) {
       {cards.map((card, i) => (
         <div
           key={card.label}
-          className="bg-[var(--surface)] border border-[var(--border)] rounded-sm overflow-hidden"
+          className="apple-card overflow-hidden"
         >
           <div className="h-[3px]" style={{ backgroundColor: topColors[i] }} />
           <div className="p-4">

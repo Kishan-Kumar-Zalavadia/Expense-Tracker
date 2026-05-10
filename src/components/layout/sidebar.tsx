@@ -44,7 +44,7 @@ export function Sidebar() {
 
   return (
     <>
-      <aside className="hidden md:flex flex-col w-56 shrink-0 h-screen sticky top-0
+      <aside className="hidden md:flex flex-col w-56 shrink-0 h-screen fixed top-0 left-0 z-30
         bg-[var(--surface)] border-r border-[var(--border)]">
 
         {/* Logo */}
@@ -92,7 +92,7 @@ export function Sidebar() {
           <button
             onClick={() => setExportOpen(true)}
             className="flex items-center gap-2.5 w-full px-2 py-2 text-sm text-[var(--ink-muted)]
-              hover:text-[var(--ink)] hover:bg-[var(--bg)] rounded-sm transition-colors"
+              hover:text-[var(--ink)] hover:bg-[var(--bg)] rounded-[var(--radius-md)] transition-colors"
           >
             <Download size={14} />
             Export
@@ -101,7 +101,7 @@ export function Sidebar() {
           <button
             onClick={toggle}
             className="flex items-center gap-2.5 w-full px-2 py-2 text-sm text-[var(--ink-muted)]
-              hover:text-[var(--ink)] hover:bg-[var(--bg)] rounded-sm transition-colors"
+              hover:text-[var(--ink)] hover:bg-[var(--bg)] rounded-[var(--radius-md)] transition-colors"
           >
             {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
             {theme === 'dark' ? 'Light mode' : 'Dark mode'}
@@ -110,7 +110,7 @@ export function Sidebar() {
           <button
             onClick={handleSignOut}
             className="flex items-center gap-2.5 w-full px-2 py-2 text-sm text-[var(--ink-muted)]
-              hover:text-[var(--c-want)] hover:bg-[var(--tint-want)] rounded-sm transition-colors"
+              hover:text-[var(--c-want)] hover:bg-[var(--tint-want)] rounded-[var(--radius-md)] transition-colors"
           >
             <LogOut size={14} />
             Sign out
