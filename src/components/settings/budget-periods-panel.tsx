@@ -26,6 +26,7 @@ interface PeriodForm {
   wants_pct: string
   savings_pct: string
   track_income: boolean
+  income_frequency: 'monthly' | 'biweekly'
   income_payment_mode_id: string
   income_day_1: string
   income_day_2: string
@@ -40,6 +41,7 @@ const DEFAULT_FORM: PeriodForm = {
   wants_pct: '30',
   savings_pct: '20',
   track_income: false,
+  income_frequency: 'monthly',
   income_payment_mode_id: '',
   income_day_1: '',
   income_day_2: '',
@@ -137,9 +139,10 @@ export function BudgetPeriodsPanel({
     if (form.track_income) {
       if (!form.income_payment_mode_id) return 'Select a payment mode for income tracking'
       if (!form.income_day_1 || Number(form.income_day_1) < 1 || Number(form.income_day_1) > 28)
-        return 'Income day 1 must be between 1 and 28'
-      if (form.income_day_2 && (Number(form.income_day_2) < 1 || Number(form.income_day_2) > 28))
-        return 'Income day 2 must be between 1 and 28'
+        return 'Income day must be between 1 and 28'
+      if (form.income_frequency === 'biweekly' && form.income_day_2 &&
+          (Number(form.income_day_2) < 1 || Number(form.income_day_2) > 28))
+        return 'Second income day must be between 1 and 28'
     }
     // Overlap check against all other periods
     const newStart = form.start_month
@@ -169,6 +172,7 @@ export function BudgetPeriodsPanel({
       wants_pct: String(p.wants_pct),
       savings_pct: String(p.savings_pct),
       track_income: p.track_income,
+      income_frequency: p.income_day_2 ? 'biweekly' : 'monthly',
       income_payment_mode_id: p.income_payment_mode_id ?? '',
       income_day_1: p.income_day_1 ? String(p.income_day_1) : '',
       income_day_2: p.income_day_2 ? String(p.income_day_2) : '',
@@ -200,7 +204,8 @@ export function BudgetPeriodsPanel({
       income_payment_mode_id: form.track_income && form.income_payment_mode_id
         ? form.income_payment_mode_id : null,
       income_day_1: form.track_income && form.income_day_1 ? Number(form.income_day_1) : null,
-      income_day_2: form.track_income && form.income_day_2 ? Number(form.income_day_2) : null,
+      income_day_2: form.track_income && form.income_frequency === 'biweekly' && form.income_day_2
+        ? Number(form.income_day_2) : null,
     }
 
     let savedId: string | undefined = existingId
@@ -223,7 +228,7 @@ export function BudgetPeriodsPanel({
         Number(form.monthly_amount),
         form.income_payment_mode_id,
         Number(form.income_day_1),
-        form.income_day_2 ? Number(form.income_day_2) : null,
+        form.income_frequency === 'biweekly' && form.income_day_2 ? Number(form.income_day_2) : null,
         userId,
         supabase,
       )
@@ -531,10 +536,35 @@ function PeriodForm({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[var(--ink-muted)] mb-1 uppercase tracking-wide">Income date(s) each month</label>
+              <label className="block text-xs font-medium text-[var(--ink-muted)] mb-1 uppercase tracking-wide">Income frequency</label>
+              <div className="flex gap-2">
+                {(['monthly', 'biweekly'] as const).map((freq) => (
+                  <button
+                    key={freq}
+                    type="button"
+                    onClick={() => set('income_frequency', freq)}
+                    className={cn(
+                      'flex-1 py-2 text-xs font-medium rounded-[var(--radius-md)] border transition-colors',
+                      form.income_frequency === freq
+                        ? 'border-[var(--c-primary)] text-[var(--c-primary)] bg-[var(--surface-2)]'
+                        : 'border-[var(--border)] text-[var(--ink-muted)] hover:bg-[var(--surface-2)]',
+                    )}
+                  >
+                    {freq === 'monthly' ? 'Monthly' : 'Bi-weekly'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-[var(--ink-muted)] mb-1 uppercase tracking-wide">
+                {form.income_frequency === 'biweekly' ? 'Income days each month' : 'Income day each month'}
+              </label>
               <div className="flex items-center gap-3">
-                <div className="flex-1">
-                  <label className="text-[10px] text-[var(--ink-muted)] mb-1 block">Day 1 (required)</label>
+                <div className={form.income_frequency === 'biweekly' ? 'flex-1' : 'w-32'}>
+                  <label className="text-[10px] text-[var(--ink-muted)] mb-1 block">
+                    {form.income_frequency === 'biweekly' ? 'Day 1 (required)' : 'Day of month'}
+                  </label>
                   <input
                     type="number"
                     min="1"
@@ -545,23 +575,26 @@ function PeriodForm({
                     className={cn(inputCls, 'tabular-nums text-center')}
                   />
                 </div>
-                <div className="flex-1">
-                  <label className="text-[10px] text-[var(--ink-muted)] mb-1 block">Day 2 (optional)</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="28"
-                    placeholder="15"
-                    value={form.income_day_2}
-                    onChange={(e) => set('income_day_2', e.target.value)}
-                    className={cn(inputCls, 'tabular-nums text-center')}
-                  />
-                </div>
+                {form.income_frequency === 'biweekly' && (
+                  <div className="flex-1">
+                    <label className="text-[10px] text-[var(--ink-muted)] mb-1 block">Day 2 (optional)</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="28"
+                      placeholder="15"
+                      value={form.income_day_2}
+                      onChange={(e) => set('income_day_2', e.target.value)}
+                      className={cn(inputCls, 'tabular-nums text-center')}
+                    />
+                  </div>
+                )}
               </div>
               <p className="text-[10px] text-[var(--ink-muted)] mt-1.5 flex items-start gap-1">
                 <Info size={10} className="mt-0.5 shrink-0" />
-                For biweekly pay, enter both days (e.g. 1 and 15).
-                Each entry receives {currency}monthly ÷ number of days.
+                {form.income_frequency === 'monthly'
+                  ? 'One income entry per month for the full monthly amount.'
+                  : 'Two entries per month, each for half the monthly amount (e.g. days 1 and 15).'}
               </p>
             </div>
           </div>
