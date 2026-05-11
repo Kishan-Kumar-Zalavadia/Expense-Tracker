@@ -9,7 +9,6 @@ interface AddExpenseButtonProps {
   categories: Category[]
   paymentModes: PaymentMode[]
   onSuccess?: () => void
-  variant?: 'sidebar' | 'fab'
   currency?: string
 }
 
@@ -17,49 +16,24 @@ export function AddExpenseButton({
   categories,
   paymentModes,
   onSuccess,
-  variant = 'sidebar',
   currency,
 }: AddExpenseButtonProps) {
   const [open, setOpen] = useState(false)
 
   const handleSuccess = () => {
     onSuccess?.()
-    // Trigger a router refresh so server components re-fetch
     window.location.reload()
-  }
-
-  if (variant === 'fab') {
-    return (
-      <>
-        <button
-          onClick={() => setOpen(true)}
-          className="md:hidden fixed bottom-20 right-4 z-30 w-14 h-14 rounded-full
-            flex items-center justify-center transition-transform hover:scale-105 active:scale-95"
-          style={{ backgroundColor: 'var(--c-primary)', color: '#fff', boxShadow: 'var(--shadow-lg)' }}
-          aria-label="Add expense"
-        >
-          <Plus size={22} />
-        </button>
-        <ExpenseModal
-          open={open}
-          onOpenChange={setOpen}
-          categories={categories}
-          paymentModes={paymentModes}
-          onSuccess={handleSuccess}
-          currency={currency}
-        />
-      </>
-    )
   }
 
   return (
     <>
       <button
         onClick={() => setOpen(true)}
-        className="btn-primary w-full justify-center"
+        className="btn-primary shrink-0"
+        aria-label="Add expense"
       >
-        <Plus size={14} />
-        Add expense
+        <Plus size={16} />
+        <span className="hidden sm:inline">Add expense</span>
       </button>
       <ExpenseModal
         open={open}
@@ -67,6 +41,7 @@ export function AddExpenseButton({
         categories={categories}
         paymentModes={paymentModes}
         onSuccess={handleSuccess}
+        currency={currency}
       />
     </>
   )

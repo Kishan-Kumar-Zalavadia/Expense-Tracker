@@ -116,92 +116,152 @@ export function ExpenseListClient({
         )}
       </p>
 
-      {/* Table */}
       {expenses.length === 0 ? (
         <div className="py-16 text-center text-sm text-[var(--ink-muted)]">
           No expenses found
         </div>
       ) : (
-        <div className="border border-[var(--border)] rounded-[var(--radius-sm)] overflow-hidden">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-[var(--surface)] border-b border-[var(--border)]">
-                {['Date', 'Description', 'Category', 'Amount', 'Payment', 'Type'].map((h) => (
-                  <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold
-                    text-[var(--ink-muted)] uppercase tracking-wide whitespace-nowrap">
-                    {h}
-                  </th>
-                ))}
-                <th className="px-4 py-2.5 w-16" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[var(--border)]">
-              {expenses.map((expense) => (
-                <tr
-                  key={expense.id}
-                  className="group bg-[var(--elevated)] hover:bg-[var(--surface)] cursor-pointer transition-colors"
-                  onClick={() => handleEdit(expense)}
-                >
-                  <td className="px-4 py-3 text-xs tabular-nums text-[var(--ink-muted)] whitespace-nowrap">
-                    {formatDate(expense.date, 'dd MMM yyyy')}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-[var(--ink)] max-w-[200px]">
-                    <div className="truncate">{expense.description}</div>
-                    {expense.notes && (
-                      <div className="text-xs text-[var(--ink-subtle)] truncate mt-0.5">{expense.notes}</div>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-xs text-[var(--ink-muted)] whitespace-nowrap">
-                    <div className="flex items-center gap-1.5">
+        <>
+          {/* Desktop table */}
+          <div className="hidden sm:block border border-[var(--border)] rounded-[var(--radius-sm)] overflow-hidden">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-[var(--surface)] border-b border-[var(--border)]">
+                  {['Date', 'Category', 'Description', 'Amount', 'Payment', 'Type'].map((h) => (
+                    <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold
+                      text-[var(--ink-muted)] uppercase tracking-wide whitespace-nowrap">
+                      {h}
+                    </th>
+                  ))}
+                  <th className="px-4 py-2.5 w-16" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--border)]">
+                {expenses.map((expense) => (
+                  <tr
+                    key={expense.id}
+                    className="group bg-[var(--elevated)] hover:bg-[var(--surface)] cursor-pointer transition-colors"
+                    onClick={() => handleEdit(expense)}
+                  >
+                    <td className="px-4 py-3 text-xs tabular-nums text-[var(--ink-muted)] whitespace-nowrap">
+                      {formatDate(expense.date, 'dd MMM yyyy')}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-[var(--ink-muted)] whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full shrink-0"
+                          style={{ backgroundColor: expense.category?.color ?? 'var(--ink-subtle)' }} />
+                        {expense.category?.name}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-[var(--ink)] max-w-[180px]">
+                      <div className="truncate text-[var(--ink-muted)] text-xs">{expense.description}</div>
+                      {expense.notes && (
+                        <div className="text-xs text-[var(--ink-subtle)] truncate mt-0.5">{expense.notes}</div>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-sm font-medium text-[var(--ink)] tabular-nums whitespace-nowrap">
+                      {formatCurrency(Number(expense.amount), currency)}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-[var(--ink-muted)] whitespace-nowrap">
+                      {expense.payment_mode?.name}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <span
-                        className="w-2 h-2 rounded-full shrink-0"
-                        style={{ backgroundColor: expense.category?.color ?? 'var(--ink-subtle)' }}
-                      />
+                        className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-[var(--radius-sm)]"
+                        style={{ backgroundColor: typeTint(expense.type), color: typeColor(expense.type) }}
+                      >
+                        {expense.type}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleEdit(expense) }}
+                          className="p-1.5 rounded-[var(--radius-sm)] text-[var(--ink-subtle)] hover:text-[var(--c-primary)]
+                            hover:bg-[var(--elevated)] transition-colors"
+                          title="Edit"
+                        >
+                          <Pencil size={12} />
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleDelete(expense.id) }}
+                          className="p-1.5 rounded-[var(--radius-sm)] text-[var(--ink-subtle)] hover:text-[var(--c-want)]
+                            hover:bg-[var(--tint-want)] transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile card list */}
+          <div className="sm:hidden divide-y divide-[var(--border)]">
+            {expenses.map((expense) => (
+              <div
+                key={expense.id}
+                className="group flex items-center gap-3 py-3 rounded-[var(--radius-md)] transition-colors cursor-pointer"
+                onClick={() => handleEdit(expense)}
+              >
+                <span className="w-2 h-2 rounded-full shrink-0 mt-0.5"
+                  style={{ backgroundColor: expense.category?.color ?? 'var(--ink-subtle)' }} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-[var(--ink)] truncate">
                       {expense.category?.name}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-sm font-medium text-[var(--ink)] tabular-nums whitespace-nowrap">
-                    {formatCurrency(Number(expense.amount), currency)}
-                  </td>
-                  <td className="px-4 py-3 text-xs text-[var(--ink-muted)] whitespace-nowrap">
-                    {expense.payment_mode?.name}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
+                    </span>
                     <span
-                      className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-[var(--radius-sm)]"
-                      style={{
-                        backgroundColor: typeTint(expense.type),
-                        color: typeColor(expense.type),
-                      }}
+                      className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-[var(--radius-xs)] shrink-0"
+                      style={{ backgroundColor: typeTint(expense.type), color: typeColor(expense.type) }}
                     >
                       {expense.type}
                     </span>
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleEdit(expense) }}
-                        className="p-1.5 rounded-[var(--radius-sm)] text-[var(--ink-subtle)] hover:text-[var(--c-primary)]
-                          hover:bg-[var(--elevated)] transition-colors"
-                        title="Edit"
-                      >
-                        <Pencil size={12} />
-                      </button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleDelete(expense.id) }}
-                        className="p-1.5 rounded-[var(--radius-sm)] text-[var(--ink-subtle)] hover:text-[var(--c-want)]
-                          hover:bg-[var(--tint-want)] transition-colors"
-                        title="Delete"
-                      >
-                        <Trash2 size={12} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                    {expense.description && (
+                      <span className="text-xs text-[var(--ink-muted)] truncate">{expense.description}</span>
+                    )}
+                    {expense.description && <span className="text-xs text-[var(--ink-subtle)]">·</span>}
+                    <span className="text-xs text-[var(--ink-subtle)] tabular-nums whitespace-nowrap">
+                      {formatDate(expense.date, 'dd MMM')}
+                    </span>
+                    {expense.payment_mode?.name && (
+                      <>
+                        <span className="text-xs text-[var(--ink-subtle)]">·</span>
+                        <span className="text-xs text-[var(--ink-subtle)]">{expense.payment_mode.name}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-sm font-semibold tabular-nums text-[var(--ink)]">
+                    {formatCurrency(Number(expense.amount), currency)}
+                  </span>
+                  <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleEdit(expense) }}
+                      className="p-1.5 rounded-[var(--radius-sm)] text-[var(--ink-subtle)] hover:text-[var(--c-primary)] transition-colors"
+                      title="Edit"
+                    >
+                      <Pencil size={12} />
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleDelete(expense.id) }}
+                      className="p-1.5 rounded-[var(--radius-sm)] text-[var(--ink-subtle)] hover:text-[var(--c-want)] transition-colors"
+                      title="Delete"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       {/* Pagination */}

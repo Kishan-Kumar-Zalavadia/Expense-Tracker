@@ -17,6 +17,7 @@ export interface PaymentMode {
   name: string
   initial_balance: number
   archived: boolean
+  show_in_balance: boolean
 }
 
 export interface Expense {

@@ -167,6 +167,8 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+    /* Prevent horizontal scroll that breaks fixed positioning on mobile */
+    overflow-x: hidden;
   }
 
   body {
@@ -174,6 +176,7 @@
     color: var(--ink);
     font-size: 15px;
     line-height: 1.5;
+    overflow-x: hidden;
     /* Prevent content from going under notch / home indicator on iOS */
     padding-bottom: env(safe-area-inset-bottom);
   }
@@ -347,3 +350,26 @@
    MOBILE SAFE AREA
    ═══════════════════════════════════════════════════════════════════════ */
 .pb-safe { padding-bottom: max(16px, env(safe-area-inset-bottom)); }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   MOBILE BOTTOM NAV
+   ═══════════════════════════════════════════════════════════════════════ */
+.mobile-nav-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  background-color: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding-top: 8px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+@media (min-width: 768px) {
+  .mobile-nav-bar { display: none; }
+}

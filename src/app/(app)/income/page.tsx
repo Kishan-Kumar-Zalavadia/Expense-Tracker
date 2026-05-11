@@ -45,8 +45,8 @@ export default async function IncomePage() {
   const modeList = paymentModes ?? []
   const expenseList = expenses ?? []
 
-  // Compute balance per payment mode
-  const balances: PaymentModeBalance[] = modeList.map((pm) => {
+  // Compute balance only for payment modes marked show_in_balance
+  const balances: PaymentModeBalance[] = modeList.filter((pm) => pm.show_in_balance).map((pm) => {
     const incomeTotal = incomeList
       .filter((i) => i.payment_mode_id === pm.id)
       .reduce((s, i) => s + Number(i.amount), 0)

@@ -148,20 +148,20 @@ export default async function DashboardPage({ searchParams }: PageProps) {
   const recent6 = expenseList.slice(0, 6)
 
   return (
-    <div className="page-enter flex flex-col gap-6 p-6 max-w-6xl mx-auto w-full">
+    <div className="page-enter flex flex-col gap-4 sm:gap-6 p-4 sm:p-6 max-w-6xl mx-auto w-full">
       {/* Page header */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex items-center justify-between gap-3">
         <div>
-          <div className="inline-flex items-center px-2 py-0.5 mb-2 rounded-full text-[10px] font-bold
+          <div className="inline-flex items-center px-2 py-0.5 mb-1 rounded-full text-[10px] font-bold
             uppercase tracking-widest text-white"
             style={{ backgroundColor: 'var(--c-primary)' }}>
             Dashboard
           </div>
-          <h1 className="font-display text-3xl font-medium tracking-tight text-[var(--ink)]">
+          <h1 className="font-display text-2xl sm:text-3xl font-medium tracking-tight text-[var(--ink)]">
             Overview
           </h1>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 shrink-0">
           <Suspense>
             <MonthPicker year={year} month={month} />
           </Suspense>

@@ -102,3 +102,8 @@ alter table expenses alter column description drop not null;
 
 -- ─── incomes — make description optional ────────────────────────
 alter table incomes alter column description drop not null;
+
+-- ─── payment_modes — add show_in_balance flag ───────────────────
+-- Controls which accounts appear in the Income & Balance cards.
+alter table payment_modes
+  add column if not exists show_in_balance boolean not null default true;

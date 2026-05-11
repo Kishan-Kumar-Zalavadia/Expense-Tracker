@@ -34,6 +34,15 @@ export function PaymentModesPanel({ userId, paymentModes, onSave }: PaymentModes
     onSave()
   }
 
+  const toggleShowInBalance = async (pm: PaymentMode) => {
+    const { error } = await supabase
+      .from('payment_modes')
+      .update({ show_in_balance: !pm.show_in_balance })
+      .eq('id', pm.id)
+    if (error) { toast.error(error.message); return }
+    onSave()
+  }
+
   const archive = async (id: string) => {
     if (!confirm('Archive this payment mode?')) return
     const { error } = await supabase.from('payment_modes').update({ archived: true }).eq('id', id)
@@ -69,10 +78,13 @@ export function PaymentModesPanel({ userId, paymentModes, onSave }: PaymentModes
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex items-center gap-2 mb-2">
         <span className="section-bar" style={{ backgroundColor: 'var(--c-need)' }} />
         <h2 className="font-display text-lg font-medium text-[var(--ink)]">Payment Modes</h2>
       </div>
+      <p className="text-xs text-[var(--ink-muted)] mb-4">
+        Toggle <span className="font-medium">Shown / Hidden</span> to control which accounts appear in the Income &amp; Balance cards.
+      </p>
 
       <div className="space-y-2">
         {active.map((pm) => (
@@ -99,6 +111,19 @@ export function PaymentModesPanel({ userId, paymentModes, onSave }: PaymentModes
             ) : (
               <>
                 <span className="flex-1 text-sm text-[var(--ink)]">{pm.name}</span>
+                {/* Show in balance toggle */}
+                <button
+                  onClick={() => toggleShowInBalance(pm)}
+                  title={pm.show_in_balance ? 'Shown in account balances — click to hide' : 'Hidden from account balances — click to show'}
+                  className={cn(
+                    'px-2 py-1 text-[10px] font-semibold rounded-[var(--radius-md)] border transition-colors',
+                    pm.show_in_balance
+                      ? 'border-[var(--c-save)] text-[var(--c-save)] bg-[var(--tint-save)]'
+                      : 'border-[var(--border)] text-[var(--ink-subtle)] hover:border-[var(--border-strong)]',
+                  )}
+                >
+                  {pm.show_in_balance ? 'Shown' : 'Hidden'}
+                </button>
                 <button onClick={() => startEdit(pm)}
                   className="px-2 py-1 text-xs text-[var(--ink-muted)] hover:text-[var(--ink)]
                     border border-[var(--border)] rounded-[var(--radius-md)] hover:bg-[var(--surface)] transition-colors">

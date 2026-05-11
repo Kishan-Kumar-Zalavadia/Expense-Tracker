@@ -18,7 +18,6 @@ export function DashboardRefresher({ categories, paymentModes, currency }: Dashb
       categories={categories}
       paymentModes={paymentModes}
       onSuccess={() => router.refresh()}
-      variant="sidebar"
       currency={currency}
     />
   )

@@ -54,7 +54,7 @@ export function IncomePageClient({
 
   return (
     <>
-      <div className="page-enter flex flex-col gap-6 p-6 max-w-6xl mx-auto w-full">
+      <div className="page-enter flex flex-col gap-6 p-4 sm:p-6 max-w-6xl mx-auto w-full">
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -71,8 +71,10 @@ export function IncomePageClient({
             onClick={handleAdd}
             className="btn-primary shrink-0"
             style={{ backgroundColor: 'var(--c-save)' }}
+            aria-label="Add income"
           >
-            <Plus size={14} /> Add income
+            <Plus size={16} />
+            <span className="hidden sm:inline">Add income</span>
           </button>
         </div>
 
@@ -203,17 +205,6 @@ export function IncomePageClient({
           )}
         </section>
       </div>
-
-      {/* FAB on mobile */}
-      <button
-        onClick={handleAdd}
-        className="md:hidden fixed bottom-20 right-4 z-30 w-14 h-14 rounded-full
-          flex items-center justify-center transition-transform hover:scale-105 active:scale-95"
-        style={{ backgroundColor: 'var(--c-save)', color: '#fff', boxShadow: 'var(--shadow-lg)' }}
-        aria-label="Add income"
-      >
-        <Plus size={22} />
-      </button>
 
       <IncomeModal
         open={modalOpen}

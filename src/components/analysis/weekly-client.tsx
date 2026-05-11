@@ -35,34 +35,34 @@ export function WeeklyClient({ weeklyData, weeklyLimit, currency, year }: Weekly
   const nonZeroWeeks = weeklyData.filter((w) => w.total > 0)
 
   return (
-    <div className="page-enter flex flex-col gap-6 p-6 max-w-6xl mx-auto w-full">
+    <div className="page-enter flex flex-col gap-6 p-4 sm:p-6 max-w-6xl mx-auto w-full">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex items-center justify-between gap-3">
         <div>
-          <div className="inline-flex items-center px-2 py-0.5 mb-2 rounded-full text-[10px] font-bold
+          <div className="inline-flex items-center px-2 py-0.5 mb-1 rounded-full text-[10px] font-bold
             uppercase tracking-widest text-white"
             style={{ backgroundColor: 'var(--c-need)' }}>
             Analysis
           </div>
-          <h1 className="font-display text-3xl font-medium tracking-tight text-[var(--ink)]">
+          <h1 className="font-display text-2xl sm:text-3xl font-medium tracking-tight text-[var(--ink)]">
             Weekly spend
           </h1>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 shrink-0">
           <button
             onClick={() => navigate(year - 1)}
-            className="px-3 py-1.5 text-sm border border-[var(--border)] rounded-[var(--radius-md)]
+            className="px-2.5 py-1.5 text-sm border border-[var(--border)] rounded-[var(--radius-md)]
               text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--surface-2)] transition-colors"
           >
-            ← {year - 1}
+            ←
           </button>
-          <span className="px-3 py-1.5 text-sm font-semibold tabular-nums text-[var(--ink)]">{year}</span>
+          <span className="px-2.5 py-1.5 text-sm font-semibold tabular-nums text-[var(--ink)]">{year}</span>
           <button
             onClick={() => navigate(year + 1)}
-            className="px-3 py-1.5 text-sm border border-[var(--border)] rounded-[var(--radius-md)]
+            className="px-2.5 py-1.5 text-sm border border-[var(--border)] rounded-[var(--radius-md)]
               text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--surface-2)] transition-colors"
           >
-            {year + 1} →
+            →
           </button>
         </div>
       </div>
@@ -139,19 +139,20 @@ export function WeeklyClient({ weeklyData, weeklyLimit, currency, year }: Weekly
         </ResponsiveContainer>
       </div>
 
-      {/* Table of non-zero weeks */}
+      {/* Week breakdown */}
       {nonZeroWeeks.length > 0 && (
-        <div className="apple-card p-5">
+        <div className="apple-card p-4 sm:p-5">
           <div className="flex items-center gap-2 mb-4">
             <span className="section-bar" style={{ backgroundColor: 'var(--c-need)' }} />
             <h2 className="font-display text-base font-medium text-[var(--ink)]">Week breakdown</h2>
           </div>
 
-          <div className="overflow-x-auto">
+          {/* Desktop table */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-[var(--border)]">
-                  {['Week', 'Range', 'Spent', 'Limit', 'Ratio'].map((h) => (
+                  {['Week', 'Range', 'Spent', 'vs Limit'].map((h) => (
                     <th key={h} className="pb-2 text-left text-xs font-semibold
                       text-[var(--ink-muted)] uppercase tracking-wide">
                       {h}
@@ -168,17 +169,14 @@ export function WeeklyClient({ weeklyData, weeklyLimit, currency, year }: Weekly
                       <td className="py-2.5 text-xs tabular-nums font-medium text-[var(--ink)]">
                         W{week.week_number}
                       </td>
-                      <td className="py-2.5 text-xs text-[var(--ink-muted)] tabular-nums">
+                      <td className="py-2.5 text-xs text-[var(--ink-muted)] tabular-nums whitespace-nowrap">
                         {formatDate(week.week_start, 'dd MMM')} – {formatDate(week.week_end, 'dd MMM')}
                       </td>
-                      <td className="py-2.5 text-sm tabular-nums font-medium"
+                      <td className="py-2.5 text-sm tabular-nums font-medium whitespace-nowrap"
                         style={{ color: over ? 'var(--c-want)' : 'var(--ink)' }}>
                         {formatCurrency(week.total, currency)}
                       </td>
-                      <td className="py-2.5 text-xs tabular-nums text-[var(--ink-muted)]">
-                        {formatCurrency(weeklyLimit, currency)}
-                      </td>
-                      <td className="py-2.5 min-w-32">
+                      <td className="py-2.5 w-40">
                         <div className="flex items-center gap-2">
                           <div className="flex-1 h-1.5 rounded-full overflow-hidden bg-[var(--border)]">
                             <div
@@ -189,7 +187,7 @@ export function WeeklyClient({ weeklyData, weeklyLimit, currency, year }: Weekly
                               }}
                             />
                           </div>
-                          <span className="text-xs tabular-nums"
+                          <span className="text-xs tabular-nums w-9 text-right"
                             style={{ color: over ? 'var(--c-want)' : 'var(--ink-muted)' }}>
                             {(ratio * 100).toFixed(0)}%
                           </span>
@@ -200,6 +198,45 @@ export function WeeklyClient({ weeklyData, weeklyLimit, currency, year }: Weekly
                 })}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile card list */}
+          <div className="sm:hidden divide-y divide-[var(--border)]">
+            {nonZeroWeeks.map((week) => {
+              const ratio = weeklyLimit > 0 ? week.total / weeklyLimit : 0
+              const over  = ratio > 1
+              return (
+                <div key={week.week_number} className="py-3 flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-xs font-semibold text-[var(--ink-muted)]">W{week.week_number}</span>
+                      <span className="text-xs text-[var(--ink-muted)] ml-2 tabular-nums">
+                        {formatDate(week.week_start, 'dd MMM')} – {formatDate(week.week_end, 'dd MMM')}
+                      </span>
+                    </div>
+                    <span className="text-sm font-semibold tabular-nums"
+                      style={{ color: over ? 'var(--c-want)' : 'var(--ink)' }}>
+                      {formatCurrency(week.total, currency)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-1.5 rounded-full overflow-hidden bg-[var(--border)]">
+                      <div
+                        className="h-full rounded-full"
+                        style={{
+                          width: `${Math.min(100, ratio * 100)}%`,
+                          backgroundColor: over ? 'var(--c-want)' : 'var(--c-need)',
+                        }}
+                      />
+                    </div>
+                    <span className="text-xs tabular-nums w-9 text-right shrink-0"
+                      style={{ color: over ? 'var(--c-want)' : 'var(--ink-muted)' }}>
+                      {(ratio * 100).toFixed(0)}%
+                    </span>
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
       )}
