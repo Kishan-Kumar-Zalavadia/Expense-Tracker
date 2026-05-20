@@ -41,32 +41,85 @@ function getDateRange(preset: Preset): { from: string | null; to: string | null 
   }
 }
 
+type Row = {
+  Date: string
+  Type: string
+  Description: string
+  Category: string
+  Amount: number
+  'Payment Mode': string
+  'Expense Type': string
+  Notes: string
+  _sortDate: string
+  _sortCreatedAt: string
+}
+
 export function ExportDialog({ open, onOpenChange }: ExportDialogProps) {
   const [preset, setPreset] = useState<Preset>('all')
   const [loading, setLoading] = useState<'csv' | 'xlsx' | null>(null)
   const supabase = createClient()
 
-  const fetchData = async () => {
+  const fetchData = async (): Promise<Omit<Row, '_sortDate' | '_sortCreatedAt'>[]> => {
     const { from, to } = getDateRange(preset)
-    let query = supabase
+
+    // Fetch expenses
+    let expQ = supabase
       .from('expenses')
-      .select('date, description, category:categories(name), amount, payment_mode:payment_modes(name), type, notes')
-      .order('date', { ascending: true })
+      .select('date, description, category:categories(name), amount, payment_mode:payment_modes(name), type, notes, created_at')
+      .order('date', { ascending: false })
+      .order('created_at', { ascending: false })
+    if (from) expQ = expQ.gte('date', from)
+    if (to)   expQ = expQ.lte('date', to)
+    const { data: expData, error: expError } = await expQ
+    if (expError) throw expError
 
-    if (from) query = query.gte('date', from)
-    if (to)   query = query.lte('date', to)
+    // Fetch incomes
+    let incQ = supabase
+      .from('incomes')
+      .select('date, description, payment_mode:payment_modes(name), amount, notes, created_at')
+      .order('date', { ascending: false })
+      .order('created_at', { ascending: false })
+    if (from) incQ = incQ.gte('date', from)
+    if (to)   incQ = incQ.lte('date', to)
+    const { data: incData, error: incError } = await incQ
+    if (incError) throw incError
 
-    const { data, error } = await query
-    if (error) throw error
-    return (data ?? []).map((e) => ({
-      Date:         e.date,
-      Description:  e.description,
-      Category:     (e.category as unknown as { name: string } | null)?.name ?? '',
-      Amount:       Number(e.amount),
+    // Map expenses — negative amounts
+    const expenseRows: Row[] = (expData ?? []).map((e) => ({
+      Date:           e.date,
+      Type:           'Expense',
+      Description:    e.description ?? '',
+      Category:       (e.category as unknown as { name: string } | null)?.name ?? '',
+      Amount:         -Math.abs(Number(e.amount)),
       'Payment Mode': (e.payment_mode as unknown as { name: string } | null)?.name ?? '',
-      Type:         e.type,
-      Notes:        e.notes ?? '',
+      'Expense Type': e.type ?? '',
+      Notes:          e.notes ?? '',
+      _sortDate:      e.date,
+      _sortCreatedAt: e.created_at,
     }))
+
+    // Map incomes — positive amounts
+    const incomeRows: Row[] = (incData ?? []).map((i) => ({
+      Date:           i.date,
+      Type:           'Income',
+      Description:    i.description ?? '',
+      Category:       '',
+      Amount:         Math.abs(Number(i.amount)),
+      'Payment Mode': (i.payment_mode as unknown as { name: string } | null)?.name ?? '',
+      'Expense Type': '',
+      Notes:          i.notes ?? '',
+      _sortDate:      i.date,
+      _sortCreatedAt: i.created_at,
+    }))
+
+    // Merge and sort: date descending, then created_at descending within same date
+    const merged = [...expenseRows, ...incomeRows].sort((a, b) => {
+      if (b._sortDate !== a._sortDate) return b._sortDate.localeCompare(a._sortDate)
+      return b._sortCreatedAt.localeCompare(a._sortCreatedAt)
+    })
+
+    // Strip internal sort fields
+    return merged.map(({ _sortDate: _d, _sortCreatedAt: _c, ...row }) => row)
   }
 
   const exportCSV = async () => {
@@ -89,12 +142,12 @@ export function ExportDialog({ open, onOpenChange }: ExportDialogProps) {
       const url  = URL.createObjectURL(blob)
       const a    = document.createElement('a')
       a.href     = url
-      a.download = `expenses_${format(new Date(), 'yyyy-MM-dd')}.csv`
+      a.download = `ledger_${format(new Date(), 'yyyy-MM-dd')}.csv`
       a.click()
       URL.revokeObjectURL(url)
       toast.success('CSV exported')
       onOpenChange(false)
-    } catch (e) {
+    } catch {
       toast.error('Export failed')
     } finally {
       setLoading(null)
@@ -110,24 +163,28 @@ export function ExportDialog({ open, onOpenChange }: ExportDialogProps) {
       const XLSX = await import('xlsx')
       const ws = XLSX.utils.json_to_sheet(rows)
       const wb = XLSX.utils.book_new()
-      XLSX.utils.book_append_sheet(wb, ws, 'Expenses')
+      XLSX.utils.book_append_sheet(wb, ws, 'Transactions')
 
-      // Column widths
       ws['!cols'] = [
-        { wch: 12 }, { wch: 30 }, { wch: 20 }, { wch: 12 }, { wch: 16 }, { wch: 10 }, { wch: 30 },
+        { wch: 12 }, // Date
+        { wch: 10 }, // Type
+        { wch: 30 }, // Description
+        { wch: 20 }, // Category
+        { wch: 14 }, // Amount
+        { wch: 16 }, // Payment Mode
+        { wch: 12 }, // Expense Type
+        { wch: 30 }, // Notes
       ]
 
-      XLSX.writeFile(wb, `expenses_${format(new Date(), 'yyyy-MM-dd')}.xlsx`)
+      XLSX.writeFile(wb, `ledger_${format(new Date(), 'yyyy-MM-dd')}.xlsx`)
       toast.success('Excel exported')
       onOpenChange(false)
-    } catch (e) {
+    } catch {
       toast.error('Export failed')
     } finally {
       setLoading(null)
     }
   }
-
-  const selectCls = 'px-3 py-2 text-sm bg-[var(--elevated)] border border-[var(--border)] rounded-[var(--radius-md)] text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[var(--c-primary)]'
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -139,6 +196,10 @@ export function ExportDialog({ open, onOpenChange }: ExportDialogProps) {
               Export data
             </DialogTitle>
           </DialogHeader>
+
+          <p className="text-xs text-[var(--ink-muted)] mb-4 -mt-2">
+            Expenses and income combined, sorted by date. Expenses are negative, income is positive.
+          </p>
 
           <div className="space-y-4">
             <div>
