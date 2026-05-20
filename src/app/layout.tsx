@@ -35,10 +35,10 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${fraunces.variable} ${hanken.variable} ${jetbrains.variable} h-full`}
+      className={`${fraunces.variable} ${hanken.variable} ${jetbrains.variable}`}
       suppressHydrationWarning
     >
-      <body className="h-full bg-[var(--bg)] text-[var(--ink)]">
+      <body className="bg-[var(--bg)] text-[var(--ink)]">
         <ThemeScript />
         {children}
         <Toaster
