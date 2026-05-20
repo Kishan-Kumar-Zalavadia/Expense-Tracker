@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "migrate": "supabase db push --linked"
+    "migrate": "supabase db push --linked",
+    "migrate:prod": "supabase db push --project-ref REPLACE_WITH_PROD_PROJECT_REF"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
