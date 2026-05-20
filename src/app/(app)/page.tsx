@@ -8,7 +8,8 @@ import { CategoryPie } from '@/components/dashboard/category-pie'
 import { DailyBar } from '@/components/dashboard/daily-bar'
 import { RecentActivity } from '@/components/dashboard/recent-activity'
 import { DashboardRefresher } from '@/components/dashboard/dashboard-refresher'
-import type { MonthSummary, CategorySpend, DailySpend, BudgetPeriod } from '@/lib/types'
+import { AccountBalances } from '@/components/dashboard/account-balances'
+import type { MonthSummary, CategorySpend, DailySpend, BudgetPeriod, PaymentModeBalance } from '@/lib/types'
 
 interface PageProps {
   searchParams: Promise<{ month?: string }>
@@ -131,19 +132,36 @@ export default async function DashboardPage({ searchParams }: PageProps) {
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([date, { need, want }]) => ({ date, need, want, total: need + want }))
 
-  // Fetch categories and payment modes for the modal
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('*')
-    .eq('user_id', user.id)
-    .eq('archived', false)
-    .order('sort_order')
+  // Fetch categories, all payment modes, and all-time transaction data in parallel
+  const [
+    { data: categories },
+    { data: allPaymentModes },
+    { data: allExpenses },
+    { data: allIncomes },
+  ] = await Promise.all([
+    supabase.from('categories').select('*').eq('user_id', user.id).eq('archived', false).order('sort_order'),
+    supabase.from('payment_modes').select('*').eq('user_id', user.id),
+    supabase.from('expenses').select('amount, payment_mode_id').eq('user_id', user.id),
+    supabase.from('incomes').select('amount, payment_mode_id').eq('user_id', user.id),
+  ])
 
-  const { data: paymentModes } = await supabase
-    .from('payment_modes')
-    .select('*')
-    .eq('user_id', user.id)
-    .eq('archived', false)
+  const paymentModes = (allPaymentModes ?? []).filter((pm) => !pm.archived)
+
+  // Compute all-time balances for payment modes marked show_in_balance
+  const balances: PaymentModeBalance[] = (allPaymentModes ?? [])
+    .filter((pm) => pm.show_in_balance && !pm.archived)
+    .map((pm) => {
+      const incomeTotal  = (allIncomes ?? []).filter((i) => i.payment_mode_id === pm.id).reduce((s, i) => s + Number(i.amount), 0)
+      const expenseTotal = (allExpenses ?? []).filter((e) => e.payment_mode_id === pm.id).reduce((s, e) => s + Number(e.amount), 0)
+      return {
+        id: pm.id,
+        name: pm.name,
+        initial_balance: pm.initial_balance ?? 0,
+        income_total: incomeTotal,
+        expense_total: expenseTotal,
+        balance: (pm.initial_balance ?? 0) + incomeTotal - expenseTotal,
+      }
+    })
 
   const recent6 = expenseList.slice(0, 6)
 
@@ -179,6 +197,9 @@ export default async function DashboardPage({ searchParams }: PageProps) {
 
       {/* KPI row */}
       <KpiCards summary={summary} currency={currency} />
+
+      {/* Account balances */}
+      <AccountBalances balances={balances} currency={currency} />
 
       {/* Budget cards */}
       <section>

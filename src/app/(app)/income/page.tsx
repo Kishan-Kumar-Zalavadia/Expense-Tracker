@@ -1,76 +1,63 @@
 import { createClient } from '@/lib/supabase/server'
 import { IncomePageClient } from '@/components/income/income-page-client'
-import type { PaymentModeBalance } from '@/lib/types'
 
-export default async function IncomePage() {
+interface PageProps {
+  searchParams: Promise<{
+    search?: string
+    payment?: string
+    sort?: string
+    page?: string
+  }>
+}
+
+export default async function IncomePage({ searchParams }: PageProps) {
+  const sp = await searchParams
+  const search    = sp.search ?? ''
+  const paymentId = sp.payment ?? ''
+  const sort      = sp.sort ?? 'date_desc'
+  const page      = Math.max(1, parseInt(sp.page ?? '1', 10))
+  const PAGE_SIZE = 50
+  const offset    = (page - 1) * PAGE_SIZE
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const [
-    { data: incomes },
-    { data: paymentModes },
-    { data: expenses },
-    { data: budgetPeriods },
-    { data: settings },
-  ] = await Promise.all([
-    supabase
-      .from('incomes')
-      .select('*, payment_mode:payment_modes(id, name), budget_period:budget_periods(id, start_month, end_month)')
-      .eq('user_id', user.id)
-      .order('date', { ascending: false }),
-    supabase
-      .from('payment_modes')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('archived', false),
-    supabase
-      .from('expenses')
-      .select('amount, payment_mode_id')
-      .eq('user_id', user.id),
-    supabase
-      .from('budget_periods')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('start_month', { ascending: false }),
-    supabase
-      .from('user_settings')
-      .select('currency')
-      .eq('user_id', user.id)
-      .single(),
+  // Build filtered query
+  let query = supabase
+    .from('incomes')
+    .select('*, payment_mode:payment_modes(id,name,initial_balance,archived,show_in_balance)', { count: 'exact' })
+    .eq('user_id', user.id)
+
+  if (search) query = query.or(`description.ilike.%${search}%,notes.ilike.%${search}%`)
+  if (paymentId) query = query.eq('payment_mode_id', paymentId)
+
+  const [sortCol, sortDir] = sort === 'date_asc'   ? ['date', 'asc']
+                           : sort === 'amount_desc' ? ['amount', 'desc']
+                           : sort === 'amount_asc'  ? ['amount', 'asc']
+                           :                          ['date', 'desc']
+
+  query = query
+    .order(sortCol, { ascending: sortDir === 'asc' })
+    .range(offset, offset + PAGE_SIZE - 1)
+
+  const { data: incomes, count } = await query
+
+  const [{ data: paymentModes }, { data: budgetPeriods }, { data: settings }] = await Promise.all([
+    supabase.from('payment_modes').select('*').eq('user_id', user.id).eq('archived', false),
+    supabase.from('budget_periods').select('*').eq('user_id', user.id).order('start_month', { ascending: false }),
+    supabase.from('user_settings').select('currency').eq('user_id', user.id).single(),
   ])
-
-  const currency = settings?.currency ?? '₹'
-  const incomeList = incomes ?? []
-  const modeList = paymentModes ?? []
-  const expenseList = expenses ?? []
-
-  // Compute balance only for payment modes marked show_in_balance
-  const balances: PaymentModeBalance[] = modeList.filter((pm) => pm.show_in_balance).map((pm) => {
-    const incomeTotal = incomeList
-      .filter((i) => i.payment_mode_id === pm.id)
-      .reduce((s, i) => s + Number(i.amount), 0)
-    const expenseTotal = expenseList
-      .filter((e) => e.payment_mode_id === pm.id)
-      .reduce((s, e) => s + Number(e.amount), 0)
-    const balance = (pm.initial_balance ?? 0) + incomeTotal - expenseTotal
-    return {
-      id: pm.id,
-      name: pm.name,
-      initial_balance: pm.initial_balance ?? 0,
-      income_total: incomeTotal,
-      expense_total: expenseTotal,
-      balance,
-    }
-  })
 
   return (
     <IncomePageClient
-      incomes={incomeList}
-      balances={balances}
-      paymentModes={modeList}
+      initialIncomes={incomes ?? []}
+      totalCount={count ?? 0}
+      paymentModes={paymentModes ?? []}
       budgetPeriods={budgetPeriods ?? []}
-      currency={currency}
+      currency={settings?.currency ?? '₹'}
+      initialPage={page}
+      initialFilters={{ search, paymentId, sort }}
     />
   )
 }
