@@ -135,7 +135,7 @@ export function CreditCardPaymentModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm">
+      <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base">
             <CreditCard size={16} className="text-[var(--c-primary)]" />

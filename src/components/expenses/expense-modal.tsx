@@ -149,8 +149,7 @@ export function ExpenseModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="p-0 border border-[var(--border)] bg-[var(--elevated)] max-w-md
-          flex flex-col max-h-[90dvh] overflow-hidden"
+        className="p-0 border border-[var(--border)] bg-[var(--elevated)] sm:max-w-md"
         style={{ borderRadius: 'var(--radius-xl)' }}
       >
         {/* Type-colored top bar — stays fixed */}

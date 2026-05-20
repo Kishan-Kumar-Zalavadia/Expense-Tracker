@@ -2,11 +2,16 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Download, Sun, Moon, LogOut } from 'lucide-react'
+import { toast } from 'sonner'
 import { CategoriesPanel } from './categories-panel'
 import { PaymentModesPanel } from './payment-modes-panel'
 import { BudgetPeriodsPanel } from './budget-periods-panel'
 import { GeneralPanel } from './general-panel'
 import { RecurringPanel } from './recurring-panel'
+import { ExportDialog } from '@/components/export-dialog'
+import { useTheme } from '@/hooks/use-theme'
+import { createClient } from '@/lib/supabase/client'
 import type { BudgetPeriod, Category, PaymentMode, RecurringItem, UserSettings } from '@/lib/types'
 
 interface SettingsClientProps {
@@ -34,8 +39,18 @@ export function SettingsClient({
 }: SettingsClientProps) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<Tab>('general')
+  const [exportOpen, setExportOpen] = useState(false)
+  const { theme, toggle } = useTheme()
+  const supabase = createClient()
 
   const refresh = () => router.refresh()
+
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut()
+    if (error) { toast.error(error.message); return }
+    router.push('/login')
+    router.refresh()
+  }
 
   const tabs: { id: Tab; label: string; color: string }[] = [
     { id: 'general',    label: 'General',        color: 'var(--c-warn)' },
@@ -58,6 +73,38 @@ export function SettingsClient({
           Preferences
         </h1>
       </div>
+
+      {/* Mobile-only: Export / Theme / Sign Out */}
+      <div className="md:hidden apple-card overflow-hidden">
+        <button
+          onClick={() => setExportOpen(true)}
+          className="flex items-center gap-3 w-full px-4 py-3.5 text-sm text-[var(--ink)]
+            hover:bg-[var(--surface-2)] transition-colors border-b border-[var(--border)]"
+        >
+          <Download size={16} className="text-[var(--c-primary)]" />
+          Export data
+        </button>
+        <button
+          onClick={toggle}
+          className="flex items-center gap-3 w-full px-4 py-3.5 text-sm text-[var(--ink)]
+            hover:bg-[var(--surface-2)] transition-colors border-b border-[var(--border)]"
+        >
+          {theme === 'dark'
+            ? <Sun size={16} className="text-[var(--c-warn)]" />
+            : <Moon size={16} className="text-[var(--c-warn)]" />}
+          {theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        </button>
+        <button
+          onClick={handleSignOut}
+          className="flex items-center gap-3 w-full px-4 py-3.5 text-sm text-[var(--c-want)]
+            hover:bg-[var(--tint-want)] transition-colors"
+        >
+          <LogOut size={16} />
+          Sign out
+        </button>
+      </div>
+
+      <ExportDialog open={exportOpen} onOpenChange={setExportOpen} />
 
       {/* Tabs — scrollable on mobile */}
       <div className="flex gap-1 border-b border-[var(--border)] overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">

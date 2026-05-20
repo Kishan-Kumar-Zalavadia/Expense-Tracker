@@ -188,7 +188,7 @@ export function ExportDialog({ open, onOpenChange }: ExportDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm p-0 border border-[var(--border)] bg-[var(--elevated)]" style={{ borderRadius: 'var(--radius-xl)' }}>
+      <DialogContent className="sm:max-w-sm p-0 border border-[var(--border)] bg-[var(--elevated)]" style={{ borderRadius: 'var(--radius-xl)' }}>
         <div className="h-[3px]" style={{ backgroundColor: 'var(--c-primary)' }} />
         <div className="px-6 pt-4 pb-6">
           <DialogHeader className="mb-5">
