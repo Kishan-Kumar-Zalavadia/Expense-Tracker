@@ -9,6 +9,7 @@ export interface Category {
   color: string
   sort_order: number
   archived: boolean
+  is_system: boolean
 }
 
 export interface PaymentMode {
@@ -18,6 +19,7 @@ export interface PaymentMode {
   initial_balance: number
   archived: boolean
   show_in_balance: boolean
+  is_credit_card: boolean
 }
 
 export interface Expense {
@@ -83,6 +85,7 @@ export interface PaymentModeBalance {
   income_total: number
   expense_total: number
   balance: number           // initial_balance + income_total - expense_total
+  is_credit_card: boolean
 }
 
 // ─── Recurring Items ─────────────────────────────────────────────

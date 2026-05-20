@@ -16,6 +16,8 @@ interface SettingsClientProps {
   paymentModes: PaymentMode[]
   budgetPeriods: BudgetPeriod[]
   recurringItems: RecurringItem[]
+  usedCategoryIds: string[]
+  usedPaymentModeIds: string[]
 }
 
 type Tab = 'general' | 'budget' | 'categories' | 'payment' | 'recurring'
@@ -27,6 +29,8 @@ export function SettingsClient({
   paymentModes,
   budgetPeriods,
   recurringItems,
+  usedCategoryIds,
+  usedPaymentModeIds,
 }: SettingsClientProps) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<Tab>('general')
@@ -89,8 +93,22 @@ export function SettingsClient({
             onSave={refresh}
           />
         )}
-        {activeTab === 'categories' && <CategoriesPanel userId={userId} categories={categories} onSave={refresh} />}
-        {activeTab === 'payment'    && <PaymentModesPanel userId={userId} paymentModes={paymentModes} onSave={refresh} />}
+        {activeTab === 'categories' && (
+          <CategoriesPanel
+            userId={userId}
+            categories={categories}
+            usedCategoryIds={usedCategoryIds}
+            onSave={refresh}
+          />
+        )}
+        {activeTab === 'payment' && (
+          <PaymentModesPanel
+            userId={userId}
+            paymentModes={paymentModes}
+            usedPaymentModeIds={usedPaymentModeIds}
+            onSave={refresh}
+          />
+        )}
         {activeTab === 'recurring'  && (
           <RecurringPanel
             userId={userId}

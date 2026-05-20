@@ -160,6 +160,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
         income_total: incomeTotal,
         expense_total: expenseTotal,
         balance: (pm.initial_balance ?? 0) + incomeTotal - expenseTotal,
+        is_credit_card: pm.is_credit_card ?? false,
       }
     })
 
@@ -199,7 +200,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
       <KpiCards summary={summary} currency={currency} />
 
       {/* Account balances */}
-      <AccountBalances balances={balances} currency={currency} />
+      <AccountBalances balances={balances} paymentModes={paymentModes} currency={currency} userId={user.id} />
 
       {/* Budget cards */}
       <section>

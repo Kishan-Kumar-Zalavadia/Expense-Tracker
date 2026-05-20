@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Check, X, Archive } from 'lucide-react'
+import { Plus, Check, X, Archive, CreditCard, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import type { PaymentMode } from '@/lib/types'
@@ -10,15 +10,17 @@ import { cn } from '@/lib/utils'
 interface PaymentModesPanelProps {
   userId: string
   paymentModes: PaymentMode[]
+  usedPaymentModeIds: string[]
   onSave: () => void
 }
 
-export function PaymentModesPanel({ userId, paymentModes, onSave }: PaymentModesPanelProps) {
+export function PaymentModesPanel({ userId, paymentModes, usedPaymentModeIds, onSave }: PaymentModesPanelProps) {
   const supabase = createClient()
   const [editing, setEditing] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
   const [adding, setAdding] = useState(false)
   const [newName, setNewName] = useState('')
+  const usedSet = new Set(usedPaymentModeIds)
 
   const startEdit = (pm: PaymentMode) => {
     setEditing(pm.id)
@@ -43,6 +45,15 @@ export function PaymentModesPanel({ userId, paymentModes, onSave }: PaymentModes
     onSave()
   }
 
+  const toggleCreditCard = async (pm: PaymentMode) => {
+    const { error } = await supabase
+      .from('payment_modes')
+      .update({ is_credit_card: !pm.is_credit_card })
+      .eq('id', pm.id)
+    if (error) { toast.error(error.message); return }
+    onSave()
+  }
+
   const archive = async (id: string) => {
     if (!confirm('Archive this payment mode?')) return
     const { error } = await supabase.from('payment_modes').update({ archived: true }).eq('id', id)
@@ -55,6 +66,15 @@ export function PaymentModesPanel({ userId, paymentModes, onSave }: PaymentModes
     const { error } = await supabase.from('payment_modes').update({ archived: false }).eq('id', id)
     if (error) { toast.error(error.message); return }
     toast.success('Restored')
+    onSave()
+  }
+
+  const deleteMode = async (pm: PaymentMode) => {
+    if (usedSet.has(pm.id)) return
+    if (!confirm(`Permanently delete "${pm.name}"? This cannot be undone.`)) return
+    const { error } = await supabase.from('payment_modes').delete().eq('id', pm.id)
+    if (error) { toast.error(error.message); return }
+    toast.success('Payment mode deleted')
     onSave()
   }
 
@@ -83,11 +103,14 @@ export function PaymentModesPanel({ userId, paymentModes, onSave }: PaymentModes
         <h2 className="font-display text-lg font-medium text-[var(--ink)]">Payment Modes</h2>
       </div>
       <p className="text-xs text-[var(--ink-muted)] mb-4">
-        Toggle <span className="font-medium">Shown / Hidden</span> to control which accounts appear in the Income &amp; Balance cards.
+        Toggle <span className="font-medium">Shown / Hidden</span> to control which accounts appear in the balance cards.
+        Mark an account as <span className="font-medium">Credit Card</span> to enable the "Pay credit card" button on the dashboard.
       </p>
 
       <div className="space-y-2">
-        {active.map((pm) => (
+        {active.map((pm) => {
+          const isUnused = !usedSet.has(pm.id)
+          return (
           <div key={pm.id}
             className="flex items-center gap-3 px-4 py-3 bg-[var(--elevated)] border border-[var(--border)] rounded-[var(--radius-md)]">
             {editing === pm.id ? (
@@ -111,6 +134,20 @@ export function PaymentModesPanel({ userId, paymentModes, onSave }: PaymentModes
             ) : (
               <>
                 <span className="flex-1 text-sm text-[var(--ink)]">{pm.name}</span>
+                {/* Credit card toggle */}
+                <button
+                  onClick={() => toggleCreditCard(pm)}
+                  title={pm.is_credit_card ? 'Credit card — click to change to regular account' : 'Regular account — click to mark as credit card'}
+                  className={cn(
+                    'flex items-center gap-1 px-2 py-1 text-[10px] font-semibold rounded-[var(--radius-md)] border transition-colors',
+                    pm.is_credit_card
+                      ? 'border-[var(--c-need)] text-[var(--c-need)] bg-[var(--tint-need)]'
+                      : 'border-[var(--border)] text-[var(--ink-subtle)] hover:border-[var(--border-strong)]',
+                  )}
+                >
+                  <CreditCard size={10} />
+                  {pm.is_credit_card ? 'Credit' : 'Debit'}
+                </button>
                 {/* Show in balance toggle */}
                 <button
                   onClick={() => toggleShowInBalance(pm)}
@@ -129,16 +166,27 @@ export function PaymentModesPanel({ userId, paymentModes, onSave }: PaymentModes
                     border border-[var(--border)] rounded-[var(--radius-md)] hover:bg-[var(--surface)] transition-colors">
                   Edit
                 </button>
-                <button onClick={() => archive(pm.id)}
-                  className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)] hover:text-[var(--c-warn)]
-                    hover:bg-[var(--tint-warn)] transition-colors"
-                  title="Archive">
-                  <Archive size={13} />
-                </button>
+                {isUnused ? (
+                  <button
+                    onClick={() => deleteMode(pm)}
+                    className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)] hover:text-[var(--c-want)]
+                      hover:bg-[var(--tint-want)] transition-colors"
+                    title="Delete permanently (never used)">
+                    <Trash2 size={13} />
+                  </button>
+                ) : (
+                  <button onClick={() => archive(pm.id)}
+                    className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)] hover:text-[var(--c-warn)]
+                      hover:bg-[var(--tint-warn)] transition-colors"
+                    title="Archive (has existing transactions)">
+                    <Archive size={13} />
+                  </button>
+                )}
               </>
             )}
           </div>
-        ))}
+          )
+        })}
       </div>
 
       {adding ? (
@@ -175,19 +223,36 @@ export function PaymentModesPanel({ userId, paymentModes, onSave }: PaymentModes
         <div className="mt-6">
           <p className="text-xs font-medium text-[var(--ink-muted)] uppercase tracking-wide mb-2">Archived</p>
           <div className="space-y-1">
-            {archived.map((pm) => (
-              <div key={pm.id}
-                className="flex items-center gap-3 px-4 py-2.5 opacity-50 border border-[var(--border)] rounded-[var(--radius-md)]">
-                <span className="flex-1 text-sm line-through text-[var(--ink-muted)]">{pm.name}</span>
-                <button onClick={() => unarchive(pm.id)}
-                  className="text-xs text-[var(--c-primary)] hover:underline">
-                  Restore
-                </button>
-              </div>
-            ))}
+            {archived.map((pm) => {
+              const isUnused = !usedSet.has(pm.id)
+              return (
+                <div key={pm.id}
+                  className="flex items-center gap-3 px-4 py-2.5 opacity-60 border border-[var(--border)] rounded-[var(--radius-md)]">
+                  <span className="flex-1 text-sm line-through text-[var(--ink-muted)]">{pm.name}</span>
+                  <button onClick={() => unarchive(pm.id)}
+                    className="text-xs text-[var(--c-primary)] hover:underline">
+                    Restore
+                  </button>
+                  {isUnused && (
+                    <button
+                      onClick={() => deleteMode(pm)}
+                      className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)] hover:text-[var(--c-want)]
+                        hover:bg-[var(--tint-want)] transition-colors"
+                      title="Delete permanently">
+                      <Trash2 size={12} />
+                    </button>
+                  )}
+                </div>
+              )
+            })}
           </div>
         </div>
       )}
+
+      <p className="text-xs text-[var(--ink-subtle)]">
+        Payment modes with existing transactions can only be <span className="font-medium">archived</span>, not deleted.
+        Unused modes can be <span className="font-medium">deleted</span> permanently.
+      </p>
     </div>
   )
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Check, X, Archive } from 'lucide-react'
+import { Plus, Check, X, Archive, Trash2, Lock } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { typeColor } from '@/lib/utils'
@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils'
 interface CategoriesPanelProps {
   userId: string
   categories: Category[]
+  usedCategoryIds: string[]
   onSave: () => void
 }
 
@@ -21,14 +22,17 @@ const DEFAULT_COLORS = [
   '#2952B8', '#D4A636', '#5BA8B8', '#6685D9', '#F47A65',
 ]
 
-export function CategoriesPanel({ userId, categories, onSave }: CategoriesPanelProps) {
+export function CategoriesPanel({ userId, categories, usedCategoryIds, onSave }: CategoriesPanelProps) {
   const supabase = createClient()
   const [editing, setEditing] = useState<string | null>(null)
   const [editState, setEditState] = useState<{ name: string; type: ExpenseType; color: string } | null>(null)
   const [adding, setAdding] = useState(false)
   const [newCat, setNewCat] = useState({ name: '', type: 'Need' as ExpenseType, color: '#1F6F7F' })
 
+  const usedSet = new Set(usedCategoryIds)
+
   const startEdit = (cat: Category) => {
+    if (cat.is_system) return
     setEditing(cat.id)
     setEditState({ name: cat.name, type: cat.type, color: cat.color })
   }
@@ -46,9 +50,10 @@ export function CategoriesPanel({ userId, categories, onSave }: CategoriesPanelP
     onSave()
   }
 
-  const archive = async (id: string) => {
+  const archive = async (cat: Category) => {
+    if (cat.is_system) return
     if (!confirm('Archive this category? It will be hidden from dropdowns but kept in historical data.')) return
-    const { error } = await supabase.from('categories').update({ archived: true }).eq('id', id)
+    const { error } = await supabase.from('categories').update({ archived: true }).eq('id', cat.id)
     if (error) { toast.error(error.message); return }
     toast.success('Category archived')
     onSave()
@@ -58,6 +63,16 @@ export function CategoriesPanel({ userId, categories, onSave }: CategoriesPanelP
     const { error } = await supabase.from('categories').update({ archived: false }).eq('id', id)
     if (error) { toast.error(error.message); return }
     toast.success('Category restored')
+    onSave()
+  }
+
+  const deleteCategory = async (cat: Category) => {
+    if (cat.is_system) return
+    if (usedSet.has(cat.id)) return
+    if (!confirm(`Permanently delete "${cat.name}"? This cannot be undone.`)) return
+    const { error } = await supabase.from('categories').delete().eq('id', cat.id)
+    if (error) { toast.error(error.message); return }
+    toast.success('Category deleted')
     onSave()
   }
 
@@ -97,7 +112,8 @@ export function CategoriesPanel({ userId, categories, onSave }: CategoriesPanelP
       <div className="space-y-2">
         {active.map((cat) => {
           const isEditingThis = editing === cat.id
-          const s = isEditingThis ? editState! : cat
+          const isUnused = !usedSet.has(cat.id)
+
           return (
             <div key={cat.id}
               className="flex items-center gap-3 px-4 py-3 bg-[var(--elevated)] border border-[var(--border)] rounded-[var(--radius-md)]">
@@ -141,8 +157,16 @@ export function CategoriesPanel({ userId, categories, onSave }: CategoriesPanelP
               )}
 
               {/* Actions */}
-              <div className="flex gap-1">
-                {isEditingThis ? (
+              <div className="flex gap-1 items-center">
+                {cat.is_system ? (
+                  /* System category — locked */
+                  <span className="flex items-center gap-1 px-2 py-1 text-[10px] font-semibold
+                    rounded-[var(--radius-md)] border border-[var(--border)] text-[var(--ink-subtle)]"
+                    title="This is a system category and cannot be modified">
+                    <Lock size={9} />
+                    System
+                  </span>
+                ) : isEditingThis ? (
                   <>
                     <button onClick={saveEdit}
                       className="p-1.5 rounded-[var(--radius-md)] text-[var(--c-save)] hover:bg-[var(--tint-save)] transition-colors">
@@ -160,12 +184,23 @@ export function CategoriesPanel({ userId, categories, onSave }: CategoriesPanelP
                         border border-[var(--border)] rounded-[var(--radius-md)] hover:bg-[var(--surface)] transition-colors">
                       Edit
                     </button>
-                    <button onClick={() => archive(cat.id)}
-                      className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)] hover:text-[var(--c-warn)]
-                        hover:bg-[var(--tint-warn)] transition-colors"
-                      title="Archive">
-                      <Archive size={13} />
-                    </button>
+                    {isUnused ? (
+                      <button
+                        onClick={() => deleteCategory(cat)}
+                        className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)] hover:text-[var(--c-want)]
+                          hover:bg-[var(--tint-want)] transition-colors"
+                        title="Delete permanently (never used)">
+                        <Trash2 size={13} />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => archive(cat)}
+                        className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)] hover:text-[var(--c-warn)]
+                          hover:bg-[var(--tint-warn)] transition-colors"
+                        title="Archive (has existing expenses)">
+                        <Archive size={13} />
+                      </button>
+                    )}
                   </>
                 )}
               </div>
@@ -240,21 +275,38 @@ export function CategoriesPanel({ userId, categories, onSave }: CategoriesPanelP
         <div className="mt-6">
           <p className="text-xs font-medium text-[var(--ink-muted)] uppercase tracking-wide mb-2">Archived</p>
           <div className="space-y-1">
-            {archived.map((cat) => (
-              <div key={cat.id}
-                className="flex items-center gap-3 px-4 py-2.5 opacity-50 border border-[var(--border)] rounded-[var(--radius-md)]">
-                <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
-                <span className="flex-1 text-sm line-through text-[var(--ink-muted)]">{cat.name}</span>
-                <span className="text-xs text-[var(--ink-subtle)]">{cat.type}</span>
-                <button onClick={() => unarchive(cat.id)}
-                  className="text-xs text-[var(--c-primary)] hover:underline">
-                  Restore
-                </button>
-              </div>
-            ))}
+            {archived.map((cat) => {
+              const isUnused = !usedSet.has(cat.id)
+              return (
+                <div key={cat.id}
+                  className="flex items-center gap-3 px-4 py-2.5 opacity-60 border border-[var(--border)] rounded-[var(--radius-md)]">
+                  <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
+                  <span className="flex-1 text-sm line-through text-[var(--ink-muted)]">{cat.name}</span>
+                  <span className="text-xs text-[var(--ink-subtle)]">{cat.type}</span>
+                  <button onClick={() => unarchive(cat.id)}
+                    className="text-xs text-[var(--c-primary)] hover:underline">
+                    Restore
+                  </button>
+                  {isUnused && !cat.is_system && (
+                    <button
+                      onClick={() => deleteCategory(cat)}
+                      className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)] hover:text-[var(--c-want)]
+                        hover:bg-[var(--tint-want)] transition-colors"
+                      title="Delete permanently">
+                      <Trash2 size={12} />
+                    </button>
+                  )}
+                </div>
+              )
+            })}
           </div>
         </div>
       )}
+
+      <p className="text-xs text-[var(--ink-subtle)]">
+        Categories with existing expenses can only be <span className="font-medium">archived</span>, not deleted.
+        Unused categories can be <span className="font-medium">deleted</span> permanently.
+      </p>
     </div>
   )
 }
