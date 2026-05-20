@@ -22,7 +22,7 @@ import { ExportDialog } from '@/components/export-dialog'
 import { useState } from 'react'
 
 const NAV = [
-  { href: '/',                 label: 'Dashboard', icon: LayoutDashboard, color: PAGE_COLORS.dashboard },
+  { href: '/dashboard',        label: 'Dashboard', icon: LayoutDashboard, color: PAGE_COLORS.dashboard },
   { href: '/expenses',         label: 'Expenses',  icon: List,            color: PAGE_COLORS.expenses  },
   { href: '/income',           label: 'Income',    icon: TrendingUp,      color: PAGE_COLORS.income    },
   { href: '/analysis/weekly',  label: 'Weekly',    icon: BarChart2,       color: PAGE_COLORS.weekly    },
@@ -59,7 +59,7 @@ export function Sidebar() {
         {/* Nav */}
         <nav className="flex-1 py-4 overflow-y-auto">
           {NAV.map(({ href, label, icon: Icon, color }) => {
-            const active = href === '/' ? pathname === '/' : pathname.startsWith(href)
+            const active = pathname === href || (href !== '/dashboard' && pathname.startsWith(href))
             return (
               <Link
                 key={href}
