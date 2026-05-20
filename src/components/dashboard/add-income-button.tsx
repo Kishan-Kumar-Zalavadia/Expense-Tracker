@@ -4,12 +4,14 @@ import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { IncomeModal } from '@/components/income/income-modal'
 import type { BudgetPeriod, PaymentMode } from '@/lib/types'
+import { cn } from '@/lib/utils'
 
 interface AddIncomeButtonProps {
   paymentModes: PaymentMode[]
   budgetPeriods: BudgetPeriod[]
   onSuccess?: () => void
   currency?: string
+  fullWidth?: boolean
 }
 
 export function AddIncomeButton({
@@ -17,6 +19,7 @@ export function AddIncomeButton({
   budgetPeriods,
   onSuccess,
   currency,
+  fullWidth,
 }: AddIncomeButtonProps) {
   const [open, setOpen] = useState(false)
 
@@ -24,12 +27,12 @@ export function AddIncomeButton({
     <>
       <button
         onClick={() => setOpen(true)}
-        className="btn-primary shrink-0"
+        className={cn('btn-primary', fullWidth ? 'w-full justify-center' : 'shrink-0')}
         style={{ backgroundColor: 'var(--c-save)' }}
         aria-label="Add income"
       >
         <Plus size={16} />
-        <span className="hidden sm:inline">Add income</span>
+        <span>Add income</span>
       </button>
       <IncomeModal
         open={open}

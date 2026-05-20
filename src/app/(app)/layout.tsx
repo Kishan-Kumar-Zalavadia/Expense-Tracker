@@ -19,7 +19,7 @@ export default async function AppLayout({
     <div className="flex h-full min-h-screen bg-[var(--bg)]">
       <Sidebar />
       {/* md:ml-56 offsets the fixed sidebar width */}
-      <main className="flex-1 flex flex-col min-w-0 pb-16 md:pb-0 md:ml-56">
+      <main className="flex-1 flex flex-col min-w-0 pb-nav-safe md:pb-0 md:ml-56">
         {children}
       </main>
       <MobileNav />

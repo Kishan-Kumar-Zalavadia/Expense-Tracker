@@ -80,7 +80,7 @@ export function IncomePageClient({
             style={{ backgroundColor: 'var(--c-save)' }}
           >
             <Plus size={16} />
-            <span className="hidden sm:inline">Add income</span>
+            <span>Add income</span>
           </button>
         </div>
 

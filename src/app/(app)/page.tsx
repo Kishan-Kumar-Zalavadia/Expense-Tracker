@@ -9,6 +9,8 @@ import { DailyBar } from '@/components/dashboard/daily-bar'
 import { RecentActivity } from '@/components/dashboard/recent-activity'
 import { DashboardRefresher } from '@/components/dashboard/dashboard-refresher'
 import { AccountBalances } from '@/components/dashboard/account-balances'
+import { AddIncomeButton } from '@/components/dashboard/add-income-button'
+import { AddExpenseButton } from '@/components/add-expense-button'
 import type { MonthSummary, CategorySpend, DailySpend, BudgetPeriod, PaymentModeBalance } from '@/lib/types'
 
 interface PageProps {
@@ -172,35 +174,53 @@ export default async function DashboardPage({ searchParams }: PageProps) {
   return (
     <div className="page-enter flex flex-col gap-4 sm:gap-6 p-4 sm:p-6 max-w-6xl mx-auto w-full">
       {/* Page header */}
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <div className="inline-flex items-center px-2 py-0.5 mb-1 rounded-full text-[10px] font-bold
-            uppercase tracking-widest text-white"
-            style={{ backgroundColor: 'var(--c-primary)' }}>
-            Dashboard
+      <div className="flex flex-col gap-2">
+        {/* Row 1: title (left) + month picker + desktop buttons (right) */}
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="inline-flex items-center px-2 py-0.5 mb-1 rounded-full text-[10px] font-bold
+              uppercase tracking-widest text-white"
+              style={{ backgroundColor: 'var(--c-primary)' }}>
+              Dashboard
+            </div>
+            <h1 className="font-display text-2xl sm:text-3xl font-medium tracking-tight text-[var(--ink)]">
+              Overview
+            </h1>
           </div>
-          <h1 className="font-display text-2xl sm:text-3xl font-medium tracking-tight text-[var(--ink)]">
-            Overview
-          </h1>
+          <div className="flex items-center gap-2 shrink-0">
+            <Suspense>
+              <MonthPicker year={year} month={month} />
+            </Suspense>
+            {/* Desktop-only: buttons inline with month picker */}
+            <div className="hidden md:flex items-center gap-2">
+              <DashboardRefresher
+                categories={categories ?? []}
+                paymentModes={paymentModes ?? []}
+                budgetPeriods={allBudgetPeriods}
+                currency={currency}
+              />
+            </div>
+          </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <Suspense>
-            <MonthPicker year={year} month={month} />
-          </Suspense>
-          <DashboardRefresher
-            categories={categories ?? []}
-            paymentModes={paymentModes ?? []}
+        {/* Mobile-only: full-width 50/50 buttons below header row */}
+        <div className="grid grid-cols-2 gap-2 md:hidden">
+          <AddIncomeButton
+            paymentModes={paymentModes.filter((pm) => !pm.archived)}
             budgetPeriods={allBudgetPeriods}
             currency={currency}
+            fullWidth
+          />
+          <AddExpenseButton
+            categories={categories ?? []}
+            paymentModes={paymentModes ?? []}
+            currency={currency}
+            fullWidth
           />
         </div>
       </div>
 
       {/* KPI row */}
       <KpiCards summary={summary} currency={currency} />
-
-      {/* Account balances */}
-      <AccountBalances balances={balances} paymentModes={paymentModes} currency={currency} userId={user.id} />
 
       {/* Budget cards */}
       <section>
@@ -211,25 +231,27 @@ export default async function DashboardPage({ searchParams }: PageProps) {
         <BudgetCards summary={summary} currency={currency} />
       </section>
 
-      {/* Charts row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <section className="apple-card p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="section-bar" style={{ backgroundColor: 'var(--c-berry)' }} />
-            <h2 className="font-display text-base font-medium text-[var(--ink)]">By category</h2>
-          </div>
-          <CategoryPie data={categorySpend} currency={currency} />
-        </section>
+      {/* By category chart */}
+      <section className="apple-card p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <span className="section-bar" style={{ backgroundColor: 'var(--c-berry)' }} />
+          <h2 className="font-display text-base font-medium text-[var(--ink)]">By category</h2>
+        </div>
+        <CategoryPie data={categorySpend} currency={currency} />
+      </section>
 
-        <section className="apple-card p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="section-bar" style={{ backgroundColor: 'var(--c-need)' }} />
-            <h2 className="font-display text-base font-medium text-[var(--ink)]">Daily spend</h2>
-            <span className="text-xs text-[var(--ink-muted)] ml-1">(Need + Want)</span>
-          </div>
-          <DailyBar data={dailySpend} dailyLimit={dailyLimit} currency={currency} />
-        </section>
-      </div>
+      {/* Account balances — below "by category" */}
+      <AccountBalances balances={balances} paymentModes={paymentModes} currency={currency} userId={user.id} />
+
+      {/* Daily spend chart */}
+      <section className="apple-card p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <span className="section-bar" style={{ backgroundColor: 'var(--c-need)' }} />
+          <h2 className="font-display text-base font-medium text-[var(--ink)]">Daily spend</h2>
+          <span className="text-xs text-[var(--ink-muted)] ml-1">(Need + Want)</span>
+        </div>
+        <DailyBar data={dailySpend} dailyLimit={dailyLimit} currency={currency} />
+      </section>
 
       {/* Recent activity */}
       <section className="apple-card p-5">

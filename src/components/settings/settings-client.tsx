@@ -46,7 +46,7 @@ export function SettingsClient({
   ]
 
   return (
-    <div className="page-enter flex flex-col gap-6 p-6 max-w-4xl mx-auto w-full">
+    <div className="page-enter flex flex-col gap-4 sm:gap-6 p-4 sm:p-6 max-w-4xl mx-auto w-full">
       {/* Header */}
       <div>
         <div className="inline-flex items-center px-2 py-0.5 mb-2 rounded-full text-[10px] font-bold
@@ -54,13 +54,13 @@ export function SettingsClient({
           style={{ backgroundColor: 'var(--c-warn)' }}>
           Settings
         </div>
-        <h1 className="font-display text-3xl font-medium tracking-tight text-[var(--ink)]">
+        <h1 className="font-display text-2xl sm:text-3xl font-medium tracking-tight text-[var(--ink)]">
           Preferences
         </h1>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 border-b border-[var(--border)] overflow-x-auto">
+      {/* Tabs — scrollable on mobile */}
+      <div className="flex gap-1 border-b border-[var(--border)] overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -82,7 +82,7 @@ export function SettingsClient({
       </div>
 
       {/* Panel */}
-      <div className="apple-card p-6">
+      <div className="apple-card p-4 sm:p-6">
         {activeTab === 'general'    && <GeneralPanel userId={userId} settings={settings} onSave={refresh} />}
         {activeTab === 'budget'     && (
           <BudgetPeriodsPanel

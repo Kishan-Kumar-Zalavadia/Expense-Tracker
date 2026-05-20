@@ -373,3 +373,8 @@
 @media (min-width: 768px) {
   .mobile-nav-bar { display: none; }
 }
+
+/* Padding that clears the fixed mobile nav bar including device safe-area */
+.pb-nav-safe {
+  padding-bottom: max(80px, calc(56px + env(safe-area-inset-bottom)));
+}

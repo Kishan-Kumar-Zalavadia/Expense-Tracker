@@ -4,12 +4,14 @@ import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { ExpenseModal } from '@/components/expenses/expense-modal'
 import type { Category, PaymentMode } from '@/lib/types'
+import { cn } from '@/lib/utils'
 
 interface AddExpenseButtonProps {
   categories: Category[]
   paymentModes: PaymentMode[]
   onSuccess?: () => void
   currency?: string
+  fullWidth?: boolean
 }
 
 export function AddExpenseButton({
@@ -17,6 +19,7 @@ export function AddExpenseButton({
   paymentModes,
   onSuccess,
   currency,
+  fullWidth,
 }: AddExpenseButtonProps) {
   const [open, setOpen] = useState(false)
 
@@ -29,11 +32,11 @@ export function AddExpenseButton({
     <>
       <button
         onClick={() => setOpen(true)}
-        className="btn-primary shrink-0"
+        className={cn('btn-primary', fullWidth ? 'w-full justify-center' : 'shrink-0')}
         aria-label="Add expense"
       >
         <Plus size={16} />
-        <span className="hidden sm:inline">Add expense</span>
+        <span>Add expense</span>
       </button>
       <ExpenseModal
         open={open}

@@ -301,77 +301,77 @@ export function RecurringPanel({ userId, items, categories, paymentModes, curren
             <div key={item.id}>
               {!isEditing && (
                 <div className={cn(
-                  'flex items-start gap-3 px-4 py-3.5 border border-[var(--border)] rounded-[var(--radius-md)]',
+                  'flex flex-col gap-2 px-3 sm:px-4 py-3.5 border border-[var(--border)] rounded-[var(--radius-md)]',
                   !item.active && 'opacity-50',
                 )}
                   style={{ backgroundColor: 'var(--elevated)' }}>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span
-                        className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-[var(--radius-xs)] text-white"
-                        style={{ backgroundColor: accentColor }}
+                  {/* Row 1: type badge + description + action buttons */}
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-[var(--radius-xs)] text-white shrink-0"
+                      style={{ backgroundColor: accentColor }}
+                    >
+                      {item.type}
+                    </span>
+                    <span className="flex-1 text-sm font-semibold text-[var(--ink)] truncate">
+                      {item.description || (isIncome ? 'Income' : 'Expense')}
+                    </span>
+                    {!item.active && (
+                      <span className="text-[10px] text-[var(--ink-muted)] border border-[var(--border)] px-1.5 py-0.5 rounded-[var(--radius-xs)] shrink-0">
+                        paused
+                      </span>
+                    )}
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={() => handleGenerate(item)}
+                        disabled={generating === item.id || !item.active}
+                        className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)]
+                          hover:text-[var(--c-primary)] hover:bg-[var(--surface)] transition-colors disabled:opacity-40"
+                        title="Generate entries up to today"
                       >
-                        {item.type}
-                      </span>
-                      <span className="text-sm font-semibold text-[var(--ink)]">
-                        {item.description || (isIncome ? 'Income' : 'Expense')}
-                      </span>
-                      {!item.active && (
-                        <span className="text-[10px] text-[var(--ink-muted)] border border-[var(--border)] px-1.5 py-0.5 rounded-[var(--radius-xs)]">
-                          paused
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2 mt-1 flex-wrap text-xs text-[var(--ink-muted)]">
-                      <span className="font-medium tabular-nums" style={{ color: accentColor }}>
-                        {formatCurrency(item.amount, currency)}
-                      </span>
-                      <span className="text-[var(--ink-subtle)]">·</span>
-                      <span>{freqLabel(item)}</span>
-                      <span className="text-[var(--ink-subtle)]">·</span>
-                      <span>Next: {nextDueLabel(item)}</span>
-                      {item.payment_mode && (
-                        <>
-                          <span className="text-[var(--ink-subtle)]">·</span>
-                          <span>{item.payment_mode.name}</span>
-                        </>
-                      )}
+                        <RefreshCw size={13} className={generating === item.id ? 'animate-spin' : ''} />
+                      </button>
+                      <button
+                        onClick={() => toggleActive(item)}
+                        className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)]
+                          hover:text-[var(--c-warn)] hover:bg-[var(--tint-warn)] transition-colors"
+                        title={item.active ? 'Pause' : 'Resume'}
+                      >
+                        {item.active ? <Pause size={13} /> : <Play size={13} />}
+                      </button>
+                      <button
+                        onClick={() => startEdit(item)}
+                        className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)]
+                          hover:text-[var(--c-primary)] hover:bg-[var(--surface)] transition-colors"
+                        title="Edit"
+                      >
+                        <Pencil size={13} />
+                      </button>
+                      <button
+                        onClick={() => deleteItem(item.id)}
+                        className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)]
+                          hover:text-[var(--c-want)] hover:bg-[var(--tint-want)] transition-colors"
+                        title="Delete"
+                      >
+                        <Trash2 size={13} />
+                      </button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <button
-                      onClick={() => handleGenerate(item)}
-                      disabled={generating === item.id || !item.active}
-                      className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)]
-                        hover:text-[var(--c-primary)] hover:bg-[var(--elevated)] transition-colors disabled:opacity-40"
-                      title="Generate entries up to today"
-                    >
-                      <RefreshCw size={13} className={generating === item.id ? 'animate-spin' : ''} />
-                    </button>
-                    <button
-                      onClick={() => toggleActive(item)}
-                      className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)]
-                        hover:text-[var(--c-warn)] hover:bg-[var(--tint-warn)] transition-colors"
-                      title={item.active ? 'Pause' : 'Resume'}
-                    >
-                      {item.active ? <Pause size={13} /> : <Play size={13} />}
-                    </button>
-                    <button
-                      onClick={() => startEdit(item)}
-                      className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)]
-                        hover:text-[var(--c-primary)] hover:bg-[var(--elevated)] transition-colors"
-                      title="Edit"
-                    >
-                      <Pencil size={13} />
-                    </button>
-                    <button
-                      onClick={() => deleteItem(item.id)}
-                      className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)]
-                        hover:text-[var(--c-want)] hover:bg-[var(--tint-want)] transition-colors"
-                      title="Delete"
-                    >
-                      <Trash2 size={13} />
-                    </button>
+                  {/* Row 2: metadata */}
+                  <div className="flex items-center gap-2 flex-wrap text-xs text-[var(--ink-muted)]">
+                    <span className="font-medium tabular-nums" style={{ color: accentColor }}>
+                      {formatCurrency(item.amount, currency)}
+                    </span>
+                    <span className="text-[var(--ink-subtle)]">·</span>
+                    <span>{freqLabel(item)}</span>
+                    <span className="text-[var(--ink-subtle)]">·</span>
+                    <span>Next: {nextDueLabel(item)}</span>
+                    {item.payment_mode && (
+                      <>
+                        <span className="text-[var(--ink-subtle)]">·</span>
+                        <span>{item.payment_mode.name}</span>
+                      </>
+                    )}
                   </div>
                 </div>
               )}

@@ -116,94 +116,91 @@ export function CategoriesPanel({ userId, categories, usedCategoryIds, onSave }:
 
           return (
             <div key={cat.id}
-              className="flex items-center gap-3 px-4 py-3 bg-[var(--elevated)] border border-[var(--border)] rounded-[var(--radius-md)]">
-              {/* Color swatch / picker */}
-              {isEditingThis ? (
-                <input
-                  type="color"
-                  value={editState!.color}
-                  onChange={(e) => setEditState({ ...editState!, color: e.target.value })}
-                  className="w-7 h-7 rounded-[var(--radius-md)] cursor-pointer border-0 p-0 bg-transparent"
-                />
-              ) : (
-                <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
-              )}
-
-              {/* Name */}
-              {isEditingThis ? (
-                <input
-                  value={editState!.name}
-                  onChange={(e) => setEditState({ ...editState!, name: e.target.value })}
-                  className={cn(inputCls, 'flex-1')}
-                />
-              ) : (
-                <span className="flex-1 text-sm text-[var(--ink)]">{cat.name}</span>
-              )}
-
-              {/* Type */}
-              {isEditingThis ? (
-                <select
-                  value={editState!.type}
-                  onChange={(e) => setEditState({ ...editState!, type: e.target.value as ExpenseType })}
-                  className={inputCls}
-                >
-                  {TYPE_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
-                </select>
-              ) : (
-                <span className="text-xs font-medium px-2 py-0.5 rounded-[var(--radius-md)]"
-                  style={{ color: typeColor(cat.type), backgroundColor: typeColor(cat.type) + '15' }}>
-                  {cat.type}
-                </span>
-              )}
-
-              {/* Actions */}
-              <div className="flex gap-1 items-center">
-                {cat.is_system ? (
-                  /* System category — locked */
+              className="flex flex-col gap-2 px-3 sm:px-4 py-3 bg-[var(--elevated)] border border-[var(--border)] rounded-[var(--radius-md)]">
+              {cat.is_system ? (
+                /* System category — show compact locked row */
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
+                  <span className="flex-1 text-sm text-[var(--ink)]">{cat.name}</span>
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-[var(--radius-md)] shrink-0"
+                    style={{ color: typeColor(cat.type), backgroundColor: typeColor(cat.type) + '15' }}>
+                    {cat.type}
+                  </span>
                   <span className="flex items-center gap-1 px-2 py-1 text-[10px] font-semibold
-                    rounded-[var(--radius-md)] border border-[var(--border)] text-[var(--ink-subtle)]"
-                    title="This is a system category and cannot be modified">
+                    rounded-[var(--radius-md)] border border-[var(--border)] text-[var(--ink-subtle)] shrink-0"
+                    title="System category — cannot be modified">
                     <Lock size={9} />
                     System
                   </span>
-                ) : isEditingThis ? (
-                  <>
+                </div>
+              ) : isEditingThis ? (
+                /* Edit mode — two rows on mobile */
+                <>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={editState!.color}
+                      onChange={(e) => setEditState({ ...editState!, color: e.target.value })}
+                      className="w-8 h-8 rounded-[var(--radius-md)] cursor-pointer border border-[var(--border)] p-0.5 shrink-0"
+                    />
+                    <input
+                      value={editState!.name}
+                      onChange={(e) => setEditState({ ...editState!, name: e.target.value })}
+                      className={cn(inputCls, 'flex-1')}
+                      autoFocus
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={editState!.type}
+                      onChange={(e) => setEditState({ ...editState!, type: e.target.value as ExpenseType })}
+                      className={cn(inputCls, 'flex-1')}
+                    >
+                      {TYPE_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
+                    </select>
                     <button onClick={saveEdit}
-                      className="p-1.5 rounded-[var(--radius-md)] text-[var(--c-save)] hover:bg-[var(--tint-save)] transition-colors">
-                      <Check size={13} />
+                      className="p-2 rounded-[var(--radius-md)] text-[var(--c-save)] hover:bg-[var(--tint-save)] transition-colors shrink-0">
+                      <Check size={14} />
                     </button>
                     <button onClick={() => setEditing(null)}
-                      className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-muted)] hover:bg-[var(--surface)] transition-colors">
-                      <X size={13} />
+                      className="p-2 rounded-[var(--radius-md)] text-[var(--ink-muted)] hover:bg-[var(--surface)] transition-colors shrink-0">
+                      <X size={14} />
                     </button>
-                  </>
-                ) : (
-                  <>
-                    <button onClick={() => startEdit(cat)}
-                      className="px-2 py-1 text-xs text-[var(--ink-muted)] hover:text-[var(--ink)]
-                        border border-[var(--border)] rounded-[var(--radius-md)] hover:bg-[var(--surface)] transition-colors">
-                      Edit
+                  </div>
+                </>
+              ) : (
+                /* Display mode — always single row, works on mobile */
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
+                  <span className="flex-1 text-sm text-[var(--ink)] truncate">{cat.name}</span>
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-[var(--radius-md)] shrink-0"
+                    style={{ color: typeColor(cat.type), backgroundColor: typeColor(cat.type) + '15' }}>
+                    {cat.type}
+                  </span>
+                  <button onClick={() => startEdit(cat)}
+                    className="px-2 py-1 text-xs text-[var(--ink-muted)] hover:text-[var(--ink)]
+                      border border-[var(--border)] rounded-[var(--radius-md)] hover:bg-[var(--surface)] transition-colors shrink-0">
+                    Edit
+                  </button>
+                  {isUnused ? (
+                    <button
+                      onClick={() => deleteCategory(cat)}
+                      className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)] hover:text-[var(--c-want)]
+                        hover:bg-[var(--tint-want)] transition-colors shrink-0"
+                      title="Delete permanently (never used)">
+                      <Trash2 size={13} />
                     </button>
-                    {isUnused ? (
-                      <button
-                        onClick={() => deleteCategory(cat)}
-                        className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)] hover:text-[var(--c-want)]
-                          hover:bg-[var(--tint-want)] transition-colors"
-                        title="Delete permanently (never used)">
-                        <Trash2 size={13} />
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => archive(cat)}
-                        className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)] hover:text-[var(--c-warn)]
-                          hover:bg-[var(--tint-warn)] transition-colors"
-                        title="Archive (has existing expenses)">
-                        <Archive size={13} />
-                      </button>
-                    )}
-                  </>
-                )}
-              </div>
+                  ) : (
+                    <button
+                      onClick={() => archive(cat)}
+                      className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)] hover:text-[var(--c-warn)]
+                        hover:bg-[var(--tint-warn)] transition-colors shrink-0"
+                      title="Archive (has existing expenses)">
+                      <Archive size={13} />
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           )
         })}

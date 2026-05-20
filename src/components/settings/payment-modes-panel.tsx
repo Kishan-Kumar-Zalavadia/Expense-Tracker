@@ -111,80 +111,85 @@ export function PaymentModesPanel({ userId, paymentModes, usedPaymentModeIds, on
         {active.map((pm) => {
           const isUnused = !usedSet.has(pm.id)
           return (
-          <div key={pm.id}
-            className="flex items-center gap-3 px-4 py-3 bg-[var(--elevated)] border border-[var(--border)] rounded-[var(--radius-md)]">
-            {editing === pm.id ? (
-              <>
-                <input
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && saveEdit()}
-                  className={cn(inputCls, 'flex-1')}
-                  autoFocus
-                />
-                <button onClick={saveEdit}
-                  className="p-1.5 rounded-[var(--radius-md)] text-[var(--c-save)] hover:bg-[var(--tint-save)] transition-colors">
-                  <Check size={13} />
-                </button>
-                <button onClick={() => setEditing(null)}
-                  className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-muted)] hover:bg-[var(--surface)] transition-colors">
-                  <X size={13} />
-                </button>
-              </>
-            ) : (
-              <>
-                <span className="flex-1 text-sm text-[var(--ink)]">{pm.name}</span>
-                {/* Credit card toggle */}
-                <button
-                  onClick={() => toggleCreditCard(pm)}
-                  title={pm.is_credit_card ? 'Credit card — click to change to regular account' : 'Regular account — click to mark as credit card'}
-                  className={cn(
-                    'flex items-center gap-1 px-2 py-1 text-[10px] font-semibold rounded-[var(--radius-md)] border transition-colors',
-                    pm.is_credit_card
-                      ? 'border-[var(--c-need)] text-[var(--c-need)] bg-[var(--tint-need)]'
-                      : 'border-[var(--border)] text-[var(--ink-subtle)] hover:border-[var(--border-strong)]',
-                  )}
-                >
-                  <CreditCard size={10} />
-                  {pm.is_credit_card ? 'Credit' : 'Debit'}
-                </button>
-                {/* Show in balance toggle */}
-                <button
-                  onClick={() => toggleShowInBalance(pm)}
-                  title={pm.show_in_balance ? 'Shown in account balances — click to hide' : 'Hidden from account balances — click to show'}
-                  className={cn(
-                    'px-2 py-1 text-[10px] font-semibold rounded-[var(--radius-md)] border transition-colors',
-                    pm.show_in_balance
-                      ? 'border-[var(--c-save)] text-[var(--c-save)] bg-[var(--tint-save)]'
-                      : 'border-[var(--border)] text-[var(--ink-subtle)] hover:border-[var(--border-strong)]',
-                  )}
-                >
-                  {pm.show_in_balance ? 'Shown' : 'Hidden'}
-                </button>
-                <button onClick={() => startEdit(pm)}
-                  className="px-2 py-1 text-xs text-[var(--ink-muted)] hover:text-[var(--ink)]
-                    border border-[var(--border)] rounded-[var(--radius-md)] hover:bg-[var(--surface)] transition-colors">
-                  Edit
-                </button>
-                {isUnused ? (
-                  <button
-                    onClick={() => deleteMode(pm)}
-                    className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)] hover:text-[var(--c-want)]
-                      hover:bg-[var(--tint-want)] transition-colors"
-                    title="Delete permanently (never used)">
-                    <Trash2 size={13} />
+            <div key={pm.id}
+              className="flex flex-col gap-2 px-3 sm:px-4 py-3 bg-[var(--elevated)] border border-[var(--border)] rounded-[var(--radius-md)]">
+              {editing === pm.id ? (
+                /* Edit mode — single row, works fine on mobile */
+                <div className="flex items-center gap-2">
+                  <input
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && saveEdit()}
+                    className={cn(inputCls, 'flex-1')}
+                    autoFocus
+                  />
+                  <button onClick={saveEdit}
+                    className="p-2 rounded-[var(--radius-md)] text-[var(--c-save)] hover:bg-[var(--tint-save)] transition-colors">
+                    <Check size={14} />
                   </button>
-                ) : (
-                  <button onClick={() => archive(pm.id)}
-                    className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)] hover:text-[var(--c-warn)]
-                      hover:bg-[var(--tint-warn)] transition-colors"
-                    title="Archive (has existing transactions)">
-                    <Archive size={13} />
+                  <button onClick={() => setEditing(null)}
+                    className="p-2 rounded-[var(--radius-md)] text-[var(--ink-muted)] hover:bg-[var(--surface)] transition-colors">
+                    <X size={14} />
                   </button>
-                )}
-              </>
-            )}
-          </div>
+                </div>
+              ) : (
+                <>
+                  {/* Row 1: name + edit/delete actions */}
+                  <div className="flex items-center gap-2">
+                    <span className="flex-1 text-sm font-medium text-[var(--ink)] truncate">{pm.name}</span>
+                    <button onClick={() => startEdit(pm)}
+                      className="px-2 py-1 text-xs text-[var(--ink-muted)] hover:text-[var(--ink)]
+                        border border-[var(--border)] rounded-[var(--radius-md)] hover:bg-[var(--surface)] transition-colors shrink-0">
+                      Edit
+                    </button>
+                    {isUnused ? (
+                      <button
+                        onClick={() => deleteMode(pm)}
+                        className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)] hover:text-[var(--c-want)]
+                          hover:bg-[var(--tint-want)] transition-colors shrink-0"
+                        title="Delete permanently (never used)">
+                        <Trash2 size={13} />
+                      </button>
+                    ) : (
+                      <button onClick={() => archive(pm.id)}
+                        className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)] hover:text-[var(--c-warn)]
+                          hover:bg-[var(--tint-warn)] transition-colors shrink-0"
+                        title="Archive (has existing transactions)">
+                        <Archive size={13} />
+                      </button>
+                    )}
+                  </div>
+                  {/* Row 2: toggles */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      onClick={() => toggleCreditCard(pm)}
+                      title={pm.is_credit_card ? 'Credit card — tap to switch to debit' : 'Debit/bank — tap to mark as credit card'}
+                      className={cn(
+                        'flex items-center gap-1 px-2 py-1 text-[10px] font-semibold rounded-[var(--radius-md)] border transition-colors',
+                        pm.is_credit_card
+                          ? 'border-[var(--c-need)] text-[var(--c-need)] bg-[var(--tint-need)]'
+                          : 'border-[var(--border)] text-[var(--ink-subtle)] hover:border-[var(--border-strong)]',
+                      )}
+                    >
+                      <CreditCard size={10} />
+                      {pm.is_credit_card ? 'Credit card' : 'Debit / bank'}
+                    </button>
+                    <button
+                      onClick={() => toggleShowInBalance(pm)}
+                      title={pm.show_in_balance ? 'Shown in balance cards — tap to hide' : 'Hidden from balance cards — tap to show'}
+                      className={cn(
+                        'px-2 py-1 text-[10px] font-semibold rounded-[var(--radius-md)] border transition-colors',
+                        pm.show_in_balance
+                          ? 'border-[var(--c-save)] text-[var(--c-save)] bg-[var(--tint-save)]'
+                          : 'border-[var(--border)] text-[var(--ink-subtle)] hover:border-[var(--border-strong)]',
+                      )}
+                    >
+                      {pm.show_in_balance ? 'Shown in balance' : 'Hidden from balance'}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           )
         })}
       </div>

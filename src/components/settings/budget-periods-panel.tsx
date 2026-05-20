@@ -295,7 +295,7 @@ export function BudgetPeriodsPanel({
             <div key={p.id}>
               {/* Display row */}
               {!isEditing && (
-                <div className="flex items-start gap-3 px-4 py-3.5 bg-[var(--elevated)]
+                <div className="flex items-start gap-3 px-3 sm:px-4 py-3.5 bg-[var(--elevated)]
                   border border-[var(--border)] rounded-[var(--radius-md)]">
                   {/* Date range */}
                   <div className="flex-1 min-w-0">
