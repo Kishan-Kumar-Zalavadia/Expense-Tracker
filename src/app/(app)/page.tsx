@@ -8,7 +8,7 @@ import { CategoryPie } from '@/components/dashboard/category-pie'
 import { DailyBar } from '@/components/dashboard/daily-bar'
 import { RecentActivity } from '@/components/dashboard/recent-activity'
 import { DashboardRefresher } from '@/components/dashboard/dashboard-refresher'
-import type { MonthSummary, CategorySpend, DailySpend } from '@/lib/types'
+import type { MonthSummary, CategorySpend, DailySpend, BudgetPeriod } from '@/lib/types'
 
 interface PageProps {
   searchParams: Promise<{ month?: string }>
@@ -147,6 +147,9 @@ export default async function DashboardPage({ searchParams }: PageProps) {
 
   const recent6 = expenseList.slice(0, 6)
 
+  // Fetch all budget periods (needed for Add Income modal)
+  const allBudgetPeriods: BudgetPeriod[] = budgetPeriods ?? []
+
   return (
     <div className="page-enter flex flex-col gap-4 sm:gap-6 p-4 sm:p-6 max-w-6xl mx-auto w-full">
       {/* Page header */}
@@ -168,6 +171,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
           <DashboardRefresher
             categories={categories ?? []}
             paymentModes={paymentModes ?? []}
+            budgetPeriods={allBudgetPeriods}
             currency={currency}
           />
         </div>

@@ -6,7 +6,8 @@ import { CategoriesPanel } from './categories-panel'
 import { PaymentModesPanel } from './payment-modes-panel'
 import { BudgetPeriodsPanel } from './budget-periods-panel'
 import { GeneralPanel } from './general-panel'
-import type { BudgetPeriod, Category, PaymentMode, UserSettings } from '@/lib/types'
+import { RecurringPanel } from './recurring-panel'
+import type { BudgetPeriod, Category, PaymentMode, RecurringItem, UserSettings } from '@/lib/types'
 
 interface SettingsClientProps {
   userId: string
@@ -14,9 +15,10 @@ interface SettingsClientProps {
   categories: Category[]
   paymentModes: PaymentMode[]
   budgetPeriods: BudgetPeriod[]
+  recurringItems: RecurringItem[]
 }
 
-type Tab = 'general' | 'budget' | 'categories' | 'payment'
+type Tab = 'general' | 'budget' | 'categories' | 'payment' | 'recurring'
 
 export function SettingsClient({
   userId,
@@ -24,6 +26,7 @@ export function SettingsClient({
   categories,
   paymentModes,
   budgetPeriods,
+  recurringItems,
 }: SettingsClientProps) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<Tab>('general')
@@ -35,6 +38,7 @@ export function SettingsClient({
     { id: 'budget',     label: 'Budget',          color: 'var(--c-primary)' },
     { id: 'categories', label: 'Categories',      color: 'var(--c-berry)' },
     { id: 'payment',    label: 'Payment Modes',   color: 'var(--c-need)' },
+    { id: 'recurring',  label: 'Recurring',       color: 'var(--c-save)' },
   ]
 
   return (
@@ -87,6 +91,16 @@ export function SettingsClient({
         )}
         {activeTab === 'categories' && <CategoriesPanel userId={userId} categories={categories} onSave={refresh} />}
         {activeTab === 'payment'    && <PaymentModesPanel userId={userId} paymentModes={paymentModes} onSave={refresh} />}
+        {activeTab === 'recurring'  && (
+          <RecurringPanel
+            userId={userId}
+            items={recurringItems}
+            categories={categories.filter((c) => !c.archived)}
+            paymentModes={paymentModes.filter((pm) => !pm.archived)}
+            currency={settings.currency}
+            onSave={refresh}
+          />
+        )}
       </div>
     </div>
   )

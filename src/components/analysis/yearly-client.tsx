@@ -158,22 +158,25 @@ export function YearlyClient({ year, dailyData, maxDay, currency }: YearlyClient
         </div>
       </div>
 
-      {/* Tooltip portal-style overlay */}
+      {/* Tooltip */}
       {tooltip && (
         <div
-          className="fixed z-50 px-3 py-2 pointer-events-none rounded-[var(--radius-md)] text-xs"
+          className="fixed z-50 pointer-events-none rounded-[var(--radius-md)] border border-[var(--border)]
+            shadow-lg px-3 py-2 text-xs space-y-1"
           style={{
-            backgroundColor: 'var(--ink)',
-            color: 'var(--bg)',
-            top: tooltip.y - 52,
+            backgroundColor: 'var(--elevated)',
+            top: tooltip.y - 64,
             left: tooltip.x,
             transform: 'translateX(-50%)',
           }}
         >
-          <div className="text-[var(--ink-subtle)] text-[10px]">
+          <div className="text-[var(--ink-muted)] whitespace-nowrap">
             {formatDate(tooltip.date, 'EEE, dd MMM yyyy')}
           </div>
-          <div className="font-medium tabular-nums">
+          <div
+            className="font-semibold tabular-nums"
+            style={{ color: tooltip.total > 0 ? 'var(--c-need)' : 'var(--ink-subtle)' }}
+          >
             {tooltip.total > 0 ? formatCurrency(tooltip.total, currency) : 'No spend'}
           </div>
         </div>

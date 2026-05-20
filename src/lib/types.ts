@@ -85,6 +85,32 @@ export interface PaymentModeBalance {
   balance: number           // initial_balance + income_total - expense_total
 }
 
+// ─── Recurring Items ─────────────────────────────────────────────
+
+export type RecurringFrequency = 'monthly' | 'weekly' | 'biweekly'
+
+export interface RecurringItem {
+  id: string
+  user_id: string
+  type: 'income' | 'expense'
+  description: string | null
+  amount: number
+  payment_mode_id: string | null
+  category_id: string | null
+  expense_type: ExpenseType | null
+  frequency: RecurringFrequency
+  day_of_month: number | null    // for monthly
+  day_of_week: number | null     // for weekly/biweekly (0=Mon…6=Sun)
+  active: boolean
+  notes: string | null
+  last_generated_date: string | null
+  created_at: string
+  updated_at: string
+  // joined
+  payment_mode?: PaymentMode
+  category?: Category
+}
+
 // ─── Legacy (kept for reference, no longer written to) ────────────
 
 export interface SalaryConfig {

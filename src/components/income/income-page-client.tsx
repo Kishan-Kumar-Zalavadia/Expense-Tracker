@@ -1,13 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus, Pencil, Trash2, TrendingUp, TrendingDown, Wallet } from 'lucide-react'
 import { toast } from 'sonner'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { IncomeModal } from './income-modal'
 import type { BudgetPeriod, Income, PaymentMode, PaymentModeBalance } from '@/lib/types'
+import { cn } from '@/lib/utils'
 
 interface IncomePageClientProps {
   incomes: Income[]
@@ -28,6 +30,8 @@ export function IncomePageClient({
   const supabase = createClient()
   const [modalOpen, setModalOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<Income | null>(null)
+  const [search, setSearch] = useState('')
+  const [filterMode, setFilterMode] = useState('')
 
   const handleEdit = (income: Income) => {
     setEditTarget(income)
@@ -50,21 +54,42 @@ export function IncomePageClient({
     router.refresh()
   }
 
-  const totalIncome = incomes.reduce((s, i) => s + Number(i.amount), 0)
+  const filtered = useMemo(() => {
+    let list = incomes
+    if (search.trim()) {
+      const q = search.toLowerCase()
+      list = list.filter((i) =>
+        (i.description ?? '').toLowerCase().includes(q) ||
+        (i.notes ?? '').toLowerCase().includes(q) ||
+        (i.payment_mode?.name ?? '').toLowerCase().includes(q),
+      )
+    }
+    if (filterMode) {
+      list = list.filter((i) => i.payment_mode_id === filterMode)
+    }
+    return list
+  }, [incomes, search, filterMode])
+
+  const totalIncome = filtered.reduce((s, i) => s + Number(i.amount), 0)
+
+  const selectCls = cn(
+    'px-3 py-1.5 text-xs bg-[var(--elevated)] border border-[var(--border)] rounded-[var(--radius-sm)]',
+    'text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[var(--c-save)]',
+  )
 
   return (
     <>
       <div className="page-enter flex flex-col gap-6 p-4 sm:p-6 max-w-6xl mx-auto w-full">
         {/* Header */}
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center justify-between gap-3">
           <div>
-            <div className="inline-flex items-center px-2 py-0.5 mb-2 rounded-full text-[10px] font-bold
+            <div className="inline-flex items-center px-2 py-0.5 mb-1 rounded-full text-[10px] font-bold
               uppercase tracking-widest text-white"
               style={{ backgroundColor: 'var(--c-save)' }}>
               Income
             </div>
-            <h1 className="font-display text-3xl font-medium tracking-tight text-[var(--ink)]">
-              Income & Balance
+            <h1 className="font-display text-2xl sm:text-3xl font-medium tracking-tight text-[var(--ink)]">
+              All Income
             </h1>
           </div>
           <button
@@ -78,16 +103,17 @@ export function IncomePageClient({
           </button>
         </div>
 
-        {/* Balance cards per payment mode */}
+        {/* Balance cards — click navigates to dashboard */}
         {balances.length > 0 && (
           <section>
             <div className="flex items-center gap-2 mb-3">
               <span className="section-bar" style={{ backgroundColor: 'var(--c-save)' }} />
               <h2 className="font-display text-lg font-medium text-[var(--ink)]">Account balances</h2>
+              <span className="ml-auto text-xs text-[var(--ink-subtle)]">Tap to go to dashboard</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {balances.map((b) => (
-                <div key={b.id} className="apple-card overflow-hidden">
+                <Link key={b.id} href="/" className="apple-card overflow-hidden block hover:shadow-md transition-shadow">
                   <div className="h-1" style={{
                     backgroundColor: b.balance >= 0 ? 'var(--c-save)' : 'var(--c-want)'
                   }} />
@@ -114,17 +140,39 @@ export function IncomePageClient({
                       </span>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </section>
         )}
 
         {/* Income list */}
-        <section className="apple-card p-5">
-          <div className="flex items-center gap-2 mb-4">
+        <section className="apple-card p-4 sm:p-5">
+          {/* Filters */}
+          <div className="flex flex-wrap gap-2 items-center mb-4">
+            <input
+              type="search"
+              placeholder="Search description, notes..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="px-3 py-1.5 text-xs bg-[var(--elevated)] border border-[var(--border)] rounded-[var(--radius-sm)]
+                text-[var(--ink)] placeholder:text-[var(--ink-subtle)]
+                focus:outline-none focus:ring-2 focus:ring-[var(--c-save)] flex-1 min-w-40"
+            />
+            <select value={filterMode} onChange={(e) => setFilterMode(e.target.value)} className={selectCls}>
+              <option value="">All accounts</option>
+              {paymentModes.filter((pm) => !pm.archived).map((pm) => (
+                <option key={pm.id} value={pm.id}>{pm.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Summary line */}
+          <div className="flex items-center gap-2 mb-3">
             <span className="section-bar" style={{ backgroundColor: 'var(--c-save)' }} />
-            <h2 className="font-display text-base font-medium text-[var(--ink)]">All income</h2>
+            <h2 className="font-display text-base font-medium text-[var(--ink)]">
+              {filtered.length} {filtered.length === 1 ? 'entry' : 'entries'}
+            </h2>
             {totalIncome > 0 && (
               <span className="ml-auto text-sm font-medium tabular-nums text-[var(--c-save)]">
                 Total: {formatCurrency(totalIncome, currency)}
@@ -132,76 +180,126 @@ export function IncomePageClient({
             )}
           </div>
 
-          {incomes.length === 0 ? (
+          {filtered.length === 0 ? (
             <div className="py-12 text-center">
-              <p className="text-sm text-[var(--ink-muted)]">No income recorded yet.</p>
-              <p className="text-xs text-[var(--ink-subtle)] mt-1">
-                Add income manually or enable income tracking in a budget period.
+              <p className="text-sm text-[var(--ink-muted)]">
+                {incomes.length === 0 ? 'No income recorded yet.' : 'No results match your filters.'}
               </p>
+              {incomes.length === 0 && (
+                <p className="text-xs text-[var(--ink-subtle)] mt-1">
+                  Add income manually or enable income tracking in a budget period.
+                </p>
+              )}
             </div>
           ) : (
-            <div className="divide-y divide-[var(--border)]">
-              {incomes.map((income) => (
-                <div
-                  key={income.id}
-                  className="group flex items-center gap-3 py-3 px-2 hover:bg-[var(--surface-2)]
-                    rounded-[var(--radius-md)] transition-colors cursor-pointer"
-                  onClick={() => handleEdit(income)}
-                >
-                  {/* Green dot indicator */}
-                  <div className="w-2 h-2 rounded-full shrink-0" style={{
-                    backgroundColor: income.auto_generated ? 'var(--c-primary)' : 'var(--c-save)'
-                  }} />
+            <>
+              {/* Desktop table */}
+              <div className="hidden sm:block divide-y divide-[var(--border)]">
+                {filtered.map((income) => (
+                  <div
+                    key={income.id}
+                    className="group flex items-center gap-3 py-3 px-2 hover:bg-[var(--surface-2)]
+                      rounded-[var(--radius-md)] transition-colors cursor-pointer"
+                    onClick={() => handleEdit(income)}
+                  >
+                    <div className="w-2 h-2 rounded-full shrink-0" style={{
+                      backgroundColor: income.auto_generated ? 'var(--c-primary)' : 'var(--c-save)'
+                    }} />
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-medium text-[var(--ink)] truncate">
-                        {income.description}
-                      </span>
-                      {income.auto_generated && (
-                        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-[var(--radius-xs)]
-                          bg-[var(--surface-2)] text-[var(--ink-muted)]">
-                          auto
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-medium text-[var(--ink)] truncate">
+                          {income.description || <span className="text-[var(--ink-muted)] italic">No description</span>}
                         </span>
-                      )}
+                        {income.auto_generated && (
+                          <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-[var(--radius-xs)]
+                            bg-[var(--surface-2)] text-[var(--ink-muted)]">
+                            auto
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-xs text-[var(--ink-muted)]">{income.payment_mode?.name}</span>
+                        <span className="text-xs text-[var(--ink-subtle)]">·</span>
+                        <span className="text-xs text-[var(--ink-muted)] tabular-nums">
+                          {formatDate(income.date, 'dd MMM yyyy')}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-xs text-[var(--ink-muted)]">
-                        {income.payment_mode?.name}
-                      </span>
-                      <span className="text-xs text-[var(--ink-subtle)]">·</span>
-                      <span className="text-xs text-[var(--ink-muted)] tabular-nums">
-                        {formatDate(income.date, 'dd MMM yyyy')}
-                      </span>
+
+                    <span className="tabular-nums text-sm font-semibold shrink-0" style={{ color: 'var(--c-save)' }}>
+                      +{formatCurrency(Number(income.amount), currency)}
+                    </span>
+
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleEdit(income) }}
+                        className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)]
+                          hover:text-[var(--c-primary)] hover:bg-[var(--elevated)] transition-colors"
+                        title="Edit"
+                      >
+                        <Pencil size={12} />
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleDelete(income.id, income.auto_generated) }}
+                        className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)]
+                          hover:text-[var(--c-want)] hover:bg-[var(--tint-want)] transition-colors"
+                        title="Delete"
+                      >
+                        <Trash2 size={12} />
+                      </button>
                     </div>
                   </div>
+                ))}
+              </div>
 
-                  <span className="tabular-nums text-sm font-semibold shrink-0"
-                    style={{ color: 'var(--c-save)' }}>
-                    +{formatCurrency(Number(income.amount), currency)}
-                  </span>
-
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleEdit(income) }}
-                      className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)]
-                        hover:text-[var(--c-primary)] hover:bg-[var(--elevated)] transition-colors"
-                      title="Edit"
-                    >
-                      <Pencil size={12} />
-                    </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleDelete(income.id, income.auto_generated) }}
-                      className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)]
-                        hover:text-[var(--c-want)] hover:bg-[var(--tint-want)] transition-colors"
-                      title="Delete"
-                    >
-                      <Trash2 size={12} />
-                    </button>
+              {/* Mobile card list */}
+              <div className="sm:hidden divide-y divide-[var(--border)]">
+                {filtered.map((income) => (
+                  <div
+                    key={income.id}
+                    className="group flex items-center gap-3 py-3 cursor-pointer"
+                    onClick={() => handleEdit(income)}
+                  >
+                    <div className="w-2 h-2 rounded-full shrink-0 mt-0.5" style={{
+                      backgroundColor: income.auto_generated ? 'var(--c-primary)' : 'var(--c-save)'
+                    }} />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm font-medium text-[var(--ink)] truncate">
+                          {income.description || income.payment_mode?.name || 'Income'}
+                        </span>
+                        {income.auto_generated && (
+                          <span className="text-[10px] px-1 py-0.5 rounded bg-[var(--surface-2)] text-[var(--ink-muted)] shrink-0">auto</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="text-xs text-[var(--ink-muted)]">{income.payment_mode?.name}</span>
+                        <span className="text-xs text-[var(--ink-subtle)]">·</span>
+                        <span className="text-xs text-[var(--ink-subtle)] tabular-nums">
+                          {formatDate(income.date, 'dd MMM')}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-sm font-semibold tabular-nums" style={{ color: 'var(--c-save)' }}>
+                        +{formatCurrency(Number(income.amount), currency)}
+                      </span>
+                      <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={(e) => { e.stopPropagation(); handleEdit(income) }}
+                          className="p-1.5 rounded text-[var(--ink-subtle)] hover:text-[var(--c-primary)] transition-colors">
+                          <Pencil size={12} />
+                        </button>
+                        <button onClick={(e) => { e.stopPropagation(); handleDelete(income.id, income.auto_generated) }}
+                          className="p-1.5 rounded text-[var(--ink-subtle)] hover:text-[var(--c-want)] transition-colors">
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </>
           )}
         </section>
       </div>
