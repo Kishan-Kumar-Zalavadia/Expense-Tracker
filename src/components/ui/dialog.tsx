@@ -88,7 +88,7 @@ function DialogContent({
             render={
               <Button
                 variant="ghost"
-                className="absolute top-2 right-2"
+                className={cn("absolute right-3", isMobile ? "top-[22px]" : "top-3")}
                 size="icon-sm"
               />
             }

@@ -270,12 +270,12 @@
 
 /* Clip children to the dialog's border-radius (fixes colored top bar corners) */
 [data-slot="dialog-content"] {
-  overflow-x: hidden;
+  overflow-x: hidden !important;
 }
 /* Desktop: constrain height and allow scrolling if content is too tall */
 [data-slot="dialog-content"]:not(.mobile-sheet) {
-  max-height: calc(100dvh - 2rem);
-  overflow-y: auto;
+  max-height: calc(100dvh - 2rem) !important;
+  overflow-y: auto !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════

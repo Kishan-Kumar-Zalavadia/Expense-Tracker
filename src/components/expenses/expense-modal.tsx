@@ -149,12 +149,16 @@ export function ExpenseModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="p-0 border border-[var(--border)] bg-[var(--elevated)] sm:max-w-md"
+        className="p-0 border border-[var(--border)] bg-[var(--elevated)] sm:max-w-md
+          overflow-hidden flex flex-col max-h-[calc(100dvh-2rem)]"
         style={{ borderRadius: 'var(--radius-xl)' }}
       >
-        {/* Type-colored top bar — stays fixed */}
-        <div className="h-1 w-full shrink-0 transition-colors duration-200"
-          style={{ backgroundColor: accentColor }} />
+        {/* Type-colored top bar */}
+        <div className="h-1.5 w-full shrink-0 transition-colors duration-200"
+          style={{
+            backgroundColor: accentColor,
+            borderRadius: 'var(--radius-xl) var(--radius-xl) 0 0',
+          }} />
 
         {/* Fixed header */}
         <div className="px-6 pt-4 shrink-0">

@@ -123,10 +123,15 @@ export function IncomeModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="p-0 border border-[var(--border)] bg-[var(--elevated)] sm:max-w-md"
+        className="p-0 border border-[var(--border)] bg-[var(--elevated)] sm:max-w-md
+          overflow-hidden flex flex-col max-h-[calc(100dvh-2rem)]"
         style={{ borderRadius: 'var(--radius-xl)' }}
       >
-        <div className="h-1 w-full shrink-0" style={{ backgroundColor: 'var(--c-save)' }} />
+        <div className="h-1.5 w-full shrink-0"
+          style={{
+            backgroundColor: 'var(--c-save)',
+            borderRadius: 'var(--radius-xl) var(--radius-xl) 0 0',
+          }} />
 
         <div className="px-6 pt-4 shrink-0">
           <DialogHeader>

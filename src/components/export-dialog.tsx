@@ -188,9 +188,17 @@ export function ExportDialog({ open, onOpenChange }: ExportDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-sm p-0 border border-[var(--border)] bg-[var(--elevated)]" style={{ borderRadius: 'var(--radius-xl)' }}>
-        <div className="h-[3px]" style={{ backgroundColor: 'var(--c-primary)' }} />
-        <div className="px-6 pt-4 pb-6">
+      <DialogContent
+        className="sm:max-w-sm p-0 border border-[var(--border)] bg-[var(--elevated)]
+          overflow-hidden flex flex-col max-h-[calc(100dvh-2rem)]"
+        style={{ borderRadius: 'var(--radius-xl)' }}
+      >
+        <div className="h-1.5 w-full shrink-0"
+          style={{
+            backgroundColor: 'var(--c-primary)',
+            borderRadius: 'var(--radius-xl) var(--radius-xl) 0 0',
+          }} />
+        <div className="px-6 pt-4 pb-6 overflow-y-auto flex-1">
           <DialogHeader className="mb-5">
             <DialogTitle className="font-display text-xl font-medium text-[var(--ink)]">
               Export data
