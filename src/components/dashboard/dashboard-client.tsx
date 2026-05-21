@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition, useEffect } from 'react'
+import { useState, useTransition, useEffect, useRef, useCallback } from 'react'
 import { useAppShell } from '@/hooks/use-app-shell'
 
 // Dashboard section
@@ -36,6 +36,23 @@ import { AdminPanel } from '@/components/feedback/admin-panel'
 import type { Category, PaymentMode, BudgetPeriod } from '@/lib/types'
 import { Plus } from 'lucide-react'
 
+// ─── Cross-section refresh hook ──────────────────────────────────
+// When any section mutates data it calls triggerRefresh(source).
+// All OTHER sections react and reload their data automatically.
+function useSectionRefresh(mySource: string, onRefresh: () => void) {
+  const { refreshKey, refreshSource } = useAppShell()
+  const cbRef     = useRef(onRefresh)
+  cbRef.current   = onRefresh
+  const prevKeyRef = useRef(refreshKey)
+
+  useEffect(() => {
+    if (prevKeyRef.current !== refreshKey) {
+      prevKeyRef.current = refreshKey
+      if (refreshSource !== mySource) cbRef.current()
+    }
+  }, [refreshKey]) // eslint-disable-line react-hooks/exhaustive-deps
+}
+
 // ─── Spinner ─────────────────────────────────────────────────────
 function SectionSpinner() {
   return (
@@ -63,6 +80,13 @@ function DashboardSection({
   const [month, setMonth] = useState(initialMonth)
   const [data, setData] = useState(initialData)
   const [isPending, startTransition] = useTransition()
+  const { triggerRefresh } = useAppShell()
+
+  // Keep refs so the cross-section refresh callback always has current values
+  const yearRef  = useRef(year)
+  const monthRef = useRef(month)
+  yearRef.current  = year
+  monthRef.current = month
 
   const navigateMonth = (date: Date) => {
     const newYear = date.getFullYear()
@@ -73,7 +97,16 @@ function DashboardSection({
       const result = await getDashboardData(newYear, newMonth)
       if (result) setData(result)
     })
+    triggerRefresh('dashboard')
   }
+
+  // Reload current month when another section mutates data
+  useSectionRefresh('dashboard', () => {
+    startTransition(async () => {
+      const result = await getDashboardData(yearRef.current, monthRef.current)
+      if (result) setData(result)
+    })
+  })
 
   const currentDate = new Date(year, month - 1, 1)
 
@@ -146,6 +179,12 @@ function ExpensesSection() {
   const [filters, setFilters] = useState<ExpensesFilters>({ search: '', categoryId: '', type: '', paymentModeId: '', sort: 'date_desc' })
   const [page, setPage] = useState(1)
   const [modalOpen, setModalOpen] = useState(false)
+  const { triggerRefresh } = useAppShell()
+
+  const filtersRef = useRef(filters)
+  const pageRef    = useRef(page)
+  filtersRef.current = filters
+  pageRef.current    = page
 
   const load = async (f: ExpensesFilters, p: number) => {
     const result = await fetchExpenses(f, p)
@@ -153,6 +192,8 @@ function ExpensesSection() {
   }
 
   useEffect(() => { load(filters, page) }, [])
+
+  useSectionRefresh('expenses', () => load(filtersRef.current, pageRef.current))
 
   const handleFilterChange = async (key: string, value: string) => {
     const newFilters = { ...filters, [key]: value }
@@ -166,7 +207,7 @@ function ExpensesSection() {
     await load(filters, p)
   }
 
-  const handleRefresh = () => load(filters, page)
+  const handleRefresh = () => { load(filters, page); triggerRefresh('expenses') }
 
   if (!data) return <SectionSpinner />
 
@@ -204,6 +245,12 @@ function IncomeSection() {
   const [filters, setFilters] = useState<IncomeFilters>({ search: '', paymentId: '', sort: 'date_desc' })
   const [page, setPage] = useState(1)
   const [modalOpen, setModalOpen] = useState(false)
+  const { triggerRefresh } = useAppShell()
+
+  const filtersRef = useRef(filters)
+  const pageRef    = useRef(page)
+  filtersRef.current = filters
+  pageRef.current    = page
 
   const load = async (f: IncomeFilters, p: number) => {
     const result = await fetchIncome(f, p)
@@ -211,6 +258,8 @@ function IncomeSection() {
   }
 
   useEffect(() => { load(filters, page) }, [])
+
+  useSectionRefresh('income', () => load(filtersRef.current, pageRef.current))
 
   const handleFilterChange = async (key: string, value: string) => {
     const newFilters = { ...filters, [key]: value }
@@ -224,7 +273,7 @@ function IncomeSection() {
     await load(filters, p)
   }
 
-  const handleRefresh = () => load(filters, page)
+  const handleRefresh = () => { load(filters, page); triggerRefresh('income') }
 
   if (!data) return <SectionSpinner />
 
@@ -273,13 +322,17 @@ function IncomeSection() {
 function WeeklySection() {
   const [data, setData] = useState<WeeklyData | null>(null)
   const currentYear = new Date().getFullYear()
+  const displayYearRef = useRef(currentYear)
 
   const load = async (year: number) => {
+    displayYearRef.current = year
     const result = await fetchWeekly(year)
     if (result) setData(result)
   }
 
   useEffect(() => { load(currentYear) }, [])
+
+  useSectionRefresh('weekly', () => load(displayYearRef.current))
 
   if (!data) return <SectionSpinner />
 
@@ -298,13 +351,17 @@ function WeeklySection() {
 function YearlySection() {
   const [data, setData] = useState<YearlyData | null>(null)
   const currentYear = new Date().getFullYear()
+  const displayYearRef = useRef(currentYear)
 
   const load = async (year: number) => {
+    displayYearRef.current = year
     const result = await fetchYearly(year)
     if (result) setData(result)
   }
 
   useEffect(() => { load(currentYear) }, [])
+
+  useSectionRefresh('yearly', () => load(displayYearRef.current))
 
   if (!data) return <SectionSpinner />
 
