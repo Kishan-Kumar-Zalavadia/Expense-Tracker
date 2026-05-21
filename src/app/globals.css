@@ -253,6 +253,15 @@
   transition: border-color 150ms, box-shadow 150ms;
   min-height: 44px;
 }
+/* iOS Safari: date input value drifts right without this */
+.apple-input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+}
+.apple-input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+  min-width: 100%;
+}
 .apple-input::placeholder { color: var(--ink-subtle); }
 .apple-input:focus {
   outline: none;
