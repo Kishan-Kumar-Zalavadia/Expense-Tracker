@@ -53,7 +53,7 @@ export type SettingsFormValues = z.infer<typeof settingsSchema>
 
 export const incomeSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date'),
-  description: z.string().min(1, 'Description is required').max(200),
+  description: z.string().max(200).optional(),
   amount: z.string().min(1, 'Amount is required'),
   payment_mode_id: z.string().min(1, 'Select a payment mode'),
   budget_period_id: z.string().optional(),

@@ -32,6 +32,7 @@ export interface Expense {
   payment_mode_id: string
   type: ExpenseType
   notes: string | null
+  recurring_item_id: string | null
   created_at: string
   updated_at: string
   // joined
@@ -71,6 +72,7 @@ export interface Income {
   budget_period_id: string | null
   auto_generated: boolean
   notes: string | null
+  recurring_item_id: string | null
   created_at: string
   updated_at: string
   // joined
@@ -106,6 +108,8 @@ export interface RecurringItem {
   day_of_week: number | null     // for weekly/biweekly (0=Mon…6=Sun)
   active: boolean
   notes: string | null
+  start_date: string | null      // YYYY-MM-DD, when recurring begins
+  end_date: string | null        // YYYY-MM-DD, null = never ends
   last_generated_date: string | null
   created_at: string
   updated_at: string

@@ -379,13 +379,22 @@ function YearlySection() {
 // ─── Settings section ─────────────────────────────────────────────
 function SettingsSection() {
   const [data, setData] = useState<SettingsData | null>(null)
+  const { triggerRefresh } = useAppShell()
 
   const load = async () => {
     const result = await fetchSettingsData()
     if (result) setData(result)
   }
 
+  // After any settings save, also notify other sections
+  const handleRefresh = useCallback(async () => {
+    await load()
+    triggerRefresh('settings')
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => { load() }, [])
+
+  useSectionRefresh('settings', load)
 
   if (!data) return <SectionSpinner />
 
@@ -399,7 +408,7 @@ function SettingsSection() {
       recurringItems={data.recurringItems}
       usedCategoryIds={data.usedCategoryIds}
       usedPaymentModeIds={data.usedPaymentModeIds}
-      onRefresh={load}
+      onRefresh={handleRefresh}
     />
   )
 }

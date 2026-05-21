@@ -15,6 +15,7 @@ import { createClient } from '@/lib/supabase/client'
 import { todayISO } from '@/lib/utils'
 import type { BudgetPeriod, Income, PaymentMode } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { DatePicker } from '@/components/ui/date-picker'
 
 interface IncomeModalProps {
   open: boolean
@@ -43,6 +44,8 @@ export function IncomeModal({
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<IncomeFormValues>({
     resolver: zodResolver(incomeSchema),
@@ -94,7 +97,7 @@ export function IncomeModal({
     const payload = {
       user_id: user.id,
       date: values.date,
-      description: values.description,
+      description: values.description || null,
       amount: parsedAmount,
       payment_mode_id: values.payment_mode_id,
       budget_period_id: values.budget_period_id || null,
@@ -143,20 +146,24 @@ export function IncomeModal({
 
         <div className="overflow-y-auto flex-1 px-6 pt-4 pb-6">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <Field label="Date" error={errors.date?.message}>
-              <input {...register('date')} type="date" className={inputCls(!!errors.date)} />
+            <Field label="Date" required error={errors.date?.message}>
+              <DatePicker
+                value={watch('date') ?? ''}
+                onChange={(v) => setValue('date', v, { shouldValidate: true })}
+                hasError={!!errors.date}
+              />
             </Field>
 
             <Field label="Description" error={errors.description?.message}>
               <input
                 {...register('description')}
                 type="text"
-                placeholder="e.g. Salary, Freelance, Bonus"
+                placeholder="e.g. Salary, Freelance, Bonus (optional)"
                 className={inputCls(!!errors.description)}
               />
             </Field>
 
-            <Field label="Amount" error={errors.amount?.message}>
+            <Field label="Amount" required error={errors.amount?.message}>
               <div className="relative flex items-center">
                 <span className="absolute left-0 flex items-center justify-center h-full px-3
                   text-[var(--ink-muted)] text-sm font-medium pointer-events-none border-r border-[var(--border)]"
@@ -175,7 +182,7 @@ export function IncomeModal({
               </div>
             </Field>
 
-            <Field label="Payment mode (account receiving income)" error={errors.payment_mode_id?.message}>
+            <Field label="Payment mode" required error={errors.payment_mode_id?.message}>
               <select {...register('payment_mode_id')} className={inputCls(!!errors.payment_mode_id)}>
                 <option value="">Select payment mode</option>
                 {paymentModes.map((pm) => (
@@ -184,9 +191,9 @@ export function IncomeModal({
               </select>
             </Field>
 
-            <Field label="Link to budget period (optional)" error={undefined}>
+            <Field label="Budget period" error={undefined}>
               <select {...register('budget_period_id')} className={inputCls(false)}>
-                <option value="">None</option>
+                <option value="">None (optional)</option>
                 {budgetPeriods.map((p) => (
                   <option key={p.id} value={p.id}>
                     {fmtPeriod(p)}
@@ -195,11 +202,11 @@ export function IncomeModal({
               </select>
             </Field>
 
-            <Field label="Notes (optional)" error={errors.notes?.message}>
+            <Field label="Notes" error={errors.notes?.message}>
               <textarea
                 {...register('notes')}
                 rows={2}
-                placeholder="Any additional notes..."
+                placeholder="Any additional notes... (optional)"
                 className={cn(inputCls(false), 'resize-none')}
               />
             </Field>
@@ -242,11 +249,12 @@ function fmtPeriod(p: BudgetPeriod): string {
   } catch { return p.start_month }
 }
 
-function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
+function Field({ label, required, error, children }: { label: string; required?: boolean; error?: string; children: React.ReactNode }) {
   return (
     <div>
       <label className="block text-xs font-medium text-[var(--ink-muted)] mb-1 uppercase tracking-wide">
         {label}
+        {required && <span className="ml-0.5" style={{ color: 'var(--c-want)' }}>*</span>}
       </label>
       {children}
       {error && <p className="mt-1 text-xs text-[var(--c-want)]">{error}</p>}

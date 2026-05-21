@@ -16,6 +16,7 @@ import { createClient } from '@/lib/supabase/client'
 import { todayISO, typeColor, typeTint } from '@/lib/utils'
 import type { Category, Expense, PaymentMode } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { DatePicker } from '@/components/ui/date-picker'
 
 const EXPENSE_TYPES: ExpenseType[] = ['Need', 'Want', 'Saving']
 
@@ -173,26 +174,26 @@ export function ExpenseModal({
         <div className="overflow-y-auto flex-1 px-6 pt-4 pb-6">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {/* Date */}
-            <Field label="Date" error={errors.date?.message}>
-              <input
-                {...register('date')}
-                type="date"
-                className={inputCls(!!errors.date)}
+            <Field label="Date" required error={errors.date?.message}>
+              <DatePicker
+                value={watch('date') ?? ''}
+                onChange={(v) => setValue('date', v, { shouldValidate: true })}
+                hasError={!!errors.date}
               />
             </Field>
 
             {/* Description */}
-            <Field label="Description (optional)" error={errors.description?.message}>
+            <Field label="Description" error={errors.description?.message}>
               <input
                 {...register('description')}
                 type="text"
-                placeholder="What did you spend on?"
+                placeholder="What did you spend on? (optional)"
                 className={inputCls(!!errors.description)}
               />
             </Field>
 
             {/* Category */}
-            <Field label="Category" error={errors.category_id?.message}>
+            <Field label="Category" required error={errors.category_id?.message}>
               <select
                 {...register('category_id')}
                 className={inputCls(!!errors.category_id)}
@@ -205,7 +206,7 @@ export function ExpenseModal({
             </Field>
 
             {/* Type — editable, auto-suggested from category */}
-            <Field label="Type" error={errors.type?.message}>
+            <Field label="Type" required error={errors.type?.message}>
               <select
                 {...register('type')}
                 className={inputCls(!!errors.type)}
@@ -221,7 +222,7 @@ export function ExpenseModal({
             </Field>
 
             {/* Amount */}
-            <Field label="Amount" error={errors.amount?.message}>
+            <Field label="Amount" required error={errors.amount?.message}>
               <div className="relative flex items-center">
                 <span
                   className="absolute left-0 flex items-center justify-center h-full px-3
@@ -244,7 +245,7 @@ export function ExpenseModal({
             </Field>
 
             {/* Payment Mode */}
-            <Field label="Payment Mode" error={errors.payment_mode_id?.message}>
+            <Field label="Payment Mode" required error={errors.payment_mode_id?.message}>
               <select
                 {...register('payment_mode_id')}
                 className={inputCls(!!errors.payment_mode_id)}
@@ -257,11 +258,11 @@ export function ExpenseModal({
             </Field>
 
             {/* Notes */}
-            <Field label="Notes (optional)" error={errors.notes?.message}>
+            <Field label="Notes" error={errors.notes?.message}>
               <textarea
                 {...register('notes')}
                 rows={2}
-                placeholder="Any additional notes..."
+                placeholder="Any additional notes... (optional)"
                 className={cn(inputCls(false), 'resize-none')}
               />
             </Field>
@@ -296,10 +297,12 @@ export function ExpenseModal({
 
 function Field({
   label,
+  required,
   error,
   children,
 }: {
   label: string
+  required?: boolean
   error?: string
   children: React.ReactNode
 }) {
@@ -307,6 +310,7 @@ function Field({
     <div>
       <label className="block text-xs font-medium text-[var(--ink-muted)] mb-1 uppercase tracking-wide">
         {label}
+        {required && <span className="ml-0.5" style={{ color: 'var(--c-want)' }}>*</span>}
       </label>
       {children}
       {error && <p className="mt-1 text-xs text-[var(--c-want)]">{error}</p>}
