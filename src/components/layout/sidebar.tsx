@@ -30,7 +30,7 @@ const NAV: { tab: AppTab; label: string; icon: React.ElementType; color: string 
   { tab: 'weekly',    label: 'Weekly',    icon: BarChart2,          color: PAGE_COLORS.weekly    },
   { tab: 'yearly',    label: 'Yearly',    icon: CalendarDays,       color: PAGE_COLORS.yearly    },
   { tab: 'settings',  label: 'Settings',  icon: Settings,           color: PAGE_COLORS.settings  },
-  { tab: 'feedback',  label: 'Feedback',  icon: MessageSquarePlus,  color: PAGE_COLORS.feedback  },
+  { tab: 'feedback', label: 'Feedback', icon: MessageSquarePlus, color: PAGE_COLORS.feedback },
 ]
 
 export function Sidebar() {

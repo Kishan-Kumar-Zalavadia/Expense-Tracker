@@ -41,6 +41,21 @@ export async function submitFeedback(
   return error ? { error: error.message } : {}
 }
 
+// ─── Fetch current user's own feedback ───────────────────────────────────────
+export async function fetchMyFeedback(): Promise<FeedbackItem[]> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return []
+
+  const { data } = await supabase
+    .from('feedback')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+
+  return (data ?? []) as FeedbackItem[]
+}
+
 // ─── Fetch all feedback (admin only) ─────────────────────────────────────────
 export async function fetchAllFeedback(): Promise<FeedbackItem[]> {
   const supabase = await createClient()
