@@ -25,6 +25,12 @@ const jetbrains = JetBrains_Mono({
 export const metadata: Metadata = {
   title: 'Ledger — Personal Finance Tracker',
   description: 'Track your expenses with the 50/30/20 budgeting rule.',
+  themeColor: '#2563EB',
+  appleWebApp: {
+    capable: true,
+    title: 'Ledger',
+    statusBarStyle: 'black-translucent',
+  },
 }
 
 export default function RootLayout({
