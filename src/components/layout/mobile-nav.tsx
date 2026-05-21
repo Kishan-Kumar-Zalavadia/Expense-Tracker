@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import {
   LayoutDashboard, List, TrendingUp, Settings, MoreHorizontal,
   BarChart2, CalendarRange, Download, Sun, Moon, LogOut, X,
+  MessageSquarePlus, Shield,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
@@ -26,7 +27,7 @@ const MORE_TABS: { tab: AppTab; label: string; icon: React.ElementType; color: s
 ]
 
 export function MobileNav() {
-  const { activeTab, setActiveTab } = useAppShell()
+  const { activeTab, setActiveTab, isAdmin } = useAppShell()
   const { theme, toggle } = useTheme()
   const router = useRouter()
   const supabase = createClient()
@@ -35,7 +36,7 @@ export function MobileNav() {
   const [exportOpen, setExportOpen] = useState(false)
   const sheetRef = useRef<HTMLDivElement>(null)
 
-  const moreActive = activeTab === 'weekly' || activeTab === 'yearly'
+  const moreActive = activeTab === 'weekly' || activeTab === 'yearly' || activeTab === 'feedback' || activeTab === 'admin'
 
   // Close sheet on outside tap
   useEffect(() => {
@@ -129,6 +130,60 @@ export function MobileNav() {
               </button>
             )
           })}
+
+          {/* Feedback */}
+          <button
+            onClick={() => handleMoreTab('feedback')}
+            className={cn(
+              'flex items-center gap-3 w-full px-4 py-3.5 text-left transition-colors',
+              'border-b border-[var(--border)]',
+              activeTab === 'feedback' ? 'bg-[var(--surface-2)]' : 'hover:bg-[var(--surface-2)]',
+            )}
+          >
+            <div
+              className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+              style={{ backgroundColor: `${PAGE_COLORS.feedback}20` }}
+            >
+              <MessageSquarePlus size={18} style={{ color: PAGE_COLORS.feedback }} />
+            </div>
+            <div>
+              <div className="text-sm font-medium" style={{ color: activeTab === 'feedback' ? PAGE_COLORS.feedback : 'var(--ink)' }}>
+                Feedback
+              </div>
+              <div className="text-xs text-[var(--ink-muted)]">Share ideas or report bugs</div>
+            </div>
+            {activeTab === 'feedback' && (
+              <div className="ml-auto w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: PAGE_COLORS.feedback }} />
+            )}
+          </button>
+
+          {/* Admin (only visible to admin) */}
+          {isAdmin && (
+            <button
+              onClick={() => handleMoreTab('admin')}
+              className={cn(
+                'flex items-center gap-3 w-full px-4 py-3.5 text-left transition-colors',
+                'border-b border-[var(--border)]',
+                activeTab === 'admin' ? 'bg-[var(--surface-2)]' : 'hover:bg-[var(--surface-2)]',
+              )}
+            >
+              <div
+                className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                style={{ backgroundColor: `color-mix(in srgb, ${PAGE_COLORS.admin} 15%, transparent)` }}
+              >
+                <Shield size={18} style={{ color: PAGE_COLORS.admin }} />
+              </div>
+              <div>
+                <div className="text-sm font-medium" style={{ color: activeTab === 'admin' ? PAGE_COLORS.admin : 'var(--ink)' }}>
+                  Admin
+                </div>
+                <div className="text-xs text-[var(--ink-muted)]">Manage feedback inbox</div>
+              </div>
+              {activeTab === 'admin' && (
+                <div className="ml-auto w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: PAGE_COLORS.admin }} />
+              )}
+            </button>
+          )}
 
           {/* Divider */}
           <div className="border-b border-[var(--border)]" />

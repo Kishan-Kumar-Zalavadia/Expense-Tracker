@@ -96,6 +96,8 @@ export const PAGE_COLORS = {
   weekly:    'var(--c-need)',
   yearly:    'var(--c-save)',
   settings:  'var(--c-warn)',
+  feedback:  '#8B5CF6',
+  admin:     'var(--c-warn)',
 } as const
 
 // Returns current month as YYYY-MM

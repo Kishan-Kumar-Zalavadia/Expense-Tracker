@@ -30,6 +30,8 @@ import { IncomeModal } from '@/components/income/income-modal'
 import { WeeklyClient } from '@/components/analysis/weekly-client'
 import { YearlyClient } from '@/components/analysis/yearly-client'
 import { SettingsClient } from '@/components/settings/settings-client'
+import { FeedbackPanel } from '@/components/feedback/feedback-panel'
+import { AdminPanel } from '@/components/feedback/admin-panel'
 
 import type { Category, PaymentMode, BudgetPeriod } from '@/lib/types'
 import { Plus } from 'lucide-react'
@@ -345,6 +347,16 @@ function SettingsSection() {
   )
 }
 
+// ─── Feedback section ─────────────────────────────────────────────
+function FeedbackSection() {
+  return <FeedbackPanel />
+}
+
+// ─── Admin section ────────────────────────────────────────────────
+function AdminSection() {
+  return <AdminPanel />
+}
+
 // ─── Main shell ───────────────────────────────────────────────────
 interface DashboardClientProps {
   initialData: DashboardMonthData
@@ -358,7 +370,7 @@ interface DashboardClientProps {
 }
 
 export function DashboardClient(props: DashboardClientProps) {
-  const { activeTab, visitedTabs } = useAppShell()
+  const { activeTab, visitedTabs, isAdmin } = useAppShell()
 
   return (
     <>
@@ -388,6 +400,16 @@ export function DashboardClient(props: DashboardClientProps) {
       {visitedTabs.has('settings') && (
         <div style={{ display: activeTab === 'settings' ? 'block' : 'none' }}>
           <SettingsSection />
+        </div>
+      )}
+      {visitedTabs.has('feedback') && (
+        <div style={{ display: activeTab === 'feedback' ? 'block' : 'none' }}>
+          <FeedbackSection />
+        </div>
+      )}
+      {isAdmin && visitedTabs.has('admin') && (
+        <div style={{ display: activeTab === 'admin' ? 'block' : 'none' }}>
+          <AdminSection />
         </div>
       )}
     </>

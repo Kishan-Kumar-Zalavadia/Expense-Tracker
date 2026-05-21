@@ -2,22 +2,33 @@
 
 import { createContext, useContext, useState } from 'react'
 
-export type AppTab = 'dashboard' | 'expenses' | 'income' | 'weekly' | 'yearly' | 'settings'
+export type AppTab =
+  | 'dashboard' | 'expenses' | 'income'
+  | 'weekly'    | 'yearly'   | 'settings'
+  | 'feedback'  | 'admin'
 
 interface AppShellContextValue {
-  activeTab: AppTab
+  activeTab:    AppTab
   setActiveTab: (tab: AppTab) => void
-  visitedTabs: Set<AppTab>
+  visitedTabs:  Set<AppTab>
+  isAdmin:      boolean
 }
 
 const AppShellContext = createContext<AppShellContextValue>({
-  activeTab: 'dashboard',
+  activeTab:    'dashboard',
   setActiveTab: () => {},
-  visitedTabs: new Set(['dashboard']),
+  visitedTabs:  new Set(['dashboard']),
+  isAdmin:      false,
 })
 
-export function AppShellProvider({ children }: { children: React.ReactNode }) {
-  const [activeTab, setActiveTab] = useState<AppTab>('dashboard')
+export function AppShellProvider({
+  children,
+  isAdmin = false,
+}: {
+  children: React.ReactNode
+  isAdmin?: boolean
+}) {
+  const [activeTab, setActiveTab]     = useState<AppTab>('dashboard')
   const [visitedTabs, setVisitedTabs] = useState<Set<AppTab>>(new Set(['dashboard']))
 
   const handleSetActiveTab = (tab: AppTab) => {
@@ -26,7 +37,9 @@ export function AppShellProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AppShellContext.Provider value={{ activeTab, setActiveTab: handleSetActiveTab, visitedTabs }}>
+    <AppShellContext.Provider
+      value={{ activeTab, setActiveTab: handleSetActiveTab, visitedTabs, isAdmin }}
+    >
       {children}
     </AppShellContext.Provider>
   )
