@@ -1,6 +1,5 @@
 'use client'
 
-import { useRouter, useSearchParams } from 'next/navigation'
 import {
   eachDayOfInterval,
   startOfMonth, endOfMonth,
@@ -20,6 +19,7 @@ interface YearlyClientProps {
   dailyData: DailyData[]
   maxDay: number
   currency: string
+  onYearChange: (year: number) => void
 }
 
 const MONTH_NAMES = [
@@ -39,16 +39,10 @@ function dayColor(amount: number, max: number): string {
   return `rgb(${r},${g},${b})`
 }
 
-export function YearlyClient({ year, dailyData, maxDay, currency }: YearlyClientProps) {
-  const router = useRouter()
-  const searchParams = useSearchParams()
+export function YearlyClient({ year, dailyData, maxDay, currency, onYearChange }: YearlyClientProps) {
   const [tooltip, setTooltip] = useState<{ date: string; total: number; x: number; y: number } | null>(null)
 
-  const navigate = (newYear: number) => {
-    const params = new URLSearchParams(searchParams.toString())
-    params.set('year', String(newYear))
-    router.push(`?${params.toString()}`)
-  }
+  const navigate = (newYear: number) => onYearChange(newYear)
 
   const dayMap = new Map(dailyData.map((d) => [d.date, d.total]))
 

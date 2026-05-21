@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
 import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react'
 import { format, addMonths, subMonths } from 'date-fns'
 import { cn } from '@/lib/utils'
@@ -11,11 +10,11 @@ const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov
 interface MonthPickerProps {
   year: number
   month: number
+  onNavigate: (date: Date) => void
+  isPending?: boolean
 }
 
-export function MonthPicker({ year, month }: MonthPickerProps) {
-  const router = useRouter()
-  const searchParams = useSearchParams()
+export function MonthPicker({ year, month, onNavigate, isPending }: MonthPickerProps) {
   const [open, setOpen] = useState(false)
   const [pickerYear, setPickerYear] = useState(year)
   const ref = useRef<HTMLDivElement>(null)
@@ -24,9 +23,7 @@ export function MonthPicker({ year, month }: MonthPickerProps) {
   const label = format(current, 'MMM yyyy')
 
   const navigate = (date: Date) => {
-    const params = new URLSearchParams(searchParams.toString())
-    params.set('month', format(date, 'yyyy-MM'))
-    router.push(`?${params.toString()}`)
+    onNavigate(date)
     setOpen(false)
   }
 
@@ -48,21 +45,26 @@ export function MonthPicker({ year, month }: MonthPickerProps) {
     <div className="flex items-center gap-0.5" ref={ref}>
       <button
         onClick={() => navigate(subMonths(current, 1))}
+        disabled={isPending}
         className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-muted)] hover:text-[var(--ink)]
-          hover:bg-[var(--surface)] transition-colors"
+          hover:bg-[var(--surface)] transition-colors disabled:opacity-40"
         aria-label="Previous month"
       >
         <ChevronLeft size={14} />
       </button>
 
-      {/* Clickable month label */}
       <div className="relative">
         <button
           onClick={openPicker}
+          disabled={isPending}
           className="flex items-center gap-1 px-2 py-1.5 rounded-[var(--radius-md)]
-            text-sm font-medium text-[var(--ink)] hover:bg-[var(--surface)] transition-colors tabular-nums"
+            text-sm font-medium text-[var(--ink)] hover:bg-[var(--surface)] transition-colors
+            tabular-nums disabled:opacity-40"
           aria-label="Select month"
         >
+          {isPending ? (
+            <span className="animate-spin inline-block w-3 h-3 border-2 border-[var(--ink-muted)] border-t-transparent rounded-full mr-1" />
+          ) : null}
           {label}
           <ChevronDown size={11} className="text-[var(--ink-muted)]" />
         </button>
@@ -73,7 +75,6 @@ export function MonthPicker({ year, month }: MonthPickerProps) {
               border border-[var(--border)] shadow-lg p-3 w-56"
             style={{ backgroundColor: 'var(--elevated)' }}
           >
-            {/* Year row */}
             <div className="flex items-center justify-between mb-3">
               <button
                 onClick={() => setPickerYear((y) => y - 1)}
@@ -94,7 +95,6 @@ export function MonthPicker({ year, month }: MonthPickerProps) {
               </button>
             </div>
 
-            {/* Month grid */}
             <div className="grid grid-cols-3 gap-1">
               {MONTHS.map((m, i) => {
                 const isSelected = pickerYear === year && i + 1 === month
@@ -121,8 +121,9 @@ export function MonthPicker({ year, month }: MonthPickerProps) {
 
       <button
         onClick={() => navigate(addMonths(current, 1))}
+        disabled={isPending}
         className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-muted)] hover:text-[var(--ink)]
-          hover:bg-[var(--surface)] transition-colors"
+          hover:bg-[var(--surface)] transition-colors disabled:opacity-40"
         aria-label="Next month"
       >
         <ChevronRight size={14} />

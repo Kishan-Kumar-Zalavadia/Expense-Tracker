@@ -1,6 +1,5 @@
 'use client'
 
-import { useRouter, useSearchParams } from 'next/navigation'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ReferenceLine,
   ResponsiveContainer, CartesianGrid, Cell,
@@ -20,17 +19,11 @@ interface WeeklyClientProps {
   weeklyLimit: number
   currency: string
   year: number
+  onYearChange: (year: number) => void
 }
 
-export function WeeklyClient({ weeklyData, weeklyLimit, currency, year }: WeeklyClientProps) {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-
-  const navigate = (newYear: number) => {
-    const params = new URLSearchParams(searchParams.toString())
-    params.set('year', String(newYear))
-    router.push(`?${params.toString()}`)
-  }
+export function WeeklyClient({ weeklyData, weeklyLimit, currency, year, onYearChange }: WeeklyClientProps) {
+  const navigate = (newYear: number) => onYearChange(newYear)
 
   const nonZeroWeeks = weeklyData.filter((w) => w.total > 0)
 

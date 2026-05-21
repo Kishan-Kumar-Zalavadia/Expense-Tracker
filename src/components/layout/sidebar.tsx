@@ -1,7 +1,6 @@
 'use client'
 
-import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import {
   LayoutDashboard,
   List,
@@ -20,19 +19,20 @@ import { toast } from 'sonner'
 import { useTheme } from '@/hooks/use-theme'
 import { ExportDialog } from '@/components/export-dialog'
 import { useState } from 'react'
+import { useAppShell, type AppTab } from '@/hooks/use-app-shell'
 
-const NAV = [
-  { href: '/dashboard',        label: 'Dashboard', icon: LayoutDashboard, color: PAGE_COLORS.dashboard },
-  { href: '/expenses',         label: 'Expenses',  icon: List,            color: PAGE_COLORS.expenses  },
-  { href: '/income',           label: 'Income',    icon: TrendingUp,      color: PAGE_COLORS.income    },
-  { href: '/analysis/weekly',  label: 'Weekly',    icon: BarChart2,       color: PAGE_COLORS.weekly    },
-  { href: '/analysis/yearly',  label: 'Yearly',    icon: CalendarDays,    color: PAGE_COLORS.yearly    },
-  { href: '/settings',         label: 'Settings',  icon: Settings,        color: PAGE_COLORS.settings  },
+const NAV: { tab: AppTab; label: string; icon: React.ElementType; color: string }[] = [
+  { tab: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, color: PAGE_COLORS.dashboard },
+  { tab: 'expenses',  label: 'Expenses',  icon: List,            color: PAGE_COLORS.expenses  },
+  { tab: 'income',    label: 'Income',    icon: TrendingUp,      color: PAGE_COLORS.income    },
+  { tab: 'weekly',    label: 'Weekly',    icon: BarChart2,       color: PAGE_COLORS.weekly    },
+  { tab: 'yearly',    label: 'Yearly',    icon: CalendarDays,    color: PAGE_COLORS.yearly    },
+  { tab: 'settings',  label: 'Settings',  icon: Settings,        color: PAGE_COLORS.settings  },
 ]
 
 export function Sidebar() {
-  const pathname = usePathname()
   const router = useRouter()
+  const { activeTab, setActiveTab } = useAppShell()
   const { theme, toggle } = useTheme()
   const [exportOpen, setExportOpen] = useState(false)
   const supabase = createClient()
@@ -58,20 +58,19 @@ export function Sidebar() {
 
         {/* Nav */}
         <nav className="flex-1 py-4 overflow-y-auto">
-          {NAV.map(({ href, label, icon: Icon, color }) => {
-            const active = pathname === href || (href !== '/dashboard' && pathname.startsWith(href))
+          {NAV.map(({ tab, label, icon: Icon, color }) => {
+            const active = activeTab === tab
             return (
-              <Link
-                key={href}
-                href={href}
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
                 className={cn(
-                  'relative flex items-center gap-3 px-5 py-2.5 text-sm transition-colors',
+                  'relative flex items-center gap-3 px-5 py-2.5 text-sm transition-colors w-full text-left',
                   active
                     ? 'text-[var(--ink)] font-medium bg-[var(--bg)]'
                     : 'text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--bg)]',
                 )}
               >
-                {/* Active indicator bar */}
                 {active && (
                   <span
                     className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-8 rounded-r-sm"
@@ -84,7 +83,7 @@ export function Sidebar() {
                   className={cn(!active && 'text-[var(--ink-subtle)]')}
                 />
                 {label}
-              </Link>
+              </button>
             )
           })}
         </nav>

@@ -23,6 +23,7 @@ interface SettingsClientProps {
   recurringItems: RecurringItem[]
   usedCategoryIds: string[]
   usedPaymentModeIds: string[]
+  onRefresh?: () => void
 }
 
 type Tab = 'general' | 'budget' | 'categories' | 'payment' | 'recurring'
@@ -36,6 +37,7 @@ export function SettingsClient({
   recurringItems,
   usedCategoryIds,
   usedPaymentModeIds,
+  onRefresh,
 }: SettingsClientProps) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<Tab>('general')
@@ -43,7 +45,7 @@ export function SettingsClient({
   const { theme, toggle } = useTheme()
   const supabase = createClient()
 
-  const refresh = () => router.refresh()
+  const refresh = () => { onRefresh ? onRefresh() : router.refresh() }
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut()
