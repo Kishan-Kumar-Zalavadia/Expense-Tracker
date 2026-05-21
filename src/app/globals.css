@@ -265,6 +265,20 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
+   DIALOG / MODAL FIXES
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Clip children to the dialog's border-radius (fixes colored top bar corners) */
+[data-slot="dialog-content"] {
+  overflow-x: hidden;
+}
+/* Desktop: constrain height and allow scrolling if content is too tall */
+[data-slot="dialog-content"]:not(.mobile-sheet) {
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
    MOBILE BOTTOM SHEET MODAL
    ═══════════════════════════════════════════════════════════════════════ */
 
