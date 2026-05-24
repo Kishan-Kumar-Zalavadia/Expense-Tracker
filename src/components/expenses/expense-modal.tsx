@@ -26,7 +26,7 @@ interface ExpenseModalProps {
   expense?: Expense | null
   categories: Category[]
   paymentModes: PaymentMode[]
-  onSuccess: () => void
+  onSuccess: (expense: Expense, isEdit: boolean) => void
   currency?: string
 }
 
@@ -125,25 +125,25 @@ export function ExpenseModal({
       updated_at: new Date().toISOString(),
     }
 
-    let error
+    let savedExpense: Expense
     if (isEdit) {
-      ;({ error } = await supabase
-        .from('expenses')
-        .update(payload)
-        .eq('id', expense!.id))
+      const { data, error: err } = await supabase
+        .from('expenses').update(payload).eq('id', expense!.id)
+        .select('*, category:categories(*), payment_mode:payment_modes(*)')
+        .single()
+      if (err) { toast.error(err.message); setLoading(false); return }
+      savedExpense = data as Expense
     } else {
-      ;({ error } = await supabase.from('expenses').insert(payload))
+      const { data, error: err } = await supabase
+        .from('expenses').insert(payload)
+        .select('*, category:categories(*), payment_mode:payment_modes(*)')
+        .single()
+      if (err) { toast.error(err.message); setLoading(false); return }
+      savedExpense = data as Expense
     }
-
-    if (error) {
-      toast.error(error.message)
-      setLoading(false)
-      return
-    }
-
     toast.success(isEdit ? 'Expense updated' : 'Expense added')
     onOpenChange(false)
-    onSuccess()
+    onSuccess(savedExpense, isEdit)
     setLoading(false)
   }
 

@@ -89,6 +89,13 @@ function DashboardSection({
   yearRef.current  = year
   monthRef.current = month
 
+  const silentRefresh = useCallback(() => {
+    getDashboardData(yearRef.current, monthRef.current).then(result => {
+      if (result) setData(result)
+    })
+    triggerRefresh('dashboard')
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   const navigateMonth = (date: Date) => {
     const newYear = date.getFullYear()
     const newMonth = date.getMonth() + 1
@@ -102,14 +109,7 @@ function DashboardSection({
   }
 
   // Reload current month when another section mutates data
-  useSectionRefresh('dashboard', () => {
-    startTransition(async () => {
-      const result = await getDashboardData(yearRef.current, monthRef.current)
-      if (result) setData(result)
-    })
-  })
-
-  const currentDate = new Date(year, month - 1, 1)
+  useSectionRefresh('dashboard', silentRefresh)
 
   return (
     <div className="page-enter flex flex-col gap-4 sm:gap-6 p-4 sm:p-6 max-w-6xl mx-auto w-full">
@@ -123,14 +123,14 @@ function DashboardSection({
           <div className="flex items-center gap-2 shrink-0">
             <MonthPicker year={year} month={month} onNavigate={navigateMonth} isPending={isPending} />
             <div className="hidden md:flex items-center gap-2">
-              <AddIncomeButton paymentModes={paymentModes} budgetPeriods={budgetPeriods} currency={currency} onSuccess={() => navigateMonth(currentDate)} />
-              <AddExpenseButton categories={categories} paymentModes={paymentModes} currency={currency} onSuccess={() => navigateMonth(currentDate)} />
+              <AddIncomeButton paymentModes={paymentModes} budgetPeriods={budgetPeriods} currency={currency} onSuccess={silentRefresh} />
+              <AddExpenseButton categories={categories} paymentModes={paymentModes} currency={currency} onSuccess={silentRefresh} />
             </div>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-2 md:hidden">
-          <AddIncomeButton paymentModes={paymentModes} budgetPeriods={budgetPeriods} currency={currency} fullWidth onSuccess={() => navigateMonth(currentDate)} />
-          <AddExpenseButton categories={categories} paymentModes={paymentModes} currency={currency} fullWidth onSuccess={() => navigateMonth(currentDate)} />
+          <AddIncomeButton paymentModes={paymentModes} budgetPeriods={budgetPeriods} currency={currency} fullWidth onSuccess={silentRefresh} />
+          <AddExpenseButton categories={categories} paymentModes={paymentModes} currency={currency} fullWidth onSuccess={silentRefresh} />
         </div>
       </div>
 
@@ -349,7 +349,7 @@ function IncomeSection() {
         paymentModes={data.paymentModes}
         budgetPeriods={data.budgetPeriods}
         categories={data.categories}
-        onSuccess={handleRefresh}
+        onSuccess={() => handleRefresh()}
         currency={data.currency}
       />
     </>
@@ -474,44 +474,32 @@ interface DashboardClientProps {
 }
 
 export function DashboardClient(props: DashboardClientProps) {
-  const { activeTab, visitedTabs, isAdmin } = useAppShell()
+  const { activeTab, isAdmin } = useAppShell()
 
   return (
     <>
       <div style={{ display: activeTab === 'dashboard' ? 'block' : 'none' }}>
         <DashboardSection {...props} />
       </div>
-      {visitedTabs.has('expenses') && (
-        <div style={{ display: activeTab === 'expenses' ? 'block' : 'none' }}>
-          <ExpensesSection />
-        </div>
-      )}
-      {visitedTabs.has('income') && (
-        <div style={{ display: activeTab === 'income' ? 'block' : 'none' }}>
-          <IncomeSection />
-        </div>
-      )}
-      {visitedTabs.has('weekly') && (
-        <div style={{ display: activeTab === 'weekly' ? 'block' : 'none' }}>
-          <WeeklySection />
-        </div>
-      )}
-      {visitedTabs.has('yearly') && (
-        <div style={{ display: activeTab === 'yearly' ? 'block' : 'none' }}>
-          <YearlySection />
-        </div>
-      )}
-      {visitedTabs.has('settings') && (
-        <div style={{ display: activeTab === 'settings' ? 'block' : 'none' }}>
-          <SettingsSection />
-        </div>
-      )}
-      {visitedTabs.has('feedback') && (
-        <div style={{ display: activeTab === 'feedback' ? 'block' : 'none' }}>
-          <FeedbackSection />
-        </div>
-      )}
-      {isAdmin && visitedTabs.has('admin') && (
+      <div style={{ display: activeTab === 'expenses' ? 'block' : 'none' }}>
+        <ExpensesSection />
+      </div>
+      <div style={{ display: activeTab === 'income' ? 'block' : 'none' }}>
+        <IncomeSection />
+      </div>
+      <div style={{ display: activeTab === 'weekly' ? 'block' : 'none' }}>
+        <WeeklySection />
+      </div>
+      <div style={{ display: activeTab === 'yearly' ? 'block' : 'none' }}>
+        <YearlySection />
+      </div>
+      <div style={{ display: activeTab === 'settings' ? 'block' : 'none' }}>
+        <SettingsSection />
+      </div>
+      <div style={{ display: activeTab === 'feedback' ? 'block' : 'none' }}>
+        <FeedbackSection />
+      </div>
+      {isAdmin && (
         <div style={{ display: activeTab === 'admin' ? 'block' : 'none' }}>
           <AdminSection />
         </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Pencil, Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
@@ -53,7 +53,12 @@ export function IncomeListClient({
   const [modalOpen, setModalOpen] = useState(false)
   const supabase = createClient()
 
-  const totalPages = Math.ceil(totalCount / PAGE_SIZE)
+  const [localIncomes, setLocalIncomes] = useState<Income[]>(incomes)
+  const [localCount, setLocalCount] = useState(totalCount)
+  useEffect(() => { setLocalIncomes(incomes) }, [incomes])
+  useEffect(() => { setLocalCount(totalCount) }, [totalCount])
+
+  const totalPages = Math.ceil(localCount / PAGE_SIZE)
 
   const handleEdit = (income: Income) => {
     setEditTarget(income)
@@ -65,9 +70,21 @@ export function IncomeListClient({
       ? 'Delete this auto-generated income entry?'
       : 'Delete this income entry?'
     if (!confirm(msg)) return
+    setLocalIncomes(prev => prev.filter(i => i.id !== id))
+    setLocalCount(prev => Math.max(0, prev - 1))
     const { error } = await supabase.from('incomes').delete().eq('id', id)
-    if (error) { toast.error(error.message); return }
+    if (error) { toast.error(error.message); onRefresh(); return }
     toast.success('Income deleted')
+    onRefresh()
+  }
+
+  const handleIncomeSuccess = (income: Income, isEdit: boolean) => {
+    if (isEdit) {
+      setLocalIncomes(prev => prev.map(i => i.id === income.id ? income : i))
+    } else {
+      setLocalIncomes(prev => [income, ...prev])
+      setLocalCount(prev => prev + 1)
+    }
     onRefresh()
   }
 
@@ -124,15 +141,15 @@ export function IncomeListClient({
 
       {/* Summary line */}
       <p className="text-xs text-[var(--ink-muted)] mb-3 tabular-nums">
-        {totalCount} {totalCount === 1 ? 'entry' : 'entries'}
-        {totalCount > 0 && (
+        {localCount} {localCount === 1 ? 'entry' : 'entries'}
+        {localCount > 0 && (
           <> · Total: <strong className="text-[var(--ink)]">
-            {formatCurrency(incomes.reduce((s, i) => s + Number(i.amount), 0), currency)}
+            {formatCurrency(localIncomes.reduce((s, i) => s + Number(i.amount), 0), currency)}
           </strong> (this page)</>
         )}
       </p>
 
-      {incomes.length === 0 ? (
+      {localIncomes.length === 0 ? (
         <div className="py-16 text-center text-sm text-[var(--ink-muted)]">
           No income found
         </div>
@@ -153,7 +170,7 @@ export function IncomeListClient({
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border)]">
-                {incomes.map((income) => (
+                {localIncomes.map((income) => (
                   <tr
                     key={income.id}
                     className="group bg-[var(--elevated)] hover:bg-[var(--surface)] cursor-pointer transition-colors"
@@ -226,7 +243,7 @@ export function IncomeListClient({
 
           {/* Mobile card list */}
           <div className="sm:hidden divide-y divide-[var(--border)]">
-            {incomes.map((income) => (
+            {localIncomes.map((income) => (
               <div
                 key={income.id}
                 className="group flex items-center gap-3 py-3 cursor-pointer"
@@ -328,7 +345,7 @@ export function IncomeListClient({
         paymentModes={paymentModes}
         budgetPeriods={budgetPeriods}
         categories={categories}
-        onSuccess={onRefresh}
+        onSuccess={handleIncomeSuccess}
         currency={currency}
       />
     </>

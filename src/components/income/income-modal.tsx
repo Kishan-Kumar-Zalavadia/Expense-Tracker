@@ -24,7 +24,7 @@ interface IncomeModalProps {
   paymentModes: PaymentMode[]
   budgetPeriods: BudgetPeriod[]
   categories: Category[]
-  onSuccess: () => void
+  onSuccess: (income: Income, isEdit: boolean) => void
   currency?: string
 }
 
@@ -112,18 +112,25 @@ export function IncomeModal({
       updated_at: new Date().toISOString(),
     }
 
-    let error
+    let savedIncome: Income
     if (isEdit) {
-      ;({ error } = await supabase.from('incomes').update(payload).eq('id', income!.id))
+      const { data, error: err } = await supabase
+        .from('incomes').update(payload).eq('id', income!.id)
+        .select('*, payment_mode:payment_modes(*), category:categories(*)')
+        .single()
+      if (err) { toast.error(err.message); setLoading(false); return }
+      savedIncome = data as Income
     } else {
-      ;({ error } = await supabase.from('incomes').insert(payload))
+      const { data, error: err } = await supabase
+        .from('incomes').insert(payload)
+        .select('*, payment_mode:payment_modes(*), category:categories(*)')
+        .single()
+      if (err) { toast.error(err.message); setLoading(false); return }
+      savedIncome = data as Income
     }
-
-    if (error) { toast.error(error.message); setLoading(false); return }
-
     toast.success(isEdit ? 'Income updated' : 'Income added')
     onOpenChange(false)
-    onSuccess()
+    onSuccess(savedIncome, isEdit)
     setLoading(false)
   }
 

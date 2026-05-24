@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus, Check, X, Archive, Trash2, Lock } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
@@ -31,6 +31,9 @@ export function CategoriesPanel({ userId, categories, usedCategoryIds, onSave }:
 
   const usedSet = new Set(usedCategoryIds)
 
+  const [localCats, setLocalCats] = useState(categories)
+  useEffect(() => { setLocalCats(categories) }, [categories])
+
   const startEdit = (cat: Category) => {
     if (cat.is_system) return
     setEditing(cat.id)
@@ -53,15 +56,17 @@ export function CategoriesPanel({ userId, categories, usedCategoryIds, onSave }:
   const archive = async (cat: Category) => {
     if (cat.is_system) return
     if (!confirm('Archive this category? It will be hidden from dropdowns but kept in historical data.')) return
+    setLocalCats(prev => prev.map(c => c.id === cat.id ? { ...c, archived: true } : c))
     const { error } = await supabase.from('categories').update({ archived: true }).eq('id', cat.id)
-    if (error) { toast.error(error.message); return }
+    if (error) { toast.error(error.message); setLocalCats(prev => prev.map(c => c.id === cat.id ? { ...c, archived: false } : c)); return }
     toast.success('Category archived')
     onSave()
   }
 
   const unarchive = async (id: string) => {
+    setLocalCats(prev => prev.map(c => c.id === id ? { ...c, archived: false } : c))
     const { error } = await supabase.from('categories').update({ archived: false }).eq('id', id)
-    if (error) { toast.error(error.message); return }
+    if (error) { toast.error(error.message); setLocalCats(prev => prev.map(c => c.id === id ? { ...c, archived: true } : c)); return }
     toast.success('Category restored')
     onSave()
   }
@@ -77,17 +82,16 @@ export function CategoriesPanel({ userId, categories, usedCategoryIds, onSave }:
   }
 
   const toggleShowInCards = async (cat: Category) => {
-    const { error } = await supabase
-      .from('categories')
-      .update({ show_in_cards: !cat.show_in_cards })
-      .eq('id', cat.id)
-    if (error) { toast.error(error.message); return }
+    const newVal = !cat.show_in_cards
+    setLocalCats(prev => prev.map(c => c.id === cat.id ? { ...c, show_in_cards: newVal } : c))
+    const { error } = await supabase.from('categories').update({ show_in_cards: newVal }).eq('id', cat.id)
+    if (error) { toast.error(error.message); setLocalCats(prev => prev.map(c => c.id === cat.id ? { ...c, show_in_cards: cat.show_in_cards } : c)); return }
     onSave()
   }
 
   const saveNew = async () => {
     if (!newCat.name.trim()) { toast.error('Name is required'); return }
-    const maxOrder = Math.max(0, ...categories.map((c) => c.sort_order))
+    const maxOrder = Math.max(0, ...localCats.map((c) => c.sort_order))
     const { error } = await supabase.from('categories').insert({
       user_id: userId,
       name: newCat.name,
@@ -102,8 +106,8 @@ export function CategoriesPanel({ userId, categories, usedCategoryIds, onSave }:
     onSave()
   }
 
-  const active = categories.filter((c) => !c.archived)
-  const archived = categories.filter((c) => c.archived)
+  const active = localCats.filter((c) => !c.archived)
+  const archived = localCats.filter((c) => c.archived)
 
   const inputCls = cn(
     'px-3 py-1.5 text-sm bg-[var(--elevated)] border border-[var(--border)] rounded-[var(--radius-md)]',

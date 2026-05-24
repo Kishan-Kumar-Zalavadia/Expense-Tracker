@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { ExpenseModal } from '@/components/expenses/expense-modal'
-import type { Category, PaymentMode } from '@/lib/types'
+import type { Category, Expense, PaymentMode } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 interface AddExpenseButtonProps {
@@ -23,11 +23,6 @@ export function AddExpenseButton({
 }: AddExpenseButtonProps) {
   const [open, setOpen] = useState(false)
 
-  const handleSuccess = () => {
-    onSuccess?.()
-    window.location.reload()
-  }
-
   return (
     <>
       <button
@@ -43,7 +38,7 @@ export function AddExpenseButton({
         onOpenChange={setOpen}
         categories={categories}
         paymentModes={paymentModes}
-        onSuccess={handleSuccess}
+        onSuccess={(_e: Expense, _isEdit: boolean) => { onSuccess?.() }}
         currency={currency}
       />
     </>

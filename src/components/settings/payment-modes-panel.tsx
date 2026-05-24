@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus, Check, X, Archive, CreditCard, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
@@ -22,6 +22,9 @@ export function PaymentModesPanel({ userId, paymentModes, usedPaymentModeIds, on
   const [newName, setNewName] = useState('')
   const usedSet = new Set(usedPaymentModeIds)
 
+  const [localModes, setLocalModes] = useState(paymentModes)
+  useEffect(() => { setLocalModes(paymentModes) }, [paymentModes])
+
   const startEdit = (pm: PaymentMode) => {
     setEditing(pm.id)
     setEditName(pm.name)
@@ -37,20 +40,18 @@ export function PaymentModesPanel({ userId, paymentModes, usedPaymentModeIds, on
   }
 
   const toggleShowInBalance = async (pm: PaymentMode) => {
-    const { error } = await supabase
-      .from('payment_modes')
-      .update({ show_in_balance: !pm.show_in_balance })
-      .eq('id', pm.id)
-    if (error) { toast.error(error.message); return }
+    const newVal = !pm.show_in_balance
+    setLocalModes(prev => prev.map(m => m.id === pm.id ? { ...m, show_in_balance: newVal } : m))
+    const { error } = await supabase.from('payment_modes').update({ show_in_balance: newVal }).eq('id', pm.id)
+    if (error) { toast.error(error.message); setLocalModes(prev => prev.map(m => m.id === pm.id ? { ...m, show_in_balance: pm.show_in_balance } : m)); return }
     onSave()
   }
 
   const toggleCreditCard = async (pm: PaymentMode) => {
-    const { error } = await supabase
-      .from('payment_modes')
-      .update({ is_credit_card: !pm.is_credit_card })
-      .eq('id', pm.id)
-    if (error) { toast.error(error.message); return }
+    const newVal = !pm.is_credit_card
+    setLocalModes(prev => prev.map(m => m.id === pm.id ? { ...m, is_credit_card: newVal } : m))
+    const { error } = await supabase.from('payment_modes').update({ is_credit_card: newVal }).eq('id', pm.id)
+    if (error) { toast.error(error.message); setLocalModes(prev => prev.map(m => m.id === pm.id ? { ...m, is_credit_card: pm.is_credit_card } : m)); return }
     onSave()
   }
 
@@ -93,8 +94,8 @@ export function PaymentModesPanel({ userId, paymentModes, usedPaymentModeIds, on
     'text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[var(--c-primary)]',
   )
 
-  const active   = paymentModes.filter((pm) => !pm.archived)
-  const archived = paymentModes.filter((pm) => pm.archived)
+  const active   = localModes.filter((pm) => !pm.archived)
+  const archived = localModes.filter((pm) => pm.archived)
 
   return (
     <div className="space-y-5">

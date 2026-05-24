@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Pencil, Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
@@ -51,7 +51,12 @@ export function ExpenseListClient({
   const [modalOpen, setModalOpen] = useState(false)
   const supabase = createClient()
 
-  const totalPages = Math.ceil(totalCount / PAGE_SIZE)
+  const [localExpenses, setLocalExpenses] = useState<Expense[]>(expenses)
+  const [localCount, setLocalCount] = useState(totalCount)
+  useEffect(() => { setLocalExpenses(expenses) }, [expenses])
+  useEffect(() => { setLocalCount(totalCount) }, [totalCount])
+
+  const totalPages = Math.ceil(localCount / PAGE_SIZE)
 
   const handleEdit = (expense: Expense) => {
     setEditTarget(expense)
@@ -60,9 +65,21 @@ export function ExpenseListClient({
 
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this expense?')) return
+    setLocalExpenses(prev => prev.filter(e => e.id !== id))
+    setLocalCount(prev => Math.max(0, prev - 1))
     const { error } = await supabase.from('expenses').delete().eq('id', id)
-    if (error) { toast.error(error.message); return }
+    if (error) { toast.error(error.message); onRefresh(); return }
     toast.success('Expense deleted')
+    onRefresh()
+  }
+
+  const handleExpenseSuccess = (expense: Expense, isEdit: boolean) => {
+    if (isEdit) {
+      setLocalExpenses(prev => prev.map(e => e.id === expense.id ? expense : e))
+    } else {
+      setLocalExpenses(prev => [expense, ...prev])
+      setLocalCount(prev => prev + 1)
+    }
     onRefresh()
   }
 
@@ -119,15 +136,15 @@ export function ExpenseListClient({
 
       {/* Summary line */}
       <p className="text-xs text-[var(--ink-muted)] mb-3 tabular-nums">
-        {totalCount} expense{totalCount !== 1 ? 's' : ''}
-        {totalCount > 0 && (
+        {localCount} expense{localCount !== 1 ? 's' : ''}
+        {localCount > 0 && (
           <> · Total: <strong className="text-[var(--ink)]">
-            {formatCurrency(expenses.reduce((s, e) => s + Number(e.amount), 0), currency)}
+            {formatCurrency(localExpenses.reduce((s, e) => s + Number(e.amount), 0), currency)}
           </strong> (this page)</>
         )}
       </p>
 
-      {expenses.length === 0 ? (
+      {localExpenses.length === 0 ? (
         <div className="py-16 text-center text-sm text-[var(--ink-muted)]">
           No expenses found
         </div>
@@ -148,7 +165,7 @@ export function ExpenseListClient({
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border)]">
-                {expenses.map((expense) => (
+                {localExpenses.map((expense) => (
                   <tr
                     key={expense.id}
                     className="group bg-[var(--elevated)] hover:bg-[var(--surface)] cursor-pointer transition-colors"
@@ -212,7 +229,7 @@ export function ExpenseListClient({
 
           {/* Mobile card list */}
           <div className="sm:hidden divide-y divide-[var(--border)]">
-            {expenses.map((expense) => (
+            {localExpenses.map((expense) => (
               <div
                 key={expense.id}
                 className="group flex items-center gap-3 py-3 rounded-[var(--radius-md)] transition-colors cursor-pointer"
@@ -308,7 +325,7 @@ export function ExpenseListClient({
         expense={editTarget}
         categories={categories}
         paymentModes={paymentModes}
-        onSuccess={onRefresh}
+        onSuccess={handleExpenseSuccess}
         currency={currency}
       />
     </>
