@@ -5,9 +5,11 @@ import { findActiveBudget } from '@/lib/utils'
 import type { MonthSummary, CategorySpend, DailySpend, PaymentModeBalance, Expense } from '@/lib/types'
 
 export interface CreditCardTotal {
-  totalOutstanding: number   // sum of |balance| for all CC accounts with negative balance
-  totalCharged: number       // sum of all CC expense_total
+  totalBalance: number       // sum of all CC balances (negative = you owe money)
+  totalCharged: number       // sum of all CC expense_total (all-time charges)
   cardCount: number          // number of credit card accounts
+  debitTotal: number         // sum of all non-CC account balances
+  debitCount: number         // number of non-CC accounts
 }
 
 export interface DashboardMonthData {
@@ -125,19 +127,30 @@ export async function getDashboardData(year: number, month: number): Promise<Das
 
   // Credit card totals — computed from ALL non-archived CC accounts (regardless of show_in_balance)
   const allCCModes = (allPaymentModes ?? []).filter((pm) => pm.is_credit_card && !pm.archived)
-  let ccOutstanding = 0
+  let ccTotalBalance = 0
   let ccCharged = 0
   for (const pm of allCCModes) {
     const inc = (allIncomes ?? []).filter((i) => i.payment_mode_id === pm.id).reduce((s, i) => s + Number(i.amount), 0)
     const exp = (allExpenses ?? []).filter((e) => e.payment_mode_id === pm.id).reduce((s, e) => s + Number(e.amount), 0)
-    const balance = (pm.initial_balance ?? 0) + inc - exp
-    if (balance < 0) ccOutstanding += Math.abs(balance)
+    ccTotalBalance += (pm.initial_balance ?? 0) + inc - exp
     ccCharged += exp
   }
+
+  // Debit/wallet totals — computed from ALL non-archived non-CC accounts
+  const allDebitModes = (allPaymentModes ?? []).filter((pm) => !pm.is_credit_card && !pm.archived)
+  let debitTotalBalance = 0
+  for (const pm of allDebitModes) {
+    const inc = (allIncomes ?? []).filter((i) => i.payment_mode_id === pm.id).reduce((s, i) => s + Number(i.amount), 0)
+    const exp = (allExpenses ?? []).filter((e) => e.payment_mode_id === pm.id).reduce((s, e) => s + Number(e.amount), 0)
+    debitTotalBalance += (pm.initial_balance ?? 0) + inc - exp
+  }
+
   const creditCardTotal: CreditCardTotal = {
-    totalOutstanding: ccOutstanding,
+    totalBalance: ccTotalBalance,
     totalCharged: ccCharged,
     cardCount: allCCModes.length,
+    debitTotal: debitTotalBalance,
+    debitCount: allDebitModes.length,
   }
 
   return {
