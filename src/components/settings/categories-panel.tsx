@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Check, X, Archive, Trash2, Lock, LayoutGrid } from 'lucide-react'
+import { Plus, Check, X, Archive, Trash2, Lock } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { typeColor } from '@/lib/utils'
@@ -112,10 +112,15 @@ export function CategoriesPanel({ userId, categories, usedCategoryIds, onSave }:
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex items-center gap-2 mb-2">
         <span className="section-bar" style={{ backgroundColor: 'var(--c-berry)' }} />
         <h2 className="font-display text-lg font-medium text-[var(--ink)]">Categories</h2>
       </div>
+      <p className="text-xs text-[var(--ink-muted)] mb-4">
+        Toggle <span className="font-medium">Shown / Hidden</span> to control which categories appear as spend summary
+        cards on the Expenses and Income tabs. Categories marked <span className="font-medium">Hidden from cards</span> will
+        still track spending — they just won't show the summary card.
+      </p>
 
       {/* Active categories */}
       <div className="space-y-2">
@@ -128,20 +133,37 @@ export function CategoriesPanel({ userId, categories, usedCategoryIds, onSave }:
               className="flex flex-col gap-2 px-3 sm:px-4 py-3 bg-[var(--elevated)] border border-[var(--border)] rounded-[var(--radius-md)]">
               {cat.is_system ? (
                 /* System category — show compact locked row */
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
-                  <span className="flex-1 text-sm text-[var(--ink)]">{cat.name}</span>
-                  <span className="text-xs font-medium px-2 py-0.5 rounded-[var(--radius-md)] shrink-0"
-                    style={{ color: typeColor(cat.type), backgroundColor: typeColor(cat.type) + '15' }}>
-                    {cat.type}
-                  </span>
-                  <span className="flex items-center gap-1 px-2 py-1 text-[10px] font-semibold
-                    rounded-[var(--radius-md)] border border-[var(--border)] text-[var(--ink-subtle)] shrink-0"
-                    title="System category — cannot be modified">
-                    <Lock size={9} />
-                    System
-                  </span>
-                </div>
+                <>
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
+                    <span className="flex-1 text-sm text-[var(--ink)]">{cat.name}</span>
+                    <span className="text-xs font-medium px-2 py-0.5 rounded-[var(--radius-md)] shrink-0"
+                      style={{ color: typeColor(cat.type), backgroundColor: typeColor(cat.type) + '15' }}>
+                      {cat.type}
+                    </span>
+                    <span className="flex items-center gap-1 px-2 py-1 text-[10px] font-semibold
+                      rounded-[var(--radius-md)] border border-[var(--border)] text-[var(--ink-subtle)] shrink-0"
+                      title="System category — cannot be modified">
+                      <Lock size={9} />
+                      System
+                    </span>
+                  </div>
+                  {/* Show in cards toggle — system cats can still be toggled */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      onClick={() => toggleShowInCards(cat)}
+                      title={cat.show_in_cards ? 'Shown in spend cards — tap to hide' : 'Hidden from spend cards — tap to show'}
+                      className={cn(
+                        'px-2 py-1 text-[10px] font-semibold rounded-[var(--radius-md)] border transition-colors',
+                        cat.show_in_cards
+                          ? 'border-[var(--c-save)] text-[var(--c-save)] bg-[var(--tint-save)]'
+                          : 'border-[var(--border)] text-[var(--ink-subtle)] hover:border-[var(--border-strong)]',
+                      )}
+                    >
+                      {cat.show_in_cards ? 'Shown in cards' : 'Hidden from cards'}
+                    </button>
+                  </div>
+                </>
               ) : isEditingThis ? (
                 /* Edit mode — two rows on mobile */
                 <>
@@ -178,49 +200,55 @@ export function CategoriesPanel({ userId, categories, usedCategoryIds, onSave }:
                   </div>
                 </>
               ) : (
-                /* Display mode — always single row, works on mobile */
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
-                  <span className="flex-1 text-sm text-[var(--ink)] truncate">{cat.name}</span>
-                  <span className="text-xs font-medium px-2 py-0.5 rounded-[var(--radius-md)] shrink-0"
-                    style={{ color: typeColor(cat.type), backgroundColor: typeColor(cat.type) + '15' }}>
-                    {cat.type}
-                  </span>
-                  <button onClick={() => startEdit(cat)}
-                    className="px-2 py-1 text-xs text-[var(--ink-muted)] hover:text-[var(--ink)]
-                      border border-[var(--border)] rounded-[var(--radius-md)] hover:bg-[var(--surface)] transition-colors shrink-0">
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => toggleShowInCards(cat)}
-                    className={cn(
-                      'p-1.5 rounded-[var(--radius-md)] transition-colors shrink-0',
-                      cat.show_in_cards
-                        ? 'text-[var(--c-primary)] bg-[var(--tint-primary)]'
-                        : 'text-[var(--ink-subtle)] hover:text-[var(--ink)] hover:bg-[var(--surface)]',
+                /* Display mode */
+                <>
+                  {/* Row 1: name + type + edit/archive/delete */}
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
+                    <span className="flex-1 text-sm text-[var(--ink)] truncate">{cat.name}</span>
+                    <span className="text-xs font-medium px-2 py-0.5 rounded-[var(--radius-md)] shrink-0"
+                      style={{ color: typeColor(cat.type), backgroundColor: typeColor(cat.type) + '15' }}>
+                      {cat.type}
+                    </span>
+                    <button onClick={() => startEdit(cat)}
+                      className="px-2 py-1 text-xs text-[var(--ink-muted)] hover:text-[var(--ink)]
+                        border border-[var(--border)] rounded-[var(--radius-md)] hover:bg-[var(--surface)] transition-colors shrink-0">
+                      Edit
+                    </button>
+                    {isUnused ? (
+                      <button
+                        onClick={() => deleteCategory(cat)}
+                        className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)] hover:text-[var(--c-want)]
+                          hover:bg-[var(--tint-want)] transition-colors shrink-0"
+                        title="Delete permanently (never used)">
+                        <Trash2 size={13} />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => archive(cat)}
+                        className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)] hover:text-[var(--c-warn)]
+                          hover:bg-[var(--tint-warn)] transition-colors shrink-0"
+                        title="Archive (has existing expenses)">
+                        <Archive size={13} />
+                      </button>
                     )}
-                    title={cat.show_in_cards ? 'Shown in spend cards (click to hide)' : 'Hidden from spend cards (click to show)'}
-                  >
-                    <LayoutGrid size={13} />
-                  </button>
-                  {isUnused ? (
+                  </div>
+                  {/* Row 2: show in cards toggle */}
+                  <div className="flex items-center gap-2 flex-wrap">
                     <button
-                      onClick={() => deleteCategory(cat)}
-                      className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)] hover:text-[var(--c-want)]
-                        hover:bg-[var(--tint-want)] transition-colors shrink-0"
-                      title="Delete permanently (never used)">
-                      <Trash2 size={13} />
+                      onClick={() => toggleShowInCards(cat)}
+                      title={cat.show_in_cards ? 'Shown in spend cards — tap to hide' : 'Hidden from spend cards — tap to show'}
+                      className={cn(
+                        'px-2 py-1 text-[10px] font-semibold rounded-[var(--radius-md)] border transition-colors',
+                        cat.show_in_cards
+                          ? 'border-[var(--c-save)] text-[var(--c-save)] bg-[var(--tint-save)]'
+                          : 'border-[var(--border)] text-[var(--ink-subtle)] hover:border-[var(--border-strong)]',
+                      )}
+                    >
+                      {cat.show_in_cards ? 'Shown in cards' : 'Hidden from cards'}
                     </button>
-                  ) : (
-                    <button
-                      onClick={() => archive(cat)}
-                      className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)] hover:text-[var(--c-warn)]
-                        hover:bg-[var(--tint-warn)] transition-colors shrink-0"
-                      title="Archive (has existing expenses)">
-                      <Archive size={13} />
-                    </button>
-                  )}
-                </div>
+                  </div>
+                </>
               )}
             </div>
           )

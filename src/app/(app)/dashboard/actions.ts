@@ -4,11 +4,18 @@ import { createClient } from '@/lib/supabase/server'
 import { findActiveBudget } from '@/lib/utils'
 import type { MonthSummary, CategorySpend, DailySpend, PaymentModeBalance, Expense } from '@/lib/types'
 
+export interface CreditCardTotal {
+  totalOutstanding: number   // sum of |balance| for all CC accounts with negative balance
+  totalCharged: number       // sum of all CC expense_total
+  cardCount: number          // number of credit card accounts
+}
+
 export interface DashboardMonthData {
   summary: MonthSummary
   categorySpend: CategorySpend[]
   dailySpend: DailySpend[]
   balances: PaymentModeBalance[]
+  creditCardTotal: CreditCardTotal
   recent6: Expense[]
   dailyLimit: number
 }
@@ -116,11 +123,29 @@ export async function getDashboardData(year: number, month: number): Promise<Das
       }
     })
 
+  // Credit card totals — computed from ALL non-archived CC accounts (regardless of show_in_balance)
+  const allCCModes = (allPaymentModes ?? []).filter((pm) => pm.is_credit_card && !pm.archived)
+  let ccOutstanding = 0
+  let ccCharged = 0
+  for (const pm of allCCModes) {
+    const inc = (allIncomes ?? []).filter((i) => i.payment_mode_id === pm.id).reduce((s, i) => s + Number(i.amount), 0)
+    const exp = (allExpenses ?? []).filter((e) => e.payment_mode_id === pm.id).reduce((s, e) => s + Number(e.amount), 0)
+    const balance = (pm.initial_balance ?? 0) + inc - exp
+    if (balance < 0) ccOutstanding += Math.abs(balance)
+    ccCharged += exp
+  }
+  const creditCardTotal: CreditCardTotal = {
+    totalOutstanding: ccOutstanding,
+    totalCharged: ccCharged,
+    cardCount: allCCModes.length,
+  }
+
   return {
     summary,
     categorySpend,
     dailySpend,
     balances,
+    creditCardTotal,
     recent6: expenseList.slice(0, 6),
     dailyLimit: weeklyLimit / 7,
   }

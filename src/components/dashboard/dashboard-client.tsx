@@ -151,7 +151,7 @@ function DashboardSection({
             </div>
             <CategoryPie data={data.categorySpend} currency={currency} />
           </section>
-          <AccountBalances balances={data.balances} paymentModes={paymentModes} currency={currency} userId={userId} />
+          <AccountBalances balances={data.balances} creditCardTotal={data.creditCardTotal} paymentModes={paymentModes} currency={currency} userId={userId} />
           <section className="apple-card p-5">
             <div className="flex items-center gap-2 mb-4">
               <span className="section-bar" style={{ backgroundColor: 'var(--c-need)' }} />
