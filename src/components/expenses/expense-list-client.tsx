@@ -214,7 +214,7 @@ export function ExpenseListClient({
                       </span>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center gap-1 flex">
                         <button
                           onClick={(e) => { e.stopPropagation(); handleEdit(expense) }}
                           className="p-1.5 rounded-[var(--radius-sm)] text-[var(--ink-subtle)] hover:text-[var(--c-primary)]
@@ -281,7 +281,7 @@ export function ExpenseListClient({
                   <span className="text-sm font-semibold tabular-nums text-[var(--ink)]">
                     {formatCurrency(Number(expense.amount), currency)}
                   </span>
-                  <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-0.5 flex">
                     <button
                       onClick={(e) => { e.stopPropagation(); handleEdit(expense) }}
                       className="p-1.5 rounded-[var(--radius-sm)] text-[var(--ink-subtle)] hover:text-[var(--c-primary)] transition-colors"

@@ -228,7 +228,7 @@ export function IncomeListClient({
                       +{formatCurrency(Number(income.amount), currency)}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center gap-1 flex">
                         <button
                           onClick={(e) => { e.stopPropagation(); handleEdit(income) }}
                           className="p-1.5 rounded-[var(--radius-sm)] text-[var(--ink-subtle)] hover:text-[var(--c-primary)]
@@ -297,7 +297,7 @@ export function IncomeListClient({
                   <span className="text-sm font-semibold tabular-nums" style={{ color: 'var(--c-save)' }}>
                     +{formatCurrency(Number(income.amount), currency)}
                   </span>
-                  <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-0.5 flex">
                     <button
                       onClick={(e) => { e.stopPropagation(); handleEdit(income) }}
                       className="p-1.5 rounded text-[var(--ink-subtle)] hover:text-[var(--c-primary)] transition-colors"

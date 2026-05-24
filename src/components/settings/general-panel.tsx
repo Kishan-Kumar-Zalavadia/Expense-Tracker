@@ -27,8 +27,7 @@ export function GeneralPanel({ userId, settings, onSave }: GeneralPanelProps) {
   const onSubmit = async (values: SettingsFormValues) => {
     const { error } = await supabase
       .from('user_settings')
-      .update({ currency: values.currency })
-      .eq('user_id', userId)
+      .upsert({ user_id: userId, currency: values.currency }, { onConflict: 'user_id' })
 
     if (error) { toast.error(error.message); return }
     toast.success('Settings saved')
