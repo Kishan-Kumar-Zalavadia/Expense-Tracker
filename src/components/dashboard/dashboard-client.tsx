@@ -66,7 +66,8 @@ function SectionSpinner() {
 // ─── Dashboard section ───────────────────────────────────────────
 function DashboardSection({
   initialData, initialYear, initialMonth,
-  categories, paymentModes, budgetPeriods, currency, userId,
+  categories: initCategories, paymentModes: initPaymentModes,
+  budgetPeriods: initBudgetPeriods, currency: initCurrency, userId,
 }: {
   initialData: DashboardMonthData
   initialYear: number
@@ -80,6 +81,11 @@ function DashboardSection({
   const [year, setYear] = useState(initialYear)
   const [month, setMonth] = useState(initialMonth)
   const [data, setData] = useState(initialData)
+  // Shared data lives in state so settings changes propagate here too
+  const [categories, setCategories] = useState(initCategories)
+  const [paymentModes, setPaymentModes] = useState(initPaymentModes)
+  const [budgetPeriods, setBudgetPeriods] = useState(initBudgetPeriods)
+  const [currency, setCurrency] = useState(initCurrency)
   const [isPending, startTransition] = useTransition()
   const { triggerRefresh } = useAppShell()
 
@@ -89,11 +95,26 @@ function DashboardSection({
   yearRef.current  = year
   monthRef.current = month
 
+  // Refreshes only dashboard stats (after add/edit expense or income)
   const silentRefresh = useCallback(() => {
     getDashboardData(yearRef.current, monthRef.current).then(result => {
       if (result) setData(result)
     })
     triggerRefresh('dashboard')
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Full refresh — also re-fetches categories/paymentModes (triggered by settings changes)
+  const fullRefresh = useCallback(() => {
+    getDashboardData(yearRef.current, monthRef.current).then(result => {
+      if (result) setData(result)
+    })
+    fetchSettingsData().then(sd => {
+      if (!sd) return
+      setCategories(sd.categories)
+      setPaymentModes(sd.paymentModes)
+      setBudgetPeriods(sd.budgetPeriods)
+      setCurrency(sd.settings.currency)
+    })
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const navigateMonth = (date: Date) => {
@@ -108,8 +129,8 @@ function DashboardSection({
     triggerRefresh('dashboard')
   }
 
-  // Reload current month when another section mutates data
-  useSectionRefresh('dashboard', silentRefresh)
+  // Use fullRefresh so categories/paymentModes update when settings change
+  useSectionRefresh('dashboard', fullRefresh)
 
   return (
     <div className="page-enter flex flex-col gap-4 sm:gap-6 p-4 sm:p-6 max-w-6xl mx-auto w-full">
@@ -419,18 +440,21 @@ function SettingsSection() {
   const [data, setData] = useState<SettingsData | null>(null)
   const { triggerRefresh } = useAppShell()
 
-  const load = async () => {
+  const dataRef = useRef(data)
+  dataRef.current = data
+
+  const load = useCallback(async () => {
     const result = await fetchSettingsData()
     if (result) setData(result)
-  }
+  }, [])
 
   // After any settings save, also notify other sections
   const handleRefresh = useCallback(async () => {
     await load()
     triggerRefresh('settings')
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [load, triggerRefresh])
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, [load])
 
   useSectionRefresh('settings', load)
 
