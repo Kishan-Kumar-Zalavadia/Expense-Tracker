@@ -123,13 +123,13 @@ function DashboardSection({
           <div className="flex items-center gap-2 shrink-0">
             <MonthPicker year={year} month={month} onNavigate={navigateMonth} isPending={isPending} />
             <div className="hidden md:flex items-center gap-2">
-              <AddIncomeButton paymentModes={paymentModes} budgetPeriods={budgetPeriods} currency={currency} onSuccess={silentRefresh} />
+              <AddIncomeButton paymentModes={paymentModes} budgetPeriods={budgetPeriods} categories={categories} currency={currency} onSuccess={silentRefresh} />
               <AddExpenseButton categories={categories} paymentModes={paymentModes} currency={currency} onSuccess={silentRefresh} />
             </div>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-2 md:hidden">
-          <AddIncomeButton paymentModes={paymentModes} budgetPeriods={budgetPeriods} currency={currency} fullWidth onSuccess={silentRefresh} />
+          <AddIncomeButton paymentModes={paymentModes} budgetPeriods={budgetPeriods} categories={categories} currency={currency} fullWidth onSuccess={silentRefresh} />
           <AddExpenseButton categories={categories} paymentModes={paymentModes} currency={currency} fullWidth onSuccess={silentRefresh} />
         </div>
       </div>

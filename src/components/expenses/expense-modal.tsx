@@ -103,6 +103,10 @@ export function ExpenseModal({
   }, [open, expense, reset, categories, paymentModes])
 
   const onSubmit = async (values: ExpenseFormValues) => {
+    if (!/^\d+(\.\d+)?$/.test(values.amount.trim())) {
+      toast.error('Enter a valid amount (e.g. 100 or 99.50)')
+      return
+    }
     const parsedAmount = parseFloat(values.amount)
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
       toast.error('Amount must be greater than 0')
@@ -234,9 +238,8 @@ export function ExpenseModal({
                 </span>
                 <input
                   {...register('amount')}
-                  type="number"
-                  step="0.01"
-                  min="0"
+                  type="text"
+                  inputMode="decimal"
                   placeholder="0.00"
                   className={cn(inputCls(!!errors.amount), 'tabular-nums')}
                   style={{ paddingLeft: 'calc(2.5rem + 12px)' }}

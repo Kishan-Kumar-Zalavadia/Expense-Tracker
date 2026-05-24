@@ -67,7 +67,7 @@ export function IncomeModal({
       if (income) {
         reset({
           date: income.date,
-          description: income.description,
+          description: income.description ?? '',
           category_id: income.category_id ?? '',
           amount: String(income.amount),
           payment_mode_id: income.payment_mode_id,
@@ -89,6 +89,10 @@ export function IncomeModal({
   }, [open, income, reset, paymentModes])
 
   const onSubmit = async (values: IncomeFormValues) => {
+    if (!/^\d+(\.\d+)?$/.test(values.amount.trim())) {
+      toast.error('Enter a valid amount (e.g. 100 or 99.50)')
+      return
+    }
     const parsedAmount = parseFloat(values.amount)
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
       toast.error('Amount must be greater than 0')
@@ -194,9 +198,8 @@ export function IncomeModal({
                 </span>
                 <input
                   {...register('amount')}
-                  type="number"
-                  step="0.01"
-                  min="0"
+                  type="text"
+                  inputMode="decimal"
                   placeholder="0.00"
                   className={cn(inputCls(!!errors.amount), 'tabular-nums')}
                   style={{ paddingLeft: 'calc(2.5rem + 12px)' }}
