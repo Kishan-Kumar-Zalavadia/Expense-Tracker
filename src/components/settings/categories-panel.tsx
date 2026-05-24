@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Check, X, Archive, Trash2, Lock } from 'lucide-react'
+import { Plus, Check, X, Archive, Trash2, Lock, LayoutGrid } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { typeColor } from '@/lib/utils'
@@ -73,6 +73,15 @@ export function CategoriesPanel({ userId, categories, usedCategoryIds, onSave }:
     const { error } = await supabase.from('categories').delete().eq('id', cat.id)
     if (error) { toast.error(error.message); return }
     toast.success('Category deleted')
+    onSave()
+  }
+
+  const toggleShowInCards = async (cat: Category) => {
+    const { error } = await supabase
+      .from('categories')
+      .update({ show_in_cards: !cat.show_in_cards })
+      .eq('id', cat.id)
+    if (error) { toast.error(error.message); return }
     onSave()
   }
 
@@ -181,6 +190,18 @@ export function CategoriesPanel({ userId, categories, usedCategoryIds, onSave }:
                     className="px-2 py-1 text-xs text-[var(--ink-muted)] hover:text-[var(--ink)]
                       border border-[var(--border)] rounded-[var(--radius-md)] hover:bg-[var(--surface)] transition-colors shrink-0">
                     Edit
+                  </button>
+                  <button
+                    onClick={() => toggleShowInCards(cat)}
+                    className={cn(
+                      'p-1.5 rounded-[var(--radius-md)] transition-colors shrink-0',
+                      cat.show_in_cards
+                        ? 'text-[var(--c-primary)] bg-[var(--tint-primary)]'
+                        : 'text-[var(--ink-subtle)] hover:text-[var(--ink)] hover:bg-[var(--surface)]',
+                    )}
+                    title={cat.show_in_cards ? 'Shown in spend cards (click to hide)' : 'Hidden from spend cards (click to show)'}
+                  >
+                    <LayoutGrid size={13} />
                   </button>
                   {isUnused ? (
                     <button

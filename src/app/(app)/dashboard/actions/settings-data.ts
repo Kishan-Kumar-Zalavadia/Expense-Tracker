@@ -34,7 +34,7 @@ export async function fetchSettingsData(): Promise<SettingsData | null> {
     supabase.from('payment_modes').select('*').eq('user_id', user.id),
     supabase.from('budget_periods').select('*').eq('user_id', user.id).order('start_month', { ascending: false }),
     supabase.from('recurring_items')
-      .select('*, payment_mode:payment_modes(id,name,initial_balance,archived,show_in_balance), category:categories(id,name,color,type,sort_order,archived,user_id)')
+      .select('*, payment_mode:payment_modes(id,name,initial_balance,archived,show_in_balance,is_credit_card), category:categories(id,name,color,type,sort_order,archived,is_system,show_in_cards,user_id)')
       .eq('user_id', user.id).order('created_at'),
     supabase.from('expenses').select('category_id').eq('user_id', user.id).not('category_id', 'is', null),
     supabase.from('expenses').select('payment_mode_id').eq('user_id', user.id),

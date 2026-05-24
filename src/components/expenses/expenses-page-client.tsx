@@ -1,16 +1,18 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { ExpenseListClient } from './expense-list-client'
 import { AddExpenseButton } from '@/components/add-expense-button'
-import type { Category, Expense, PaymentMode } from '@/lib/types'
+import type { Category, CategorySummaryItem, Expense, PaymentMode } from '@/lib/types'
+import { PeriodFilter, defaultPeriod, type PeriodValue } from '@/components/ui/period-filter'
 
 interface ExpensesPageClientProps {
   initialExpenses: Expense[]
   totalCount: number
   categories: Category[]
   paymentModes: PaymentMode[]
+  categorySummary: CategorySummaryItem[]
   currency: string
   initialPage: number
   initialFilters: {
@@ -19,6 +21,8 @@ interface ExpensesPageClientProps {
     type: string
     paymentModeId: string
     sort: string
+    dateFrom: string
+    dateTo: string
   }
 }
 
@@ -27,6 +31,7 @@ export function ExpensesPageClient({
   totalCount,
   categories,
   paymentModes,
+  categorySummary,
   currency,
   initialPage,
   initialFilters,
@@ -34,6 +39,8 @@ export function ExpensesPageClient({
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
+  const initPeriod = defaultPeriod()
+  const [period, setPeriod] = useState<PeriodValue>(initPeriod)
 
   const updateUrl = useCallback((updates: Record<string, string>) => {
     const params = new URLSearchParams(searchParams.toString())
@@ -50,6 +57,11 @@ export function ExpensesPageClient({
                  : key === 'paymentModeId' ? 'payment'
                  : key
     updateUrl({ [urlKey]: value })
+  }
+
+  const handlePeriodChange = (p: PeriodValue) => {
+    setPeriod(p)
+    updateUrl({ dateFrom: p.dateFrom, dateTo: p.dateTo })
   }
 
   const handlePageChange = (newPage: number) => {
@@ -82,6 +94,11 @@ export function ExpensesPageClient({
         />
       </div>
 
+      {/* Period filter */}
+      <div className="apple-card px-3 sm:px-5 py-3">
+        <PeriodFilter value={period} onChange={handlePeriodChange} accentColor="var(--c-berry)" />
+      </div>
+
       {/* List */}
       <div className="apple-card p-3 sm:p-5">
         <ExpenseListClient
@@ -89,6 +106,7 @@ export function ExpensesPageClient({
           totalCount={totalCount}
           categories={categories}
           paymentModes={paymentModes}
+          categorySummary={categorySummary}
           currency={currency}
           page={initialPage}
           filters={initialFilters}

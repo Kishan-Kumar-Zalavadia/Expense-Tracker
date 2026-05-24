@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import type { Category, Expense, PaymentMode } from '@/lib/types'
+import type { Category, CategorySummaryItem, Expense, PaymentMode } from '@/lib/types'
 
 export interface ExpensesFilters {
   search: string
@@ -9,6 +9,8 @@ export interface ExpensesFilters {
   type: string
   paymentModeId: string
   sort: string
+  dateFrom: string
+  dateTo: string
 }
 
 export interface ExpensesData {
@@ -16,6 +18,7 @@ export interface ExpensesData {
   totalCount: number
   categories: Category[]
   paymentModes: PaymentMode[]
+  categorySummary: CategorySummaryItem[]
   currency: string
 }
 
@@ -26,7 +29,7 @@ export async function fetchExpenses(filters: ExpensesFilters, page: number): Pro
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { search, categoryId, type, paymentModeId, sort } = filters
+  const { search, categoryId, type, paymentModeId, sort, dateFrom, dateTo } = filters
   const offset = (page - 1) * PAGE_SIZE
 
   let query = supabase
@@ -38,6 +41,8 @@ export async function fetchExpenses(filters: ExpensesFilters, page: number): Pro
   if (categoryId) query = query.eq('category_id', categoryId)
   if (type) query = query.eq('type', type)
   if (paymentModeId) query = query.eq('payment_mode_id', paymentModeId)
+  if (dateFrom) query = query.gte('date', dateFrom)
+  if (dateTo) query = query.lte('date', dateTo)
 
   const [sortCol, sortDir] = sort === 'date_asc'   ? ['date', 'asc']
                            : sort === 'amount_desc' ? ['amount', 'desc']
@@ -46,19 +51,61 @@ export async function fetchExpenses(filters: ExpensesFilters, page: number): Pro
 
   query = query.order(sortCol, { ascending: sortDir === 'asc' }).range(offset, offset + PAGE_SIZE - 1)
 
-  const [{ data: expenses, count }, { data: categories }, { data: paymentModes }, { data: settings }] =
-    await Promise.all([
-      query,
-      supabase.from('categories').select('*').eq('user_id', user.id).eq('archived', false).order('sort_order'),
-      supabase.from('payment_modes').select('*').eq('user_id', user.id).eq('archived', false),
-      supabase.from('user_settings').select('currency').eq('user_id', user.id).single(),
-    ])
+  // Category summary query (all items in date range, ignores pagination)
+  let summaryQuery = supabase
+    .from('expenses')
+    .select('amount, category:categories(id, name, color, type, show_in_cards)')
+    .eq('user_id', user.id)
+    .not('category_id', 'is', null)
+
+  if (dateFrom) summaryQuery = summaryQuery.gte('date', dateFrom)
+  if (dateTo) summaryQuery = summaryQuery.lte('date', dateTo)
+  if (paymentModeId) summaryQuery = summaryQuery.eq('payment_mode_id', paymentModeId)
+  if (type) summaryQuery = summaryQuery.eq('type', type)
+
+  const [
+    { data: expenses, count },
+    { data: categories },
+    { data: paymentModes },
+    { data: settings },
+    { data: summaryRaw },
+  ] = await Promise.all([
+    query,
+    supabase.from('categories').select('*').eq('user_id', user.id).eq('archived', false).order('sort_order'),
+    supabase.from('payment_modes').select('*').eq('user_id', user.id).eq('archived', false),
+    supabase.from('user_settings').select('currency').eq('user_id', user.id).single(),
+    summaryQuery,
+  ])
+
+  // Aggregate category summary
+  const summaryMap = new Map<string, CategorySummaryItem>()
+  for (const row of (summaryRaw ?? [])) {
+    // Supabase returns joined rows as array or object depending on relation type
+    const rawCat = row.category
+    const cat = (Array.isArray(rawCat) ? rawCat[0] : rawCat) as { id: string; name: string; color: string; type: string; show_in_cards: boolean } | null
+    if (!cat) continue
+    const existing = summaryMap.get(cat.id)
+    if (existing) {
+      existing.total += Number(row.amount)
+    } else {
+      summaryMap.set(cat.id, {
+        category_id: cat.id,
+        category_name: cat.name,
+        color: cat.color,
+        type: cat.type as 'Need' | 'Want' | 'Saving',
+        total: Number(row.amount),
+        show_in_cards: cat.show_in_cards,
+      })
+    }
+  }
+  const categorySummary = Array.from(summaryMap.values()).sort((a, b) => b.total - a.total)
 
   return {
     expenses: (expenses ?? []) as Expense[],
     totalCount: count ?? 0,
     categories: (categories ?? []) as Category[],
     paymentModes: (paymentModes ?? []) as PaymentMode[],
+    categorySummary,
     currency: settings?.currency ?? '₹',
   }
 }

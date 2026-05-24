@@ -347,6 +347,13 @@
 /* ═══════════════════════════════════════════════════════════════════════
    TYPE UTILITIES
    ═══════════════════════════════════════════════════════════════════════ */
+/* ─── Scrollbar hide utility ─────────────────────────────────────── */
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+
 .text-need  { color: var(--c-need); }
 .text-want  { color: var(--c-want); }
 .text-save  { color: var(--c-save); }

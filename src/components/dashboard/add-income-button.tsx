@@ -3,12 +3,13 @@
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { IncomeModal } from '@/components/income/income-modal'
-import type { BudgetPeriod, PaymentMode } from '@/lib/types'
+import type { BudgetPeriod, Category, PaymentMode } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 interface AddIncomeButtonProps {
   paymentModes: PaymentMode[]
   budgetPeriods: BudgetPeriod[]
+  categories?: Category[]
   onSuccess?: () => void
   currency?: string
   fullWidth?: boolean
@@ -17,6 +18,7 @@ interface AddIncomeButtonProps {
 export function AddIncomeButton({
   paymentModes,
   budgetPeriods,
+  categories = [],
   onSuccess,
   currency,
   fullWidth,
@@ -39,6 +41,7 @@ export function AddIncomeButton({
         onOpenChange={setOpen}
         paymentModes={paymentModes}
         budgetPeriods={budgetPeriods}
+        categories={categories}
         onSuccess={() => { onSuccess?.(); window.location.reload() }}
         currency={currency}
       />

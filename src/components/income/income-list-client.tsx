@@ -1,14 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Pencil, Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { IncomeModal } from './income-modal'
-import type { BudgetPeriod, Income, PaymentMode } from '@/lib/types'
+import type { BudgetPeriod, Category, CategorySummaryItem, Income, PaymentMode } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { CategorySpendCards } from '@/components/category-spend-cards'
 
 const PAGE_SIZE = 50
 
@@ -17,12 +17,18 @@ interface IncomeListClientProps {
   totalCount: number
   paymentModes: PaymentMode[]
   budgetPeriods: BudgetPeriod[]
+  categories: Category[]
+  categorySummary: CategorySummaryItem[]
   currency: string
   page: number
   filters: {
     search: string
     paymentId: string
+    categoryId: string
+    type: string
     sort: string
+    dateFrom: string
+    dateTo: string
   }
   onFilterChange: (key: string, value: string) => void
   onPageChange: (page: number) => void
@@ -34,6 +40,8 @@ export function IncomeListClient({
   totalCount,
   paymentModes,
   budgetPeriods,
+  categories,
+  categorySummary,
   currency,
   page,
   filters,
@@ -70,6 +78,13 @@ export function IncomeListClient({
 
   return (
     <>
+      {/* Category spend cards */}
+      {categorySummary.some((i) => i.show_in_cards) && (
+        <div className="mb-4">
+          <CategorySpendCards items={categorySummary} currency={currency} accentColor="var(--c-save)" />
+        </div>
+      )}
+
       {/* Filters row */}
       <div className="flex flex-wrap gap-2 items-center mb-4">
         <input
@@ -81,6 +96,18 @@ export function IncomeListClient({
             text-[var(--ink)] placeholder:text-[var(--ink-subtle)]
             focus:outline-none focus:ring-2 focus:ring-[var(--c-save)] flex-1 min-w-40"
         />
+
+        <select value={filters.categoryId} onChange={(e) => onFilterChange('categoryId', e.target.value)} className={selectCls}>
+          <option value="">All categories</option>
+          {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
+
+        <select value={filters.type} onChange={(e) => onFilterChange('type', e.target.value)} className={selectCls}>
+          <option value="">All types</option>
+          <option value="Need">Need</option>
+          <option value="Want">Want</option>
+          <option value="Saving">Saving</option>
+        </select>
 
         <select value={filters.paymentId} onChange={(e) => onFilterChange('paymentId', e.target.value)} className={selectCls}>
           <option value="">All accounts</option>
@@ -116,7 +143,7 @@ export function IncomeListClient({
             <table className="w-full">
               <thead>
                 <tr className="bg-[var(--surface)] border-b border-[var(--border)]">
-                  {['Date', 'Description', 'Account', 'Amount'].map((h) => (
+                  {['Date', 'Description', 'Category', 'Account', 'Amount'].map((h) => (
                     <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold
                       text-[var(--ink-muted)] uppercase tracking-wide whitespace-nowrap">
                       {h}
@@ -151,6 +178,17 @@ export function IncomeListClient({
                       </div>
                       {income.notes && (
                         <div className="text-xs text-[var(--ink-subtle)] truncate mt-0.5 pl-4">{income.notes}</div>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-[var(--ink-muted)] whitespace-nowrap">
+                      {income.category ? (
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full shrink-0"
+                            style={{ backgroundColor: income.category.color }} />
+                          <span className="truncate max-w-[100px]">{income.category.name}</span>
+                        </div>
+                      ) : (
+                        <span className="text-[var(--ink-subtle)]">—</span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-xs text-[var(--ink-muted)] whitespace-nowrap">
@@ -194,8 +232,13 @@ export function IncomeListClient({
                 className="group flex items-center gap-3 py-3 cursor-pointer"
                 onClick={() => handleEdit(income)}
               >
-                <span className="w-2 h-2 rounded-full shrink-0 mt-0.5"
-                  style={{ backgroundColor: income.auto_generated ? 'var(--c-primary)' : 'var(--c-save)' }} />
+                <span
+                  className="w-2 h-2 rounded-full shrink-0 mt-0.5"
+                  style={{
+                    backgroundColor: income.category?.color
+                      ?? (income.auto_generated ? 'var(--c-primary)' : 'var(--c-save)'),
+                  }}
+                />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
                     <span className="text-sm font-medium text-[var(--ink)] truncate">
@@ -207,7 +250,13 @@ export function IncomeListClient({
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-1.5 mt-0.5">
+                  <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                    {income.category && (
+                      <>
+                        <span className="text-xs text-[var(--ink-muted)]">{income.category.name}</span>
+                        <span className="text-xs text-[var(--ink-subtle)]">·</span>
+                      </>
+                    )}
                     <span className="text-xs text-[var(--ink-muted)]">{income.payment_mode?.name}</span>
                     <span className="text-xs text-[var(--ink-subtle)]">·</span>
                     <span className="text-xs text-[var(--ink-subtle)] tabular-nums">
@@ -278,6 +327,7 @@ export function IncomeListClient({
         income={editTarget}
         paymentModes={paymentModes}
         budgetPeriods={budgetPeriods}
+        categories={categories}
         onSuccess={onRefresh}
         currency={currency}
       />

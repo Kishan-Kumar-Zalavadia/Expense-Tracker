@@ -1,14 +1,14 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import { Pencil, Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency, formatDate, typeColor, typeTint } from '@/lib/utils'
 import { ExpenseModal } from '@/components/expenses/expense-modal'
-import type { Category, Expense, PaymentMode } from '@/lib/types'
+import type { Category, CategorySummaryItem, Expense, PaymentMode } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { CategorySpendCards } from '@/components/category-spend-cards'
 
 const PAGE_SIZE = 50
 
@@ -17,6 +17,7 @@ interface ExpenseListClientProps {
   totalCount: number
   categories: Category[]
   paymentModes: PaymentMode[]
+  categorySummary: CategorySummaryItem[]
   currency: string
   page: number
   filters: {
@@ -25,6 +26,8 @@ interface ExpenseListClientProps {
     type: string
     paymentModeId: string
     sort: string
+    dateFrom: string
+    dateTo: string
   }
   onFilterChange: (key: string, value: string) => void
   onPageChange: (page: number) => void
@@ -36,6 +39,7 @@ export function ExpenseListClient({
   totalCount,
   categories,
   paymentModes,
+  categorySummary,
   currency,
   page,
   filters,
@@ -69,6 +73,13 @@ export function ExpenseListClient({
 
   return (
     <>
+      {/* Category spend cards */}
+      {categorySummary.some((i) => i.show_in_cards) && (
+        <div className="mb-4">
+          <CategorySpendCards items={categorySummary} currency={currency} accentColor="var(--c-berry)" />
+        </div>
+      )}
+
       {/* Filters row */}
       <div className="flex flex-wrap gap-2 items-center mb-4">
         <input

@@ -149,6 +149,7 @@ async function generateEntries(
       description:      item.description || 'Recurring income',
       amount:           item.amount,
       payment_mode_id:  item.payment_mode_id,
+      category_id:      item.category_id || null,
       auto_generated:   true,
       notes:            item.notes || null,
       recurring_item_id: item.id,
@@ -262,7 +263,7 @@ export function RecurringPanel({ userId, items, categories, paymentModes, curren
       description:    form.description || null,
       amount:         Number(form.amount),
       payment_mode_id: form.payment_mode_id || null,
-      category_id:    form.type === 'expense' ? (form.category_id || null) : null,
+      category_id:    form.category_id || null,
       expense_type:   form.type === 'expense' ? form.expense_type : null,
       frequency:      form.frequency,
       day_of_month:   form.frequency === 'monthly' ? Number(form.day_of_month) : null,
@@ -303,7 +304,7 @@ export function RecurringPanel({ userId, items, categories, paymentModes, curren
         description:         form.description || null,
         amount:              Number(form.amount),
         payment_mode_id:     form.payment_mode_id || null,
-        category_id:         form.type === 'expense' ? (form.category_id || null) : null,
+        category_id:         form.category_id || null,
         expense_type:        form.type === 'expense' ? (form.expense_type as 'Need' | 'Want' | 'Saving') : null,
         frequency:           form.frequency,
         day_of_month:        form.frequency === 'monthly' ? Number(form.day_of_month) : null,
@@ -859,8 +860,8 @@ function RecurringForm({
         </div>
       </div>
 
-      {/* Expense-only fields */}
-      {form.type === 'expense' && (
+      {/* Category (expense: required, income: optional) */}
+      {form.type === 'expense' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-medium text-[var(--ink-muted)] mb-1 uppercase tracking-wide">Category</label>
@@ -877,6 +878,17 @@ function RecurringForm({
               <option value="Saving">Saving</option>
             </select>
           </div>
+        </div>
+      ) : (
+        <div>
+          <label className="block text-xs font-medium text-[var(--ink-muted)] mb-1 uppercase tracking-wide">
+            Category
+            <span className="ml-1 text-[var(--ink-subtle)] normal-case font-normal">(optional)</span>
+          </label>
+          <select value={form.category_id} onChange={(e) => set('category_id', e.target.value)} className={inputCls}>
+            <option value="">No category</option>
+            {activeCategories.map((c) => <option key={c.id} value={c.id}>{c.name} — {c.type}</option>)}
+          </select>
         </div>
       )}
 

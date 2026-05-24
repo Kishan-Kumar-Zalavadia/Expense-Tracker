@@ -10,6 +10,7 @@ export interface Category {
   sort_order: number
   archived: boolean
   is_system: boolean
+  show_in_cards: boolean
 }
 
 export interface PaymentMode {
@@ -69,6 +70,7 @@ export interface Income {
   description: string
   amount: number
   payment_mode_id: string
+  category_id: string | null
   budget_period_id: string | null
   auto_generated: boolean
   notes: string | null
@@ -78,6 +80,18 @@ export interface Income {
   // joined
   payment_mode?: PaymentMode
   budget_period?: BudgetPeriod
+  category?: Category
+}
+
+// ─── Category spend summary ──────────────────────────────────────
+
+export interface CategorySummaryItem {
+  category_id: string
+  category_name: string
+  color: string
+  type: ExpenseType
+  total: number
+  show_in_cards: boolean
 }
 
 export interface PaymentModeBalance {

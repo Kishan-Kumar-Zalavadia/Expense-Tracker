@@ -1,24 +1,30 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { IncomeListClient } from './income-list-client'
-import type { BudgetPeriod, Income, PaymentMode } from '@/lib/types'
-import { useState } from 'react'
+import type { BudgetPeriod, Category, CategorySummaryItem, Income, PaymentMode } from '@/lib/types'
 import { Plus } from 'lucide-react'
 import { IncomeModal } from './income-modal'
+import { PeriodFilter, defaultPeriod, type PeriodValue } from '@/components/ui/period-filter'
 
 interface IncomePageClientProps {
   initialIncomes: Income[]
   totalCount: number
   paymentModes: PaymentMode[]
   budgetPeriods: BudgetPeriod[]
+  categories: Category[]
+  categorySummary: CategorySummaryItem[]
   currency: string
   initialPage: number
   initialFilters: {
     search: string
     paymentId: string
+    categoryId: string
+    type: string
     sort: string
+    dateFrom: string
+    dateTo: string
   }
 }
 
@@ -27,6 +33,8 @@ export function IncomePageClient({
   totalCount,
   paymentModes,
   budgetPeriods,
+  categories,
+  categorySummary,
   currency,
   initialPage,
   initialFilters,
@@ -35,6 +43,8 @@ export function IncomePageClient({
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const [modalOpen, setModalOpen] = useState(false)
+  const initPeriod = defaultPeriod()
+  const [period, setPeriod] = useState<PeriodValue>(initPeriod)
 
   const updateUrl = useCallback((updates: Record<string, string>) => {
     const params = new URLSearchParams(searchParams.toString())
@@ -49,6 +59,11 @@ export function IncomePageClient({
   const handleFilterChange = (key: string, value: string) => {
     const urlKey = key === 'paymentId' ? 'payment' : key
     updateUrl({ [urlKey]: value })
+  }
+
+  const handlePeriodChange = (p: PeriodValue) => {
+    setPeriod(p)
+    updateUrl({ dateFrom: p.dateFrom, dateTo: p.dateTo })
   }
 
   const handlePageChange = (newPage: number) => {
@@ -84,6 +99,11 @@ export function IncomePageClient({
           </button>
         </div>
 
+        {/* Period filter */}
+        <div className="apple-card px-3 sm:px-5 py-3">
+          <PeriodFilter value={period} onChange={handlePeriodChange} accentColor="var(--c-save)" />
+        </div>
+
         {/* List */}
         <div className="apple-card p-3 sm:p-5">
           <IncomeListClient
@@ -91,6 +111,8 @@ export function IncomePageClient({
             totalCount={totalCount}
             paymentModes={paymentModes}
             budgetPeriods={budgetPeriods}
+            categories={categories}
+            categorySummary={categorySummary}
             currency={currency}
             page={initialPage}
             filters={initialFilters}
@@ -106,6 +128,7 @@ export function IncomePageClient({
         onOpenChange={setModalOpen}
         paymentModes={paymentModes}
         budgetPeriods={budgetPeriods}
+        categories={categories}
         onSuccess={handleRefresh}
         currency={currency}
       />

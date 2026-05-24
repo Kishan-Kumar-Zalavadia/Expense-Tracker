@@ -18,6 +18,7 @@ import { getDashboardData, type DashboardMonthData } from '@/app/(app)/dashboard
 // Other section actions
 import { fetchExpenses, type ExpensesData, type ExpensesFilters } from '@/app/(app)/dashboard/actions/expenses'
 import { fetchIncome, type IncomeData, type IncomeFilters } from '@/app/(app)/dashboard/actions/income'
+import { PeriodFilter, defaultPeriod, computePeriodDates, type PeriodValue } from '@/components/ui/period-filter'
 import { fetchWeekly, type WeeklyData } from '@/app/(app)/dashboard/actions/weekly'
 import { fetchYearly, type YearlyData } from '@/app/(app)/dashboard/actions/yearly'
 import { fetchSettingsData, type SettingsData } from '@/app/(app)/dashboard/actions/settings-data'
@@ -176,9 +177,13 @@ function DashboardSection({
 // ─── Expenses section ────────────────────────────────────────────
 function ExpensesSection() {
   const [data, setData] = useState<ExpensesData | null>(null)
-  const [filters, setFilters] = useState<ExpensesFilters>({ search: '', categoryId: '', type: '', paymentModeId: '', sort: 'date_desc' })
+  const initPeriod = defaultPeriod()
+  const [period, setPeriod] = useState<PeriodValue>(initPeriod)
+  const [filters, setFilters] = useState<ExpensesFilters>({
+    search: '', categoryId: '', type: '', paymentModeId: '', sort: 'date_desc',
+    dateFrom: initPeriod.dateFrom, dateTo: initPeriod.dateTo,
+  })
   const [page, setPage] = useState(1)
-  const [modalOpen, setModalOpen] = useState(false)
   const { triggerRefresh } = useAppShell()
 
   const filtersRef = useRef(filters)
@@ -194,6 +199,14 @@ function ExpensesSection() {
   useEffect(() => { load(filters, page) }, [])
 
   useSectionRefresh('expenses', () => load(filtersRef.current, pageRef.current))
+
+  const handlePeriodChange = async (p: PeriodValue) => {
+    setPeriod(p)
+    const newFilters = { ...filters, dateFrom: p.dateFrom, dateTo: p.dateTo }
+    setFilters(newFilters)
+    setPage(1)
+    await load(newFilters, 1)
+  }
 
   const handleFilterChange = async (key: string, value: string) => {
     const newFilters = { ...filters, [key]: value }
@@ -221,12 +234,17 @@ function ExpensesSection() {
         </div>
         <AddExpBtn categories={data.categories} paymentModes={data.paymentModes} onSuccess={handleRefresh} currency={data.currency} />
       </div>
+      {/* Period filter */}
+      <div className="apple-card px-3 sm:px-5 py-3">
+        <PeriodFilter value={period} onChange={handlePeriodChange} accentColor="var(--c-berry)" />
+      </div>
       <div className="apple-card p-3 sm:p-5">
         <ExpenseListClient
           expenses={data.expenses}
           totalCount={data.totalCount}
           categories={data.categories}
           paymentModes={data.paymentModes}
+          categorySummary={data.categorySummary}
           currency={data.currency}
           page={page}
           filters={filters}
@@ -242,7 +260,12 @@ function ExpensesSection() {
 // ─── Income section ──────────────────────────────────────────────
 function IncomeSection() {
   const [data, setData] = useState<IncomeData | null>(null)
-  const [filters, setFilters] = useState<IncomeFilters>({ search: '', paymentId: '', sort: 'date_desc' })
+  const initPeriod = defaultPeriod()
+  const [period, setPeriod] = useState<PeriodValue>(initPeriod)
+  const [filters, setFilters] = useState<IncomeFilters>({
+    search: '', paymentId: '', categoryId: '', type: '', sort: 'date_desc',
+    dateFrom: initPeriod.dateFrom, dateTo: initPeriod.dateTo,
+  })
   const [page, setPage] = useState(1)
   const [modalOpen, setModalOpen] = useState(false)
   const { triggerRefresh } = useAppShell()
@@ -260,6 +283,14 @@ function IncomeSection() {
   useEffect(() => { load(filters, page) }, [])
 
   useSectionRefresh('income', () => load(filtersRef.current, pageRef.current))
+
+  const handlePeriodChange = async (p: PeriodValue) => {
+    setPeriod(p)
+    const newFilters = { ...filters, dateFrom: p.dateFrom, dateTo: p.dateTo }
+    setFilters(newFilters)
+    setPage(1)
+    await load(newFilters, 1)
+  }
 
   const handleFilterChange = async (key: string, value: string) => {
     const newFilters = { ...filters, [key]: value }
@@ -291,12 +322,18 @@ function IncomeSection() {
             <span>Add income</span>
           </button>
         </div>
+        {/* Period filter */}
+        <div className="apple-card px-3 sm:px-5 py-3">
+          <PeriodFilter value={period} onChange={handlePeriodChange} accentColor="var(--c-save)" />
+        </div>
         <div className="apple-card p-3 sm:p-5">
           <IncomeListClient
             incomes={data.incomes}
             totalCount={data.totalCount}
             paymentModes={data.paymentModes}
             budgetPeriods={data.budgetPeriods}
+            categories={data.categories}
+            categorySummary={data.categorySummary}
             currency={data.currency}
             page={page}
             filters={filters}
@@ -311,6 +348,7 @@ function IncomeSection() {
         onOpenChange={setModalOpen}
         paymentModes={data.paymentModes}
         budgetPeriods={data.budgetPeriods}
+        categories={data.categories}
         onSuccess={handleRefresh}
         currency={data.currency}
       />

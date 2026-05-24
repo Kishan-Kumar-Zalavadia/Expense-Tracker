@@ -13,7 +13,7 @@ import {
 import { incomeSchema, type IncomeFormValues } from '@/lib/validations'
 import { createClient } from '@/lib/supabase/client'
 import { todayISO } from '@/lib/utils'
-import type { BudgetPeriod, Income, PaymentMode } from '@/lib/types'
+import type { BudgetPeriod, Category, Income, PaymentMode } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { DatePicker } from '@/components/ui/date-picker'
 
@@ -23,6 +23,7 @@ interface IncomeModalProps {
   income?: Income | null
   paymentModes: PaymentMode[]
   budgetPeriods: BudgetPeriod[]
+  categories: Category[]
   onSuccess: () => void
   currency?: string
 }
@@ -33,6 +34,7 @@ export function IncomeModal({
   income,
   paymentModes,
   budgetPeriods,
+  categories,
   onSuccess,
   currency = '₹',
 }: IncomeModalProps) {
@@ -52,6 +54,7 @@ export function IncomeModal({
     defaultValues: {
       date: todayISO(),
       description: '',
+      category_id: '',
       amount: '',
       payment_mode_id: '',
       budget_period_id: '',
@@ -65,6 +68,7 @@ export function IncomeModal({
         reset({
           date: income.date,
           description: income.description,
+          category_id: income.category_id ?? '',
           amount: String(income.amount),
           payment_mode_id: income.payment_mode_id,
           budget_period_id: income.budget_period_id ?? '',
@@ -74,6 +78,7 @@ export function IncomeModal({
         reset({
           date: todayISO(),
           description: '',
+          category_id: '',
           amount: '',
           payment_mode_id: paymentModes[0]?.id ?? '',
           budget_period_id: '',
@@ -98,6 +103,7 @@ export function IncomeModal({
       user_id: user.id,
       date: values.date,
       description: values.description || null,
+      category_id: values.category_id || null,
       amount: parsedAmount,
       payment_mode_id: values.payment_mode_id,
       budget_period_id: values.budget_period_id || null,
@@ -161,6 +167,15 @@ export function IncomeModal({
                 placeholder="e.g. Salary, Freelance, Bonus (optional)"
                 className={inputCls(!!errors.description)}
               />
+            </Field>
+
+            <Field label="Category" error={undefined}>
+              <select {...register('category_id')} className={inputCls(false)}>
+                <option value="">No category (optional)</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name} — {c.type}</option>
+                ))}
+              </select>
             </Field>
 
             <Field label="Amount" required error={errors.amount?.message}>

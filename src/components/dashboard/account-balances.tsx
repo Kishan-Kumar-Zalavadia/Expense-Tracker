@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { TrendingUp, TrendingDown, Wallet, CreditCard } from 'lucide-react'
+import { TrendingUp, TrendingDown, Wallet, CreditCard, AlertCircle } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import type { PaymentMode, PaymentModeBalance } from '@/lib/types'
 import { CreditCardPaymentModal } from './credit-card-payment-modal'
@@ -23,6 +23,11 @@ export function AccountBalances({ balances, paymentModes, currency, userId }: Ac
 
   const nonCreditModes = paymentModes.filter((pm) => !pm.is_credit_card)
 
+  // Credit card totals
+  const creditCards = balances.filter((b) => b.is_credit_card)
+  const totalCCOutstanding = creditCards.reduce((sum, b) => sum + (b.balance < 0 ? Math.abs(b.balance) : 0), 0)
+  const totalCCSpent = creditCards.reduce((sum, b) => sum + b.expense_total, 0)
+
   return (
     <>
       <section>
@@ -30,6 +35,52 @@ export function AccountBalances({ balances, paymentModes, currency, userId }: Ac
           <span className="section-bar" style={{ backgroundColor: 'var(--c-save)' }} />
           <h2 className="font-display text-lg font-medium text-[var(--ink)]">Account balances</h2>
         </div>
+
+        {/* Credit card summary banner — shown only if there are credit cards */}
+        {creditCards.length > 0 && (
+          <div
+            className="mb-3 flex flex-col sm:flex-row sm:items-center gap-3 px-4 py-3 rounded-[var(--radius-md)] border"
+            style={{
+              borderColor: totalCCOutstanding > 0 ? 'var(--c-want)' : 'var(--c-save)',
+              backgroundColor: totalCCOutstanding > 0 ? 'var(--tint-want)' : 'var(--tint-save)',
+            }}
+          >
+            <div className="flex items-center gap-2 flex-1">
+              <CreditCard
+                size={16}
+                style={{ color: totalCCOutstanding > 0 ? 'var(--c-want)' : 'var(--c-save)', flexShrink: 0 }}
+              />
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide"
+                  style={{ color: totalCCOutstanding > 0 ? 'var(--c-want)' : 'var(--c-save)' }}>
+                  Total credit card
+                  {creditCards.length > 1 && <span className="font-normal ml-1">({creditCards.length} cards)</span>}
+                </p>
+                <p className="text-xs text-[var(--ink-muted)] mt-0.5">
+                  Total charged: {formatCurrency(totalCCSpent, currency)}
+                </p>
+              </div>
+            </div>
+            <div className="text-right sm:text-right">
+              {totalCCOutstanding > 0 ? (
+                <>
+                  <p className="text-sm font-semibold tabular-nums" style={{ color: 'var(--c-want)' }}>
+                    {formatCurrency(totalCCOutstanding, currency)} due
+                  </p>
+                  <p className="text-[10px] text-[var(--ink-muted)] flex items-center gap-1 justify-end mt-0.5">
+                    <AlertCircle size={10} />
+                    Outstanding across all cards
+                  </p>
+                </>
+              ) : (
+                <p className="text-sm font-semibold tabular-nums" style={{ color: 'var(--c-save)' }}>
+                  All paid up
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {balances.map((b) => (
             <div key={b.id} className="apple-card overflow-hidden">
