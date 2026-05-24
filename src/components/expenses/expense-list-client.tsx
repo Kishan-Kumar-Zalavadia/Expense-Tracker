@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency, formatDate, typeColor, typeTint } from '@/lib/utils'
 import { ExpenseModal } from '@/components/expenses/expense-modal'
+import { MultiSelect } from '@/components/ui/multi-select'
 import type { Category, CategorySummaryItem, Expense, PaymentMode } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { CategorySpendCards } from '@/components/category-spend-cards'
@@ -22,14 +23,14 @@ interface ExpenseListClientProps {
   page: number
   filters: {
     search: string
-    categoryId: string
-    type: string
-    paymentModeId: string
+    categoryIds: string[]
+    types: string[]
+    paymentModeIds: string[]
     sort: string
     dateFrom: string
     dateTo: string
   }
-  onFilterChange: (key: string, value: string) => void
+  onFilterChange: (key: string, value: string | string[]) => void
   onPageChange: (page: number) => void
   onRefresh: () => void
 }
@@ -109,22 +110,33 @@ export function ExpenseListClient({
             focus:outline-none focus:ring-2 focus:ring-[var(--c-primary)] flex-1 min-w-40"
         />
 
-        <select value={filters.categoryId} onChange={(e) => onFilterChange('categoryId', e.target.value)} className={selectCls}>
-          <option value="">All categories</option>
-          {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
+        <MultiSelect
+          options={categories.map(c => ({ value: c.id, label: c.name, color: c.color }))}
+          value={filters.categoryIds}
+          onChange={(v) => onFilterChange('categoryIds', v)}
+          placeholder="All categories"
+          accentColor="var(--c-berry)"
+        />
 
-        <select value={filters.type} onChange={(e) => onFilterChange('type', e.target.value)} className={selectCls}>
-          <option value="">All types</option>
-          <option value="Need">Need</option>
-          <option value="Want">Want</option>
-          <option value="Saving">Saving</option>
-        </select>
+        <MultiSelect
+          options={[
+            { value: 'Need', label: 'Need' },
+            { value: 'Want', label: 'Want' },
+            { value: 'Saving', label: 'Saving' },
+          ]}
+          value={filters.types}
+          onChange={(v) => onFilterChange('types', v)}
+          placeholder="All types"
+          accentColor="var(--c-berry)"
+        />
 
-        <select value={filters.paymentModeId} onChange={(e) => onFilterChange('paymentModeId', e.target.value)} className={selectCls}>
-          <option value="">All payment modes</option>
-          {paymentModes.map((pm) => <option key={pm.id} value={pm.id}>{pm.name}</option>)}
-        </select>
+        <MultiSelect
+          options={paymentModes.map(pm => ({ value: pm.id, label: pm.name }))}
+          value={filters.paymentModeIds}
+          onChange={(v) => onFilterChange('paymentModeIds', v)}
+          placeholder="All accounts"
+          accentColor="var(--c-berry)"
+        />
 
         <select value={filters.sort} onChange={(e) => onFilterChange('sort', e.target.value)} className={selectCls}>
           <option value="date_desc">Newest first</option>

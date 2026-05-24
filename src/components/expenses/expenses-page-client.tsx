@@ -17,9 +17,9 @@ interface ExpensesPageClientProps {
   initialPage: number
   initialFilters: {
     search: string
-    categoryId: string
-    type: string
-    paymentModeId: string
+    categoryIds: string[]
+    types: string[]
+    paymentModeIds: string[]
     sort: string
     dateFrom: string
     dateTo: string
@@ -52,11 +52,12 @@ export function ExpensesPageClient({
     router.push(`${pathname}?${params.toString()}`)
   }, [router, pathname, searchParams])
 
-  const handleFilterChange = (key: string, value: string) => {
-    const urlKey = key === 'categoryId' ? 'category'
-                 : key === 'paymentModeId' ? 'payment'
+  const handleFilterChange = (key: string, value: string | string[]) => {
+    const urlKey = key === 'categoryIds' ? 'category'
+                 : key === 'paymentModeIds' ? 'payment'
+                 : key === 'types' ? 'type'
                  : key
-    updateUrl({ [urlKey]: value })
+    updateUrl({ [urlKey]: Array.isArray(value) ? value.join(',') : value })
   }
 
   const handlePeriodChange = (p: PeriodValue) => {

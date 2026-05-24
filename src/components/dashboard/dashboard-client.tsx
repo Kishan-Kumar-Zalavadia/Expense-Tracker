@@ -180,7 +180,7 @@ function ExpensesSection() {
   const initPeriod = defaultPeriod()
   const [period, setPeriod] = useState<PeriodValue>(initPeriod)
   const [filters, setFilters] = useState<ExpensesFilters>({
-    search: '', categoryId: '', type: '', paymentModeId: '', sort: 'date_desc',
+    search: '', categoryIds: [], types: [], paymentModeIds: [], sort: 'date_desc',
     dateFrom: initPeriod.dateFrom, dateTo: initPeriod.dateTo,
   })
   const [page, setPage] = useState(1)
@@ -208,7 +208,7 @@ function ExpensesSection() {
     await load(newFilters, 1)
   }
 
-  const handleFilterChange = async (key: string, value: string) => {
+  const handleFilterChange = async (key: string, value: string | string[]) => {
     const newFilters = { ...filters, [key]: value }
     setFilters(newFilters)
     setPage(1)
@@ -263,7 +263,7 @@ function IncomeSection() {
   const initPeriod = defaultPeriod()
   const [period, setPeriod] = useState<PeriodValue>(initPeriod)
   const [filters, setFilters] = useState<IncomeFilters>({
-    search: '', paymentId: '', categoryId: '', type: '', sort: 'date_desc',
+    search: '', paymentIds: [], categoryIds: [], types: [], sort: 'date_desc',
     dateFrom: initPeriod.dateFrom, dateTo: initPeriod.dateTo,
   })
   const [page, setPage] = useState(1)
@@ -292,7 +292,7 @@ function IncomeSection() {
     await load(newFilters, 1)
   }
 
-  const handleFilterChange = async (key: string, value: string) => {
+  const handleFilterChange = async (key: string, value: string | string[]) => {
     const newFilters = { ...filters, [key]: value }
     setFilters(newFilters)
     setPage(1)

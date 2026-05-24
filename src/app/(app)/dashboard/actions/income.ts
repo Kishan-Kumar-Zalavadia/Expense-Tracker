@@ -5,9 +5,9 @@ import type { BudgetPeriod, Category, CategorySummaryItem, Income, PaymentMode }
 
 export interface IncomeFilters {
   search: string
-  paymentId: string
-  categoryId: string
-  type: string
+  paymentIds: string[]
+  categoryIds: string[]
+  types: string[]
   sort: string
   dateFrom: string
   dateTo: string
@@ -30,7 +30,7 @@ export async function fetchIncome(filters: IncomeFilters, page: number): Promise
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { search, paymentId, categoryId, type, sort, dateFrom, dateTo } = filters
+  const { search, paymentIds, categoryIds, types, sort, dateFrom, dateTo } = filters
   const offset = (page - 1) * PAGE_SIZE
 
   let query = supabase
@@ -42,9 +42,9 @@ export async function fetchIncome(filters: IncomeFilters, page: number): Promise
     .eq('user_id', user.id)
 
   if (search) query = query.or(`description.ilike.%${search}%,notes.ilike.%${search}%`)
-  if (paymentId) query = query.eq('payment_mode_id', paymentId)
-  if (categoryId) query = query.eq('category_id', categoryId)
-  if (type) query = query.eq('category.type', type)
+  if (paymentIds.length > 0) query = query.in('payment_mode_id', paymentIds)
+  if (categoryIds.length > 0) query = query.in('category_id', categoryIds)
+  if (types.length > 0) query = query.in('type', types)
   if (dateFrom) query = query.gte('date', dateFrom)
   if (dateTo) query = query.lte('date', dateTo)
 
@@ -64,7 +64,7 @@ export async function fetchIncome(filters: IncomeFilters, page: number): Promise
 
   if (dateFrom) summaryQuery = summaryQuery.gte('date', dateFrom)
   if (dateTo) summaryQuery = summaryQuery.lte('date', dateTo)
-  if (paymentId) summaryQuery = summaryQuery.eq('payment_mode_id', paymentId)
+  if (paymentIds.length > 0) summaryQuery = summaryQuery.in('payment_mode_id', paymentIds)
 
   const [
     { data: incomes, count },

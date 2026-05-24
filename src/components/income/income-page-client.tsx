@@ -19,9 +19,9 @@ interface IncomePageClientProps {
   initialPage: number
   initialFilters: {
     search: string
-    paymentId: string
-    categoryId: string
-    type: string
+    paymentIds: string[]
+    categoryIds: string[]
+    types: string[]
     sort: string
     dateFrom: string
     dateTo: string
@@ -56,9 +56,12 @@ export function IncomePageClient({
     router.push(`${pathname}?${params.toString()}`)
   }, [router, pathname, searchParams])
 
-  const handleFilterChange = (key: string, value: string) => {
-    const urlKey = key === 'paymentId' ? 'payment' : key
-    updateUrl({ [urlKey]: value })
+  const handleFilterChange = (key: string, value: string | string[]) => {
+    const urlKey = key === 'paymentIds' ? 'payment'
+                 : key === 'categoryIds' ? 'category'
+                 : key === 'types' ? 'type'
+                 : key
+    updateUrl({ [urlKey]: Array.isArray(value) ? value.join(',') : value })
   }
 
   const handlePeriodChange = (p: PeriodValue) => {

@@ -5,9 +5,9 @@ import type { Category, CategorySummaryItem, Expense, PaymentMode } from '@/lib/
 
 export interface ExpensesFilters {
   search: string
-  categoryId: string
-  type: string
-  paymentModeId: string
+  categoryIds: string[]
+  types: string[]
+  paymentModeIds: string[]
   sort: string
   dateFrom: string
   dateTo: string
@@ -29,7 +29,7 @@ export async function fetchExpenses(filters: ExpensesFilters, page: number): Pro
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { search, categoryId, type, paymentModeId, sort, dateFrom, dateTo } = filters
+  const { search, categoryIds, types, paymentModeIds, sort, dateFrom, dateTo } = filters
   const offset = (page - 1) * PAGE_SIZE
 
   let query = supabase
@@ -38,9 +38,9 @@ export async function fetchExpenses(filters: ExpensesFilters, page: number): Pro
     .eq('user_id', user.id)
 
   if (search) query = query.or(`description.ilike.%${search}%,notes.ilike.%${search}%`)
-  if (categoryId) query = query.eq('category_id', categoryId)
-  if (type) query = query.eq('type', type)
-  if (paymentModeId) query = query.eq('payment_mode_id', paymentModeId)
+  if (categoryIds.length > 0) query = query.in('category_id', categoryIds)
+  if (types.length > 0) query = query.in('type', types)
+  if (paymentModeIds.length > 0) query = query.in('payment_mode_id', paymentModeIds)
   if (dateFrom) query = query.gte('date', dateFrom)
   if (dateTo) query = query.lte('date', dateTo)
 
@@ -60,8 +60,8 @@ export async function fetchExpenses(filters: ExpensesFilters, page: number): Pro
 
   if (dateFrom) summaryQuery = summaryQuery.gte('date', dateFrom)
   if (dateTo) summaryQuery = summaryQuery.lte('date', dateTo)
-  if (paymentModeId) summaryQuery = summaryQuery.eq('payment_mode_id', paymentModeId)
-  if (type) summaryQuery = summaryQuery.eq('type', type)
+  if (paymentModeIds.length > 0) summaryQuery = summaryQuery.in('payment_mode_id', paymentModeIds)
+  if (types.length > 0) summaryQuery = summaryQuery.in('type', types)
 
   const [
     { data: expenses, count },
