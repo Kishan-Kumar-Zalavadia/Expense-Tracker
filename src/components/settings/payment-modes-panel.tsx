@@ -94,7 +94,7 @@ export function PaymentModesPanel({ userId, paymentModes, usedPaymentModeIds, on
     'text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[var(--c-primary)]',
   )
 
-  const active   = localModes.filter((pm) => !pm.archived)
+  const active   = [...localModes].filter((pm) => !pm.archived).reverse()
   const archived = localModes.filter((pm) => pm.archived)
 
   return (
@@ -118,6 +118,26 @@ export function PaymentModesPanel({ userId, paymentModes, usedPaymentModeIds, on
         Toggle <span className="font-medium">Shown / Hidden</span> to control which accounts appear in the balance cards.
         Mark an account as <span className="font-medium">Credit Card</span> to enable the "Pay credit card" button on the dashboard.
       </p>
+
+      {adding && (
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && saveNew()}
+            placeholder="Payment mode name"
+            className={cn(inputCls, 'flex-1')}
+            autoFocus
+          />
+          <button onClick={saveNew} className="btn-primary text-xs px-3 py-1.5">Add</button>
+          <button onClick={() => setAdding(false)}
+            className="px-3 py-1.5 text-xs border border-[var(--border)] rounded-[var(--radius-md)]
+            text-[var(--ink-muted)] hover:bg-[var(--surface)] transition-colors">
+            Cancel
+          </button>
+        </div>
+      )}
 
       <div className="space-y-2">
         {active.map((pm) => {
@@ -206,35 +226,6 @@ export function PaymentModesPanel({ userId, paymentModes, usedPaymentModeIds, on
         })}
       </div>
 
-      {adding ? (
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && saveNew()}
-            placeholder="Payment mode name"
-            className={cn(inputCls, 'flex-1')}
-            autoFocus
-          />
-          <button onClick={saveNew} className="btn-primary text-xs px-3 py-1.5">Add</button>
-          <button onClick={() => setAdding(false)}
-            className="px-3 py-1.5 text-xs border border-[var(--border)] rounded-[var(--radius-md)]
-            text-[var(--ink-muted)] hover:bg-[var(--surface)] transition-colors">
-            Cancel
-          </button>
-        </div>
-      ) : (
-        <button
-          onClick={() => setAdding(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[var(--ink-muted)]
-            border border-dashed border-[var(--border)] rounded-[var(--radius-md)] hover:text-[var(--ink)]
-            hover:border-[var(--border-strong)] transition-colors"
-        >
-          <Plus size={12} />
-          Add payment mode
-        </button>
-      )}
 
       {archived.length > 0 && (
         <div className="mt-6">

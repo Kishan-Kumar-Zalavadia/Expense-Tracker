@@ -106,7 +106,7 @@ export function CategoriesPanel({ userId, categories, usedCategoryIds, onSave }:
     onSave()
   }
 
-  const active = localCats.filter((c) => !c.archived)
+  const active = [...localCats].filter((c) => !c.archived).reverse()
   const archived = localCats.filter((c) => c.archived)
 
   const inputCls = cn(
@@ -136,6 +136,57 @@ export function CategoriesPanel({ userId, categories, usedCategoryIds, onSave }:
         cards on the Expenses and Income tabs. Categories marked <span className="font-medium">Hidden from cards</span> will
         still track spending — they just won't show the summary card.
       </p>
+
+      {/* Add new */}
+      {adding && (
+        <div className="border border-[var(--border)] rounded-[var(--radius-md)] p-4 bg-[var(--elevated)] space-y-3">
+          <h3 className="text-sm font-medium text-[var(--ink)]">New category</h3>
+          <div className="flex gap-2 items-center">
+            <input
+              type="color"
+              value={newCat.color}
+              onChange={(e) => setNewCat({ ...newCat, color: e.target.value })}
+              className="w-9 h-9 rounded-[var(--radius-md)] cursor-pointer border border-[var(--border)] p-0.5"
+            />
+            <input
+              type="text"
+              value={newCat.name}
+              onChange={(e) => setNewCat({ ...newCat, name: e.target.value })}
+              placeholder="Category name"
+              className={cn(inputCls, 'flex-1')}
+            />
+            <select
+              value={newCat.type}
+              onChange={(e) => setNewCat({ ...newCat, type: e.target.value as ExpenseType })}
+              className={inputCls}
+            >
+              {TYPE_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+          {/* Color presets */}
+          <div className="flex gap-1.5 flex-wrap">
+            {DEFAULT_COLORS.map((c) => (
+              <button
+                key={c}
+                onClick={() => setNewCat({ ...newCat, color: c })}
+                className="w-5 h-5 rounded-full border-2 transition-all"
+                style={{
+                  backgroundColor: c,
+                  borderColor: newCat.color === c ? 'var(--ink)' : 'transparent',
+                }}
+              />
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <button onClick={saveNew} className="btn-primary text-xs px-3 py-1.5">Add</button>
+            <button onClick={() => setAdding(false)}
+              className="px-3 py-1.5 text-xs border border-[var(--border)] rounded-[var(--radius-md)]
+              text-[var(--ink-muted)] hover:bg-[var(--surface)] transition-colors">
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Active categories */}
       <div className="space-y-2">
@@ -270,66 +321,6 @@ export function CategoriesPanel({ userId, categories, usedCategoryIds, onSave }:
         })}
       </div>
 
-      {/* Add new */}
-      {adding ? (
-        <div className="border border-[var(--border)] rounded-[var(--radius-md)] p-4 bg-[var(--elevated)] space-y-3">
-          <h3 className="text-sm font-medium text-[var(--ink)]">New category</h3>
-          <div className="flex gap-2 items-center">
-            <input
-              type="color"
-              value={newCat.color}
-              onChange={(e) => setNewCat({ ...newCat, color: e.target.value })}
-              className="w-9 h-9 rounded-[var(--radius-md)] cursor-pointer border border-[var(--border)] p-0.5"
-            />
-            <input
-              type="text"
-              value={newCat.name}
-              onChange={(e) => setNewCat({ ...newCat, name: e.target.value })}
-              placeholder="Category name"
-              className={cn(inputCls, 'flex-1')}
-            />
-            <select
-              value={newCat.type}
-              onChange={(e) => setNewCat({ ...newCat, type: e.target.value as ExpenseType })}
-              className={inputCls}
-            >
-              {TYPE_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
-            </select>
-          </div>
-          {/* Color presets */}
-          <div className="flex gap-1.5 flex-wrap">
-            {DEFAULT_COLORS.map((c) => (
-              <button
-                key={c}
-                onClick={() => setNewCat({ ...newCat, color: c })}
-                className="w-5 h-5 rounded-full border-2 transition-all"
-                style={{
-                  backgroundColor: c,
-                  borderColor: newCat.color === c ? 'var(--ink)' : 'transparent',
-                }}
-              />
-            ))}
-          </div>
-          <div className="flex gap-2">
-            <button onClick={saveNew} className="btn-primary text-xs px-3 py-1.5">Add</button>
-            <button onClick={() => setAdding(false)}
-              className="px-3 py-1.5 text-xs border border-[var(--border)] rounded-[var(--radius-md)]
-              text-[var(--ink-muted)] hover:bg-[var(--surface)] transition-colors">
-              Cancel
-            </button>
-          </div>
-        </div>
-      ) : (
-        <button
-          onClick={() => setAdding(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[var(--ink-muted)]
-            border border-dashed border-[var(--border)] rounded-[var(--radius-md)] hover:text-[var(--ink)]
-            hover:border-[var(--border-strong)] transition-colors"
-        >
-          <Plus size={12} />
-          Add category
-        </button>
-      )}
 
       {/* Archived */}
       {archived.length > 0 && (

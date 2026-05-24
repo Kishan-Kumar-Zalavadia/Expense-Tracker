@@ -255,7 +255,7 @@ export function BudgetPeriodsPanel({
     onSave()
   }
 
-  const sorted = [...periods].sort((a, b) => a.start_month.localeCompare(b.start_month))
+  const sorted = [...periods].sort((a, b) => b.start_month.localeCompare(a.start_month))
 
   return (
     <div className="space-y-6">
@@ -280,6 +280,21 @@ export function BudgetPeriodsPanel({
         Define monthly budget amounts for different time periods. Ranges must not overlap.
         Set &quot;Ongoing&quot; for a period that continues until you add a new one.
       </p>
+
+      {/* Add new period form */}
+      {adding && (
+        <PeriodForm
+          form={form}
+          set={set}
+          pctSum={pctSum}
+          paymentModes={paymentModes}
+          currency={currency}
+          saving={saving}
+          onSave={() => savePeriod()}
+          onCancel={cancel}
+          isEdit={false}
+        />
+      )}
 
       {/* Period list */}
       {sorted.length === 0 && !adding && (
@@ -371,32 +386,6 @@ export function BudgetPeriodsPanel({
         })}
       </div>
 
-      {/* Add new period form */}
-      {adding && (
-        <PeriodForm
-          form={form}
-          set={set}
-          pctSum={pctSum}
-          paymentModes={paymentModes}
-          currency={currency}
-          saving={saving}
-          onSave={() => savePeriod()}
-          onCancel={cancel}
-          isEdit={false}
-        />
-      )}
-
-      {!adding && !editingId && (
-        <button
-          onClick={startAdd}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[var(--ink-muted)]
-            border border-dashed border-[var(--border)] rounded-[var(--radius-md)] hover:text-[var(--ink)]
-            hover:border-[var(--border-strong)] transition-colors"
-        >
-          <Plus size={12} />
-          Add period
-        </button>
-      )}
     </div>
   )
 }

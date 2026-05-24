@@ -400,13 +400,28 @@ export function RecurringPanel({ userId, items, categories, paymentModes, curren
         Set a start date and optional end date. Past entries are generated automatically when you save.
       </p>
 
+      {adding && (
+        <RecurringForm
+          form={form}
+          set={set}
+          activeModes={activeModes}
+          activeCategories={activeCategories}
+          currency={currency}
+          saving={saving}
+          onSave={() => requestSave()}
+          onCancel={cancel}
+          isEdit={false}
+          inputCls={inputCls}
+        />
+      )}
+
       {/* Item list */}
       {items.length === 0 && !adding && (
         <div className="py-8 text-center text-sm text-[var(--ink-muted)]">No recurring items yet.</div>
       )}
 
       <div className="space-y-3">
-        {items.map((item) => {
+        {[...items].reverse().map((item) => {
           const isEditing  = editingId === item.id
           const isIncome   = item.type === 'income'
           const accentColor = isIncome ? 'var(--c-save)' : 'var(--c-want)'
@@ -524,32 +539,6 @@ export function RecurringPanel({ userId, items, categories, paymentModes, curren
         })}
       </div>
 
-      {adding && (
-        <RecurringForm
-          form={form}
-          set={set}
-          activeModes={activeModes}
-          activeCategories={activeCategories}
-          currency={currency}
-          saving={saving}
-          onSave={() => requestSave()}
-          onCancel={cancel}
-          isEdit={false}
-          inputCls={inputCls}
-        />
-      )}
-
-      {!adding && !editingId && (
-        <button
-          onClick={startAdd}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[var(--ink-muted)]
-            border border-dashed border-[var(--border)] rounded-[var(--radius-md)] hover:text-[var(--ink)]
-            hover:border-[var(--border-strong)] transition-colors"
-        >
-          <Plus size={12} />
-          Add recurring
-        </button>
-      )}
 
       {/* ── Edit confirmation dialog ───────────────────────────────── */}
       {editConfirmItem && (
