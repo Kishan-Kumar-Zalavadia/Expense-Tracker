@@ -385,6 +385,18 @@ export function BudgetPeriodsPanel({
           isEdit={false}
         />
       )}
+
+      {!adding && !editingId && (
+        <button
+          onClick={startAdd}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[var(--ink-muted)]
+            border border-dashed border-[var(--border)] rounded-[var(--radius-md)] hover:text-[var(--ink)]
+            hover:border-[var(--border-strong)] transition-colors"
+        >
+          <Plus size={12} />
+          Add period
+        </button>
+      )}
     </div>
   )
 }

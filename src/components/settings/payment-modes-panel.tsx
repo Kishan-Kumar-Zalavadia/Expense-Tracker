@@ -98,12 +98,23 @@ export function PaymentModesPanel({ userId, paymentModes, usedPaymentModeIds, on
   const archived = localModes.filter((pm) => pm.archived)
 
   return (
-    <div className="space-y-5">
-      <div className="flex items-center gap-2 mb-2">
-        <span className="section-bar" style={{ backgroundColor: 'var(--c-need)' }} />
-        <h2 className="font-display text-lg font-medium text-[var(--ink)]">Payment Modes</h2>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="section-bar" style={{ backgroundColor: 'var(--c-need)' }} />
+          <h2 className="font-display text-lg font-medium text-[var(--ink)]">Payment Modes</h2>
+        </div>
+        {!adding && !editing && (
+          <button
+            onClick={() => setAdding(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-white rounded-[var(--radius-xl)] transition-colors"
+            style={{ backgroundColor: 'var(--c-need)' }}
+          >
+            <Plus size={12} /> Add mode
+          </button>
+        )}
       </div>
-      <p className="text-xs text-[var(--ink-muted)] mb-4">
+      <p className="text-xs text-[var(--ink-muted)]">
         Toggle <span className="font-medium">Shown / Hidden</span> to control which accounts appear in the balance cards.
         Mark an account as <span className="font-medium">Credit Card</span> to enable the "Pay credit card" button on the dashboard.
       </p>
