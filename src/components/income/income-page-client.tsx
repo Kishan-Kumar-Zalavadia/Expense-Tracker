@@ -3,7 +3,7 @@
 import { useCallback, useState } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { IncomeListClient } from './income-list-client'
-import type { BudgetPeriod, Category, CategorySummaryItem, Income, PaymentMode } from '@/lib/types'
+import type { BudgetPeriod, Category, CategorySummaryItem, Income, PaymentMode, Subcategory } from '@/lib/types'
 import { Plus } from 'lucide-react'
 import { IncomeModal } from './income-modal'
 import { PeriodFilter, defaultPeriod, type PeriodValue } from '@/components/ui/period-filter'
@@ -15,6 +15,8 @@ interface IncomePageClientProps {
   budgetPeriods: BudgetPeriod[]
   categories: Category[]
   categorySummary: CategorySummaryItem[]
+  subcategories: Subcategory[]
+  enableSubcategories: boolean
   currency: string
   initialPage: number
   initialFilters: {
@@ -22,6 +24,7 @@ interface IncomePageClientProps {
     paymentIds: string[]
     categoryIds: string[]
     types: string[]
+    subcategoryIds: string[]
     sort: string
     dateFrom: string
     dateTo: string
@@ -35,6 +38,8 @@ export function IncomePageClient({
   budgetPeriods,
   categories,
   categorySummary,
+  subcategories,
+  enableSubcategories,
   currency,
   initialPage,
   initialFilters,
@@ -60,6 +65,7 @@ export function IncomePageClient({
     const urlKey = key === 'paymentIds' ? 'payment'
                  : key === 'categoryIds' ? 'category'
                  : key === 'types' ? 'type'
+                 : key === 'subcategoryIds' ? 'subcategory'
                  : key
     updateUrl({ [urlKey]: Array.isArray(value) ? value.join(',') : value })
   }
@@ -116,6 +122,8 @@ export function IncomePageClient({
             budgetPeriods={budgetPeriods}
             categories={categories}
             categorySummary={categorySummary}
+            subcategories={subcategories}
+            enableSubcategories={enableSubcategories}
             currency={currency}
             page={initialPage}
             filters={initialFilters}
@@ -132,6 +140,8 @@ export function IncomePageClient({
         paymentModes={paymentModes}
         budgetPeriods={budgetPeriods}
         categories={categories}
+        subcategories={subcategories}
+        enableSubcategories={enableSubcategories}
         onSuccess={handleRefresh}
         currency={currency}
       />

@@ -4,7 +4,7 @@ import { useCallback, useState } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { ExpenseListClient } from './expense-list-client'
 import { AddExpenseButton } from '@/components/add-expense-button'
-import type { Category, CategorySummaryItem, Expense, PaymentMode } from '@/lib/types'
+import type { Category, CategorySummaryItem, Expense, PaymentMode, Subcategory } from '@/lib/types'
 import { PeriodFilter, defaultPeriod, type PeriodValue } from '@/components/ui/period-filter'
 
 interface ExpensesPageClientProps {
@@ -13,6 +13,8 @@ interface ExpensesPageClientProps {
   categories: Category[]
   paymentModes: PaymentMode[]
   categorySummary: CategorySummaryItem[]
+  subcategories: Subcategory[]
+  enableSubcategories: boolean
   currency: string
   initialPage: number
   initialFilters: {
@@ -20,6 +22,7 @@ interface ExpensesPageClientProps {
     categoryIds: string[]
     types: string[]
     paymentModeIds: string[]
+    subcategoryIds: string[]
     sort: string
     dateFrom: string
     dateTo: string
@@ -32,6 +35,8 @@ export function ExpensesPageClient({
   categories,
   paymentModes,
   categorySummary,
+  subcategories,
+  enableSubcategories,
   currency,
   initialPage,
   initialFilters,
@@ -56,6 +61,7 @@ export function ExpensesPageClient({
     const urlKey = key === 'categoryIds' ? 'category'
                  : key === 'paymentModeIds' ? 'payment'
                  : key === 'types' ? 'type'
+                 : key === 'subcategoryIds' ? 'subcategory'
                  : key
     updateUrl({ [urlKey]: Array.isArray(value) ? value.join(',') : value })
   }
@@ -108,6 +114,8 @@ export function ExpensesPageClient({
           categories={categories}
           paymentModes={paymentModes}
           categorySummary={categorySummary}
+          subcategories={subcategories}
+          enableSubcategories={enableSubcategories}
           currency={currency}
           page={initialPage}
           filters={initialFilters}
