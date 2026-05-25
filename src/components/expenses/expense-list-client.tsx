@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { formatCurrency, formatDate, typeColor, typeTint } from '@/lib/utils'
 import { ExpenseModal } from '@/components/expenses/expense-modal'
 import { MultiSelect } from '@/components/ui/multi-select'
-import type { Category, CategorySummaryItem, Expense, PaymentMode } from '@/lib/types'
+import type { Category, CategorySummaryItem, Expense, PaymentMode, Subcategory } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { CategorySpendCards } from '@/components/category-spend-cards'
 
@@ -19,6 +19,8 @@ interface ExpenseListClientProps {
   categories: Category[]
   paymentModes: PaymentMode[]
   categorySummary: CategorySummaryItem[]
+  subcategories: Subcategory[]
+  enableSubcategories: boolean
   currency: string
   page: number
   filters: {
@@ -26,6 +28,7 @@ interface ExpenseListClientProps {
     categoryIds: string[]
     types: string[]
     paymentModeIds: string[]
+    subcategoryIds: string[]
     sort: string
     dateFrom: string
     dateTo: string
@@ -41,6 +44,8 @@ export function ExpenseListClient({
   categories,
   paymentModes,
   categorySummary,
+  subcategories,
+  enableSubcategories,
   currency,
   page,
   filters,
@@ -89,6 +94,10 @@ export function ExpenseListClient({
     'text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[var(--c-primary)]',
   )
 
+  const desktopHeaders = enableSubcategories
+    ? ['Date', 'Category', 'Subcategory', 'Description', 'Amount', 'Payment', 'Type']
+    : ['Date', 'Category', 'Description', 'Amount', 'Payment', 'Type']
+
   return (
     <>
       {/* Category spend cards */}
@@ -117,6 +126,16 @@ export function ExpenseListClient({
           placeholder="All categories"
           accentColor="var(--c-berry)"
         />
+
+        {enableSubcategories && (
+          <MultiSelect
+            options={subcategories.map(s => ({ value: s.id, label: s.name, color: s.color }))}
+            value={filters.subcategoryIds}
+            onChange={(v) => onFilterChange('subcategoryIds', v)}
+            placeholder="All subcategories"
+            accentColor="var(--c-berry)"
+          />
+        )}
 
         <MultiSelect
           options={[
@@ -167,7 +186,7 @@ export function ExpenseListClient({
             <table className="w-full">
               <thead>
                 <tr className="bg-[var(--surface)] border-b border-[var(--border)]">
-                  {['Date', 'Category', 'Description', 'Amount', 'Payment', 'Type'].map((h) => (
+                  {desktopHeaders.map((h) => (
                     <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold
                       text-[var(--ink-muted)] uppercase tracking-wide whitespace-nowrap">
                       {h}
@@ -193,6 +212,19 @@ export function ExpenseListClient({
                         {expense.category?.name}
                       </div>
                     </td>
+                    {enableSubcategories && (
+                      <td className="px-4 py-3 text-xs text-[var(--ink-muted)] whitespace-nowrap">
+                        {expense.subcategory ? (
+                          <div className="flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full shrink-0"
+                              style={{ backgroundColor: expense.subcategory.color }} />
+                            {expense.subcategory.name}
+                          </div>
+                        ) : (
+                          <span className="text-[var(--ink-subtle)]">—</span>
+                        )}
+                      </td>
+                    )}
                     <td className="px-4 py-3 text-sm text-[var(--ink)] max-w-[180px]">
                       <div className="truncate text-[var(--ink-muted)] text-xs">{expense.description}</div>
                       {expense.notes && (
@@ -262,6 +294,12 @@ export function ExpenseListClient({
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                    {enableSubcategories && expense.subcategory && (
+                      <>
+                        <span className="text-xs text-[var(--ink-muted)]">{expense.subcategory.name}</span>
+                        <span className="text-xs text-[var(--ink-subtle)]">·</span>
+                      </>
+                    )}
                     {expense.description && (
                       <span className="text-xs text-[var(--ink-muted)] truncate">{expense.description}</span>
                     )}
@@ -337,6 +375,8 @@ export function ExpenseListClient({
         expense={editTarget}
         categories={categories}
         paymentModes={paymentModes}
+        subcategories={subcategories}
+        enableSubcategories={enableSubcategories}
         onSuccess={handleExpenseSuccess}
         currency={currency}
       />

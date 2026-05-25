@@ -34,7 +34,7 @@ import { SettingsClient } from '@/components/settings/settings-client'
 import { FeedbackPanel } from '@/components/feedback/feedback-panel'
 import { AdminPanel } from '@/components/feedback/admin-panel'
 
-import type { Category, PaymentMode, BudgetPeriod } from '@/lib/types'
+import type { Category, PaymentMode, BudgetPeriod, Subcategory } from '@/lib/types'
 import { Plus } from 'lucide-react'
 
 // ─── Cross-section refresh hook ──────────────────────────────────
@@ -67,7 +67,9 @@ function SectionSpinner() {
 function DashboardSection({
   initialData, initialYear, initialMonth,
   categories: initCategories, paymentModes: initPaymentModes,
-  budgetPeriods: initBudgetPeriods, currency: initCurrency, userId,
+  budgetPeriods: initBudgetPeriods, currency: initCurrency,
+  subcategories: initSubcategories, enableSubcategories: initEnableSubcategories,
+  userId,
 }: {
   initialData: DashboardMonthData
   initialYear: number
@@ -75,6 +77,8 @@ function DashboardSection({
   categories: Category[]
   paymentModes: PaymentMode[]
   budgetPeriods: BudgetPeriod[]
+  subcategories: Subcategory[]
+  enableSubcategories: boolean
   currency: string
   userId: string
 }) {
@@ -86,6 +90,8 @@ function DashboardSection({
   const [paymentModes, setPaymentModes] = useState(initPaymentModes)
   const [budgetPeriods, setBudgetPeriods] = useState(initBudgetPeriods)
   const [currency, setCurrency] = useState(initCurrency)
+  const [subcategories, setSubcategories] = useState(initSubcategories)
+  const [enableSubcategories, setEnableSubcategories] = useState(initEnableSubcategories)
   const [isPending, startTransition] = useTransition()
   const { triggerRefresh } = useAppShell()
 
@@ -114,6 +120,8 @@ function DashboardSection({
       setPaymentModes(sd.paymentModes)
       setBudgetPeriods(sd.budgetPeriods)
       setCurrency(sd.settings.currency)
+      setSubcategories(sd.subcategories)
+      setEnableSubcategories(sd.settings.enable_subcategories)
     })
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -144,14 +152,14 @@ function DashboardSection({
           <div className="flex items-center gap-2 shrink-0">
             <MonthPicker year={year} month={month} onNavigate={navigateMonth} isPending={isPending} />
             <div className="hidden md:flex items-center gap-2">
-              <AddIncomeButton paymentModes={paymentModes} budgetPeriods={budgetPeriods} categories={categories} currency={currency} onSuccess={silentRefresh} />
-              <AddExpenseButton categories={categories} paymentModes={paymentModes} currency={currency} onSuccess={silentRefresh} />
+              <AddIncomeButton paymentModes={paymentModes} budgetPeriods={budgetPeriods} categories={categories} subcategories={subcategories} enableSubcategories={enableSubcategories} currency={currency} onSuccess={silentRefresh} />
+              <AddExpenseButton categories={categories} paymentModes={paymentModes} subcategories={subcategories} enableSubcategories={enableSubcategories} currency={currency} onSuccess={silentRefresh} />
             </div>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-2 md:hidden">
-          <AddIncomeButton paymentModes={paymentModes} budgetPeriods={budgetPeriods} categories={categories} currency={currency} fullWidth onSuccess={silentRefresh} />
-          <AddExpenseButton categories={categories} paymentModes={paymentModes} currency={currency} fullWidth onSuccess={silentRefresh} />
+          <AddIncomeButton paymentModes={paymentModes} budgetPeriods={budgetPeriods} categories={categories} subcategories={subcategories} enableSubcategories={enableSubcategories} currency={currency} fullWidth onSuccess={silentRefresh} />
+          <AddExpenseButton categories={categories} paymentModes={paymentModes} subcategories={subcategories} enableSubcategories={enableSubcategories} currency={currency} fullWidth onSuccess={silentRefresh} />
         </div>
       </div>
 
@@ -201,7 +209,7 @@ function ExpensesSection() {
   const initPeriod = defaultPeriod()
   const [period, setPeriod] = useState<PeriodValue>(initPeriod)
   const [filters, setFilters] = useState<ExpensesFilters>({
-    search: '', categoryIds: [], types: [], paymentModeIds: [], sort: 'date_desc',
+    search: '', categoryIds: [], types: [], paymentModeIds: [], subcategoryIds: [], sort: 'date_desc',
     dateFrom: initPeriod.dateFrom, dateTo: initPeriod.dateTo,
   })
   const [page, setPage] = useState(1)
@@ -253,7 +261,7 @@ function ExpensesSection() {
             style={{ backgroundColor: 'var(--c-berry)' }}>Expenses</div>
           <h1 className="font-display text-2xl sm:text-3xl font-medium tracking-tight text-[var(--ink)]">All expenses</h1>
         </div>
-        <AddExpBtn categories={data.categories} paymentModes={data.paymentModes} onSuccess={handleRefresh} currency={data.currency} />
+        <AddExpBtn categories={data.categories} paymentModes={data.paymentModes} subcategories={data.subcategories} enableSubcategories={data.enableSubcategories} onSuccess={handleRefresh} currency={data.currency} />
       </div>
       {/* Period filter */}
       <div className="apple-card px-3 sm:px-5 py-3">
@@ -266,6 +274,8 @@ function ExpensesSection() {
           categories={data.categories}
           paymentModes={data.paymentModes}
           categorySummary={data.categorySummary}
+          subcategories={data.subcategories}
+          enableSubcategories={data.enableSubcategories}
           currency={data.currency}
           page={page}
           filters={filters}
@@ -284,7 +294,7 @@ function IncomeSection() {
   const initPeriod = defaultPeriod()
   const [period, setPeriod] = useState<PeriodValue>(initPeriod)
   const [filters, setFilters] = useState<IncomeFilters>({
-    search: '', paymentIds: [], categoryIds: [], types: [], sort: 'date_desc',
+    search: '', paymentIds: [], categoryIds: [], types: [], subcategoryIds: [], sort: 'date_desc',
     dateFrom: initPeriod.dateFrom, dateTo: initPeriod.dateTo,
   })
   const [page, setPage] = useState(1)
@@ -355,6 +365,8 @@ function IncomeSection() {
             budgetPeriods={data.budgetPeriods}
             categories={data.categories}
             categorySummary={data.categorySummary}
+            subcategories={data.subcategories}
+            enableSubcategories={data.enableSubcategories}
             currency={data.currency}
             page={page}
             filters={filters}
@@ -370,6 +382,8 @@ function IncomeSection() {
         paymentModes={data.paymentModes}
         budgetPeriods={data.budgetPeriods}
         categories={data.categories}
+        subcategories={data.subcategories}
+        enableSubcategories={data.enableSubcategories}
         onSuccess={() => handleRefresh()}
         currency={data.currency}
       />
@@ -468,8 +482,10 @@ function SettingsSection() {
       paymentModes={data.paymentModes}
       budgetPeriods={data.budgetPeriods}
       recurringItems={data.recurringItems}
+      subcategories={data.subcategories}
       usedCategoryIds={data.usedCategoryIds}
       usedPaymentModeIds={data.usedPaymentModeIds}
+      usedSubcategoryIds={data.usedSubcategoryIds}
       onRefresh={handleRefresh}
     />
   )
@@ -493,6 +509,8 @@ interface DashboardClientProps {
   categories: Category[]
   paymentModes: PaymentMode[]
   budgetPeriods: BudgetPeriod[]
+  subcategories: Subcategory[]
+  enableSubcategories: boolean
   currency: string
   userId: string
 }

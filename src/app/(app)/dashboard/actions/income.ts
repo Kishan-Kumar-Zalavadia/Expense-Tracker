@@ -1,13 +1,14 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import type { BudgetPeriod, Category, CategorySummaryItem, Income, PaymentMode } from '@/lib/types'
+import type { BudgetPeriod, Category, CategorySummaryItem, Income, PaymentMode, Subcategory } from '@/lib/types'
 
 export interface IncomeFilters {
   search: string
   paymentIds: string[]
   categoryIds: string[]
   types: string[]
+  subcategoryIds: string[]
   sort: string
   dateFrom: string
   dateTo: string
@@ -20,6 +21,8 @@ export interface IncomeData {
   budgetPeriods: BudgetPeriod[]
   categories: Category[]
   categorySummary: CategorySummaryItem[]
+  subcategories: Subcategory[]
+  enableSubcategories: boolean
   currency: string
 }
 
@@ -30,13 +33,13 @@ export async function fetchIncome(filters: IncomeFilters, page: number): Promise
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { search, paymentIds, categoryIds, types, sort, dateFrom, dateTo } = filters
+  const { search, paymentIds, categoryIds, types, subcategoryIds, sort, dateFrom, dateTo } = filters
   const offset = (page - 1) * PAGE_SIZE
 
   let query = supabase
     .from('incomes')
     .select(
-      '*, payment_mode:payment_modes(id,name,initial_balance,archived,show_in_balance,is_credit_card), category:categories(*)',
+      '*, payment_mode:payment_modes(id,name,initial_balance,archived,show_in_balance,is_credit_card), category:categories(*), subcategory:subcategories(*)',
       { count: 'exact' },
     )
     .eq('user_id', user.id)
@@ -45,6 +48,7 @@ export async function fetchIncome(filters: IncomeFilters, page: number): Promise
   if (paymentIds.length > 0) query = query.in('payment_mode_id', paymentIds)
   if (categoryIds.length > 0) query = query.in('category_id', categoryIds)
   if (types.length > 0) query = query.in('type', types)
+  if (subcategoryIds.length > 0) query = query.in('subcategory_id', subcategoryIds)
   if (dateFrom) query = query.gte('date', dateFrom)
   if (dateTo) query = query.lte('date', dateTo)
 
@@ -55,7 +59,6 @@ export async function fetchIncome(filters: IncomeFilters, page: number): Promise
 
   query = query.order(sortCol, { ascending: sortDir === 'asc' }).range(offset, offset + PAGE_SIZE - 1)
 
-  // Build category summary query (respects same date/payment filters but not pagination)
   let summaryQuery = supabase
     .from('incomes')
     .select('amount, category:categories(id, name, color, type, show_in_cards)')
@@ -73,13 +76,15 @@ export async function fetchIncome(filters: IncomeFilters, page: number): Promise
     { data: settings },
     { data: categories },
     { data: summaryRaw },
+    { data: subcategories },
   ] = await Promise.all([
     query,
     supabase.from('payment_modes').select('*').eq('user_id', user.id).eq('archived', false),
     supabase.from('budget_periods').select('*').eq('user_id', user.id).order('start_month', { ascending: false }),
-    supabase.from('user_settings').select('currency').eq('user_id', user.id).single(),
+    supabase.from('user_settings').select('currency, enable_subcategories').eq('user_id', user.id).single(),
     supabase.from('categories').select('*').eq('user_id', user.id).eq('archived', false).order('sort_order'),
     summaryQuery,
+    supabase.from('subcategories').select('*').eq('user_id', user.id).eq('archived', false).order('sort_order'),
   ])
 
   // Aggregate category summary
@@ -111,6 +116,8 @@ export async function fetchIncome(filters: IncomeFilters, page: number): Promise
     budgetPeriods: (budgetPeriods ?? []) as BudgetPeriod[],
     categories: (categories ?? []) as Category[],
     categorySummary,
+    subcategories: (subcategories ?? []) as Subcategory[],
+    enableSubcategories: settings?.enable_subcategories ?? false,
     currency: settings?.currency ?? '₹',
   }
 }

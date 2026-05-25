@@ -3,12 +3,14 @@
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { ExpenseModal } from '@/components/expenses/expense-modal'
-import type { Category, Expense, PaymentMode } from '@/lib/types'
+import type { Category, Expense, PaymentMode, Subcategory } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 interface AddExpenseButtonProps {
   categories: Category[]
   paymentModes: PaymentMode[]
+  subcategories?: Subcategory[]
+  enableSubcategories?: boolean
   onSuccess?: () => void
   currency?: string
   fullWidth?: boolean
@@ -17,6 +19,8 @@ interface AddExpenseButtonProps {
 export function AddExpenseButton({
   categories,
   paymentModes,
+  subcategories = [],
+  enableSubcategories = false,
   onSuccess,
   currency,
   fullWidth,
@@ -38,6 +42,8 @@ export function AddExpenseButton({
         onOpenChange={setOpen}
         categories={categories}
         paymentModes={paymentModes}
+        subcategories={subcategories}
+        enableSubcategories={enableSubcategories}
         onSuccess={(_e: Expense, _isEdit: boolean) => { onSuccess?.() }}
         currency={currency}
       />

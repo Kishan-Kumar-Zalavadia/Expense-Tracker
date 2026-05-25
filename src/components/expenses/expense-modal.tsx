@@ -14,7 +14,7 @@ import {
 import { expenseSchema, type ExpenseFormValues } from '@/lib/validations'
 import { createClient } from '@/lib/supabase/client'
 import { todayISO, typeColor, typeTint } from '@/lib/utils'
-import type { Category, Expense, PaymentMode } from '@/lib/types'
+import type { Category, Expense, PaymentMode, Subcategory } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { DatePicker } from '@/components/ui/date-picker'
 
@@ -26,6 +26,8 @@ interface ExpenseModalProps {
   expense?: Expense | null
   categories: Category[]
   paymentModes: PaymentMode[]
+  subcategories?: Subcategory[]
+  enableSubcategories?: boolean
   onSuccess: (expense: Expense, isEdit: boolean) => void
   currency?: string
 }
@@ -36,6 +38,8 @@ export function ExpenseModal({
   expense,
   categories,
   paymentModes,
+  subcategories = [],
+  enableSubcategories = false,
   onSuccess,
   currency = '₹',
 }: ExpenseModalProps) {
@@ -59,6 +63,7 @@ export function ExpenseModal({
       type: 'Need',
       amount: '',
       payment_mode_id: '',
+      subcategory_id: '',
       notes: '',
     },
   })
@@ -67,15 +72,11 @@ export function ExpenseModal({
   const watchType = (watch('type') || 'Need') as ExpenseType
   const accentColor = typeColor(watchType)
 
-  // When category changes, suggest the matching type (user can still override)
   useEffect(() => {
     const cat = categories.find((c) => c.id === watchCategory)
-    if (cat) {
-      setValue('type', cat.type)
-    }
+    if (cat) setValue('type', cat.type)
   }, [watchCategory, categories, setValue])
 
-  // Populate form when opening
   useEffect(() => {
     if (open) {
       if (expense) {
@@ -86,6 +87,7 @@ export function ExpenseModal({
           type: expense.type,
           amount: String(expense.amount),
           payment_mode_id: expense.payment_mode_id,
+          subcategory_id: expense.subcategory_id ?? '',
           notes: expense.notes ?? '',
         })
       } else {
@@ -96,6 +98,7 @@ export function ExpenseModal({
           type: categories[0]?.type ?? 'Need',
           amount: '',
           payment_mode_id: paymentModes[0]?.id ?? '',
+          subcategory_id: '',
           notes: '',
         })
       }
@@ -125,6 +128,7 @@ export function ExpenseModal({
       type: values.type,
       amount: parsedAmount,
       payment_mode_id: values.payment_mode_id,
+      subcategory_id: values.subcategory_id || null,
       notes: values.notes || null,
       updated_at: new Date().toISOString(),
     }
@@ -133,14 +137,14 @@ export function ExpenseModal({
     if (isEdit) {
       const { data, error: err } = await supabase
         .from('expenses').update(payload).eq('id', expense!.id)
-        .select('*, category:categories(*), payment_mode:payment_modes(*)')
+        .select('*, category:categories(*), payment_mode:payment_modes(*), subcategory:subcategories(*)')
         .single()
       if (err) { toast.error(err.message); setLoading(false); return }
       savedExpense = data as Expense
     } else {
       const { data, error: err } = await supabase
         .from('expenses').insert(payload)
-        .select('*, category:categories(*), payment_mode:payment_modes(*)')
+        .select('*, category:categories(*), payment_mode:payment_modes(*), subcategory:subcategories(*)')
         .single()
       if (err) { toast.error(err.message); setLoading(false); return }
       savedExpense = data as Expense
@@ -158,14 +162,12 @@ export function ExpenseModal({
           overflow-hidden flex flex-col max-h-[calc(100dvh-2rem)]"
         style={{ borderRadius: 'var(--radius-xl)' }}
       >
-        {/* Type-colored top bar */}
         <div className="h-1.5 w-full shrink-0 transition-colors duration-200"
           style={{
             backgroundColor: accentColor,
             borderRadius: 'var(--radius-xl) var(--radius-xl) 0 0',
           }} />
 
-        {/* Fixed header */}
         <div className="px-6 pt-4 shrink-0">
           <DialogHeader>
             <DialogTitle className="font-display text-xl font-medium text-[var(--ink)]">
@@ -174,10 +176,8 @@ export function ExpenseModal({
           </DialogHeader>
         </div>
 
-        {/* Scrollable form area */}
         <div className="overflow-y-auto flex-1 px-6 pt-4 pb-6">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* Date */}
             <Field label="Date" required error={errors.date?.message}>
               <DatePicker
                 value={watch('date') ?? ''}
@@ -186,7 +186,6 @@ export function ExpenseModal({
               />
             </Field>
 
-            {/* Description */}
             <Field label="Description" error={errors.description?.message}>
               <input
                 {...register('description')}
@@ -196,12 +195,8 @@ export function ExpenseModal({
               />
             </Field>
 
-            {/* Category */}
             <Field label="Category" required error={errors.category_id?.message}>
-              <select
-                {...register('category_id')}
-                className={inputCls(!!errors.category_id)}
-              >
+              <select {...register('category_id')} className={inputCls(!!errors.category_id)}>
                 <option value="">Select category</option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
@@ -209,7 +204,17 @@ export function ExpenseModal({
               </select>
             </Field>
 
-            {/* Type — editable, auto-suggested from category */}
+            {enableSubcategories && (
+              <Field label="Subcategory" error={undefined}>
+                <select {...register('subcategory_id')} className={inputCls(false)}>
+                  <option value="">No subcategory (optional)</option>
+                  {subcategories.map((s) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+              </Field>
+            )}
+
             <Field label="Type" required error={errors.type?.message}>
               <select
                 {...register('type')}
@@ -225,7 +230,6 @@ export function ExpenseModal({
               </p>
             </Field>
 
-            {/* Amount */}
             <Field label="Amount" required error={errors.amount?.message}>
               <div className="relative flex items-center">
                 <span
@@ -247,12 +251,8 @@ export function ExpenseModal({
               </div>
             </Field>
 
-            {/* Payment Mode */}
             <Field label="Payment Mode" required error={errors.payment_mode_id?.message}>
-              <select
-                {...register('payment_mode_id')}
-                className={inputCls(!!errors.payment_mode_id)}
-              >
+              <select {...register('payment_mode_id')} className={inputCls(!!errors.payment_mode_id)}>
                 <option value="">Select payment mode</option>
                 {paymentModes.map((pm) => (
                   <option key={pm.id} value={pm.id}>{pm.name}</option>
@@ -260,7 +260,6 @@ export function ExpenseModal({
               </select>
             </Field>
 
-            {/* Notes */}
             <Field label="Notes" error={errors.notes?.message}>
               <textarea
                 {...register('notes')}
@@ -270,7 +269,6 @@ export function ExpenseModal({
               />
             </Field>
 
-            {/* Actions */}
             <div className="flex gap-2 pt-2">
               <button
                 type="button"
@@ -299,15 +297,9 @@ export function ExpenseModal({
 }
 
 function Field({
-  label,
-  required,
-  error,
-  children,
+  label, required, error, children,
 }: {
-  label: string
-  required?: boolean
-  error?: string
-  children: React.ReactNode
+  label: string; required?: boolean; error?: string; children: React.ReactNode
 }) {
   return (
     <div>
@@ -322,8 +314,5 @@ function Field({
 }
 
 function inputCls(hasError: boolean) {
-  return cn(
-    'apple-input text-sm',
-    hasError && 'error',
-  )
+  return cn('apple-input text-sm', hasError && 'error')
 }

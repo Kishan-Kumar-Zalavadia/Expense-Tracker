@@ -13,7 +13,7 @@ import {
 import { incomeSchema, type IncomeFormValues } from '@/lib/validations'
 import { createClient } from '@/lib/supabase/client'
 import { todayISO } from '@/lib/utils'
-import type { BudgetPeriod, Category, Income, PaymentMode } from '@/lib/types'
+import type { BudgetPeriod, Category, Income, PaymentMode, Subcategory } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { DatePicker } from '@/components/ui/date-picker'
 
@@ -24,6 +24,8 @@ interface IncomeModalProps {
   paymentModes: PaymentMode[]
   budgetPeriods: BudgetPeriod[]
   categories: Category[]
+  subcategories?: Subcategory[]
+  enableSubcategories?: boolean
   onSuccess: (income: Income, isEdit: boolean) => void
   currency?: string
 }
@@ -35,6 +37,8 @@ export function IncomeModal({
   paymentModes,
   budgetPeriods,
   categories,
+  subcategories = [],
+  enableSubcategories = false,
   onSuccess,
   currency = '₹',
 }: IncomeModalProps) {
@@ -58,6 +62,7 @@ export function IncomeModal({
       amount: '',
       payment_mode_id: '',
       budget_period_id: '',
+      subcategory_id: '',
       notes: '',
     },
   })
@@ -72,6 +77,7 @@ export function IncomeModal({
           amount: String(income.amount),
           payment_mode_id: income.payment_mode_id,
           budget_period_id: income.budget_period_id ?? '',
+          subcategory_id: income.subcategory_id ?? '',
           notes: income.notes ?? '',
         })
       } else {
@@ -82,6 +88,7 @@ export function IncomeModal({
           amount: '',
           payment_mode_id: paymentModes[0]?.id ?? '',
           budget_period_id: '',
+          subcategory_id: '',
           notes: '',
         })
       }
@@ -111,6 +118,7 @@ export function IncomeModal({
       amount: parsedAmount,
       payment_mode_id: values.payment_mode_id,
       budget_period_id: values.budget_period_id || null,
+      subcategory_id: values.subcategory_id || null,
       auto_generated: false,
       notes: values.notes || null,
       updated_at: new Date().toISOString(),
@@ -120,14 +128,14 @@ export function IncomeModal({
     if (isEdit) {
       const { data, error: err } = await supabase
         .from('incomes').update(payload).eq('id', income!.id)
-        .select('*, payment_mode:payment_modes(*), category:categories(*)')
+        .select('*, payment_mode:payment_modes(*), category:categories(*), subcategory:subcategories(*)')
         .single()
       if (err) { toast.error(err.message); setLoading(false); return }
       savedIncome = data as Income
     } else {
       const { data, error: err } = await supabase
         .from('incomes').insert(payload)
-        .select('*, payment_mode:payment_modes(*), category:categories(*)')
+        .select('*, payment_mode:payment_modes(*), category:categories(*), subcategory:subcategories(*)')
         .single()
       if (err) { toast.error(err.message); setLoading(false); return }
       savedIncome = data as Income
@@ -189,6 +197,17 @@ export function IncomeModal({
               </select>
             </Field>
 
+            {enableSubcategories && (
+              <Field label="Subcategory" error={undefined}>
+                <select {...register('subcategory_id')} className={inputCls(false)}>
+                  <option value="">No subcategory (optional)</option>
+                  {subcategories.map((s) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+              </Field>
+            )}
+
             <Field label="Amount" required error={errors.amount?.message}>
               <div className="relative flex items-center">
                 <span className="absolute left-0 flex items-center justify-center h-full px-3
@@ -220,9 +239,7 @@ export function IncomeModal({
               <select {...register('budget_period_id')} className={inputCls(false)}>
                 <option value="">None (optional)</option>
                 {budgetPeriods.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {fmtPeriod(p)}
-                  </option>
+                  <option key={p.id} value={p.id}>{fmtPeriod(p)}</option>
                 ))}
               </select>
             </Field>

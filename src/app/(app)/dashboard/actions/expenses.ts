@@ -1,13 +1,14 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import type { Category, CategorySummaryItem, Expense, PaymentMode } from '@/lib/types'
+import type { Category, CategorySummaryItem, Expense, PaymentMode, Subcategory } from '@/lib/types'
 
 export interface ExpensesFilters {
   search: string
   categoryIds: string[]
   types: string[]
   paymentModeIds: string[]
+  subcategoryIds: string[]
   sort: string
   dateFrom: string
   dateTo: string
@@ -19,6 +20,8 @@ export interface ExpensesData {
   categories: Category[]
   paymentModes: PaymentMode[]
   categorySummary: CategorySummaryItem[]
+  subcategories: Subcategory[]
+  enableSubcategories: boolean
   currency: string
 }
 
@@ -29,18 +32,19 @@ export async function fetchExpenses(filters: ExpensesFilters, page: number): Pro
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { search, categoryIds, types, paymentModeIds, sort, dateFrom, dateTo } = filters
+  const { search, categoryIds, types, paymentModeIds, subcategoryIds, sort, dateFrom, dateTo } = filters
   const offset = (page - 1) * PAGE_SIZE
 
   let query = supabase
     .from('expenses')
-    .select('*, category:categories(*), payment_mode:payment_modes(*)', { count: 'exact' })
+    .select('*, category:categories(*), payment_mode:payment_modes(*), subcategory:subcategories(*)', { count: 'exact' })
     .eq('user_id', user.id)
 
   if (search) query = query.or(`description.ilike.%${search}%,notes.ilike.%${search}%`)
   if (categoryIds.length > 0) query = query.in('category_id', categoryIds)
   if (types.length > 0) query = query.in('type', types)
   if (paymentModeIds.length > 0) query = query.in('payment_mode_id', paymentModeIds)
+  if (subcategoryIds.length > 0) query = query.in('subcategory_id', subcategoryIds)
   if (dateFrom) query = query.gte('date', dateFrom)
   if (dateTo) query = query.lte('date', dateTo)
 
@@ -69,18 +73,19 @@ export async function fetchExpenses(filters: ExpensesFilters, page: number): Pro
     { data: paymentModes },
     { data: settings },
     { data: summaryRaw },
+    { data: subcategories },
   ] = await Promise.all([
     query,
     supabase.from('categories').select('*').eq('user_id', user.id).eq('archived', false).order('sort_order'),
     supabase.from('payment_modes').select('*').eq('user_id', user.id).eq('archived', false),
-    supabase.from('user_settings').select('currency').eq('user_id', user.id).single(),
+    supabase.from('user_settings').select('currency, enable_subcategories').eq('user_id', user.id).single(),
     summaryQuery,
+    supabase.from('subcategories').select('*').eq('user_id', user.id).eq('archived', false).order('sort_order'),
   ])
 
   // Aggregate category summary
   const summaryMap = new Map<string, CategorySummaryItem>()
   for (const row of (summaryRaw ?? [])) {
-    // Supabase returns joined rows as array or object depending on relation type
     const rawCat = row.category
     const cat = (Array.isArray(rawCat) ? rawCat[0] : rawCat) as { id: string; name: string; color: string; type: string; show_in_cards: boolean } | null
     if (!cat) continue
@@ -106,6 +111,8 @@ export async function fetchExpenses(filters: ExpensesFilters, page: number): Pro
     categories: (categories ?? []) as Category[],
     paymentModes: (paymentModes ?? []) as PaymentMode[],
     categorySummary,
+    subcategories: (subcategories ?? []) as Subcategory[],
+    enableSubcategories: settings?.enable_subcategories ?? false,
     currency: settings?.currency ?? '₹',
   }
 }

@@ -1,6 +1,16 @@
 export type ExpenseType = 'Need' | 'Want' | 'Saving'
 export type Theme = 'light' | 'dark'
 
+export interface Subcategory {
+  id: string
+  user_id: string
+  name: string
+  color: string
+  sort_order: number
+  archived: boolean
+  created_at: string
+}
+
 export interface Category {
   id: string
   user_id: string
@@ -34,11 +44,13 @@ export interface Expense {
   type: ExpenseType
   notes: string | null
   recurring_item_id: string | null
+  subcategory_id: string | null
   created_at: string
   updated_at: string
   // joined
   category?: Category
   payment_mode?: PaymentMode
+  subcategory?: Subcategory
 }
 
 // ─── Budget Periods (replaces SalaryConfig) ──────────────────────
@@ -75,12 +87,14 @@ export interface Income {
   auto_generated: boolean
   notes: string | null
   recurring_item_id: string | null
+  subcategory_id: string | null
   created_at: string
   updated_at: string
   // joined
   payment_mode?: PaymentMode
   budget_period?: BudgetPeriod
   category?: Category
+  subcategory?: Subcategory
 }
 
 // ─── Category spend summary ──────────────────────────────────────
@@ -148,6 +162,7 @@ export interface UserSettings {
   weekly_limit: number
   currency: string
   theme: Theme
+  enable_subcategories: boolean
 }
 
 // ─── Aggregate / derived types ───────────────────────────────────

@@ -10,6 +10,7 @@ export const expenseSchema = z.object({
   type: z.enum(['Need', 'Want', 'Saving']),
   amount: z.string().min(1, 'Amount is required'),
   payment_mode_id: z.string().min(1, 'Select a payment mode'),
+  subcategory_id: z.string().optional(),
   notes: z.string().max(500).optional(),
 })
 
@@ -58,6 +59,7 @@ export const incomeSchema = z.object({
   amount: z.string().min(1, 'Amount is required'),
   payment_mode_id: z.string().min(1, 'Select a payment mode'),
   budget_period_id: z.string().optional(),
+  subcategory_id: z.string().optional(),
   notes: z.string().max(500).optional(),
 })
 
