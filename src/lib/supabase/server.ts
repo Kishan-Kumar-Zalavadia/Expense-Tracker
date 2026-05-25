@@ -15,7 +15,11 @@ export async function createClient() {
         setAll(cookiesToSet) {
           try {
             cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options)
+              cookieStore.set(name, value, {
+                ...options,
+                // Keep session alive for 400 days — effectively "never expire until logout"
+                maxAge: 60 * 60 * 24 * 400,
+              })
             })
           } catch {
             // setAll can throw in Server Components — safe to ignore

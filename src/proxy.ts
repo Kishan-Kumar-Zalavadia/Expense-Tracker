@@ -20,7 +20,11 @@ export async function proxy(request: NextRequest) {
           )
           supabaseResponse = NextResponse.next({ request })
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options),
+            supabaseResponse.cookies.set(name, value, {
+              ...options,
+              // Keep session alive for 400 days — effectively "never expire until logout"
+              maxAge: 60 * 60 * 24 * 400,
+            }),
           )
         },
       },
