@@ -125,7 +125,7 @@ export function ExpenseModal({
       date: values.date,
       description: values.description || null,
       category_id: values.category_id,
-      type: values.type ?? null,
+      type: values.type || null,
       amount: parsedAmount,
       payment_mode_id: values.payment_mode_id,
       subcategory_id: values.subcategory_id || null,
