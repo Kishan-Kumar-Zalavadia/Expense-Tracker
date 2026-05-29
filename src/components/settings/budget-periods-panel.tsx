@@ -390,6 +390,52 @@ export function BudgetPeriodsPanel({
   )
 }
 
+// ─── Month / Year picker (replaces <input type="month"> which breaks on iOS) ──
+
+const MONTH_LABELS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+
+function MonthYearPicker({ value, onChange, disabled }: {
+  value: string           // YYYY-MM or ''
+  onChange: (v: string) => void
+  disabled?: boolean
+}) {
+  const currentYear = new Date().getFullYear()
+  const years = Array.from({ length: 11 }, (_, i) => currentYear - 2 + i)
+
+  const parts  = value ? value.split('-') : []
+  const selYear  = parts[0] ?? ''
+  const selMonth = parts[1] ?? ''
+
+  const emit = (y: string, m: string) => { if (y && m) onChange(`${y}-${m}`) }
+
+  return (
+    <div className={cn('grid grid-cols-2 gap-2', disabled && 'opacity-40 pointer-events-none')}>
+      <select
+        value={selMonth}
+        onChange={(e) => emit(selYear || String(currentYear), e.target.value)}
+        disabled={disabled}
+        className="apple-input text-sm"
+      >
+        <option value="">Month</option>
+        {MONTH_LABELS.map((m, i) => (
+          <option key={i} value={String(i + 1).padStart(2, '0')}>{m}</option>
+        ))}
+      </select>
+      <select
+        value={selYear}
+        onChange={(e) => emit(e.target.value, selMonth || '01')}
+        disabled={disabled}
+        className="apple-input text-sm"
+      >
+        <option value="">Year</option>
+        {years.map((y) => (
+          <option key={y} value={String(y)}>{y}</option>
+        ))}
+      </select>
+    </div>
+  )
+}
+
 // ─── Shared form component ─────────────────────────────────────────
 
 function PeriodForm({
@@ -417,21 +463,14 @@ function PeriodForm({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-xs font-medium text-[var(--ink-muted)] mb-1 uppercase tracking-wide">Start month</label>
-          <input
-            type="month"
-            value={form.start_month}
-            onChange={(e) => set('start_month', e.target.value)}
-            className={inputCls}
-          />
+          <MonthYearPicker value={form.start_month} onChange={(v) => set('start_month', v)} />
         </div>
         <div>
           <label className="block text-xs font-medium text-[var(--ink-muted)] mb-1 uppercase tracking-wide">End month</label>
-          <input
-            type="month"
+          <MonthYearPicker
             value={form.end_month}
-            onChange={(e) => set('end_month', e.target.value)}
+            onChange={(v) => set('end_month', v)}
             disabled={form.is_present}
-            className={cn(inputCls, form.is_present && 'opacity-40')}
           />
           <label className="flex items-center gap-2 mt-2 cursor-pointer">
             <input

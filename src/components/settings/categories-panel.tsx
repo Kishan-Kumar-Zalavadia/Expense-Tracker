@@ -109,10 +109,7 @@ export function CategoriesPanel({ userId, categories, usedCategoryIds, onSave }:
   const active = [...localCats].filter((c) => !c.archived).reverse()
   const archived = localCats.filter((c) => c.archived)
 
-  const inputCls = cn(
-    'px-3 py-1.5 text-sm bg-[var(--elevated)] border border-[var(--border)] rounded-[var(--radius-md)]',
-    'text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[var(--c-primary)]',
-  )
+  const inputCls = 'apple-input text-sm'
 
   return (
     <div className="space-y-6">
@@ -141,13 +138,22 @@ export function CategoriesPanel({ userId, categories, usedCategoryIds, onSave }:
       {adding && (
         <div className="border border-[var(--border)] rounded-[var(--radius-md)] p-4 bg-[var(--elevated)] space-y-3">
           <h3 className="text-sm font-medium text-[var(--ink)]">New category</h3>
-          <div className="flex gap-2 items-center">
-            <input
-              type="color"
-              value={newCat.color}
-              onChange={(e) => setNewCat({ ...newCat, color: e.target.value })}
-              className="w-9 h-9 rounded-[var(--radius-md)] cursor-pointer border border-[var(--border)] p-0.5"
-            />
+
+          {/* Row 1: color swatch + name */}
+          <div className="flex gap-3 items-center">
+            <label
+              className="shrink-0 rounded-[var(--radius-md)] border-2 border-[var(--border)] cursor-pointer
+                overflow-hidden touch-manipulation"
+              style={{ width: 44, height: 44, backgroundColor: newCat.color }}
+              title="Pick colour"
+            >
+              <input
+                type="color"
+                value={newCat.color}
+                onChange={(e) => setNewCat({ ...newCat, color: e.target.value })}
+                className="opacity-0 w-full h-full cursor-pointer"
+              />
+            </label>
             <input
               type="text"
               value={newCat.name}
@@ -155,21 +161,24 @@ export function CategoriesPanel({ userId, categories, usedCategoryIds, onSave }:
               placeholder="Category name"
               className={cn(inputCls, 'flex-1')}
             />
-            <select
-              value={newCat.type}
-              onChange={(e) => setNewCat({ ...newCat, type: e.target.value as ExpenseType })}
-              className={inputCls}
-            >
-              {TYPE_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
-            </select>
           </div>
+
+          {/* Row 2: type select */}
+          <select
+            value={newCat.type}
+            onChange={(e) => setNewCat({ ...newCat, type: e.target.value as ExpenseType })}
+            className={inputCls}
+          >
+            {TYPE_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
+
           {/* Color presets */}
-          <div className="flex gap-1.5 flex-wrap">
+          <div className="flex gap-2 flex-wrap">
             {DEFAULT_COLORS.map((c) => (
               <button
                 key={c}
                 onClick={() => setNewCat({ ...newCat, color: c })}
-                className="w-5 h-5 rounded-full border-2 transition-all"
+                className="w-7 h-7 rounded-full border-2 transition-all touch-manipulation"
                 style={{
                   backgroundColor: c,
                   borderColor: newCat.color === c ? 'var(--ink)' : 'transparent',
@@ -177,11 +186,12 @@ export function CategoriesPanel({ userId, categories, usedCategoryIds, onSave }:
               />
             ))}
           </div>
+
           <div className="flex gap-2">
-            <button onClick={saveNew} className="btn-primary text-xs px-3 py-1.5">Add</button>
+            <button onClick={saveNew} className="btn-primary text-xs px-4 py-2 min-h-[44px]">Add</button>
             <button onClick={() => setAdding(false)}
-              className="px-3 py-1.5 text-xs border border-[var(--border)] rounded-[var(--radius-md)]
-              text-[var(--ink-muted)] hover:bg-[var(--surface)] transition-colors">
+              className="px-4 py-2 text-xs border border-[var(--border)] rounded-[var(--radius-xl)] min-h-[44px]
+                text-[var(--ink-muted)] hover:bg-[var(--surface)] transition-colors">
               Cancel
             </button>
           </div>
@@ -231,22 +241,30 @@ export function CategoriesPanel({ userId, categories, usedCategoryIds, onSave }:
                   </div>
                 </>
               ) : isEditingThis ? (
-                /* Edit mode — two rows on mobile */
+                /* Edit mode */
                 <>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={editState!.color}
-                      onChange={(e) => setEditState({ ...editState!, color: e.target.value })}
-                      className="w-8 h-8 rounded-[var(--radius-md)] cursor-pointer border border-[var(--border)] p-0.5 shrink-0"
-                    />
+                  {/* Row 1: colour swatch + name */}
+                  <div className="flex items-center gap-3">
+                    <label
+                      className="shrink-0 rounded-[var(--radius-md)] border-2 border-[var(--border)] cursor-pointer
+                        overflow-hidden touch-manipulation"
+                      style={{ width: 44, height: 44, backgroundColor: editState!.color }}
+                      title="Pick colour"
+                    >
+                      <input
+                        type="color"
+                        value={editState!.color}
+                        onChange={(e) => setEditState({ ...editState!, color: e.target.value })}
+                        className="opacity-0 w-full h-full cursor-pointer"
+                      />
+                    </label>
                     <input
                       value={editState!.name}
                       onChange={(e) => setEditState({ ...editState!, name: e.target.value })}
                       className={cn(inputCls, 'flex-1')}
-                      autoFocus
                     />
                   </div>
+                  {/* Row 2: type + save / cancel */}
                   <div className="flex items-center gap-2">
                     <select
                       value={editState!.type}
@@ -256,12 +274,12 @@ export function CategoriesPanel({ userId, categories, usedCategoryIds, onSave }:
                       {TYPE_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
                     </select>
                     <button onClick={saveEdit}
-                      className="p-2 rounded-[var(--radius-md)] text-[var(--c-save)] hover:bg-[var(--tint-save)] transition-colors shrink-0">
-                      <Check size={14} />
+                      className="p-2.5 rounded-[var(--radius-md)] text-[var(--c-save)] hover:bg-[var(--tint-save)] transition-colors shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center">
+                      <Check size={16} />
                     </button>
                     <button onClick={() => setEditing(null)}
-                      className="p-2 rounded-[var(--radius-md)] text-[var(--ink-muted)] hover:bg-[var(--surface)] transition-colors shrink-0">
-                      <X size={14} />
+                      className="p-2.5 rounded-[var(--radius-md)] text-[var(--ink-muted)] hover:bg-[var(--surface)] transition-colors shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center">
+                      <X size={16} />
                     </button>
                   </div>
                 </>
