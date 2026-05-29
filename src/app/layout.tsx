@@ -53,7 +53,7 @@ export default function RootLayout({
         <ThemeScript />
         {children}
         <Toaster
-          position="bottom-right"
+          position="top-right"
           toastOptions={{
             style: {
               background: 'var(--elevated)',
