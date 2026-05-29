@@ -1,12 +1,10 @@
 'use client'
 
 import {
-  eachDayOfInterval,
-  startOfMonth, endOfMonth,
-  format, parseISO, getDaysInMonth,
+  endOfMonth,
+  getDaysInMonth,
   getDay,
 } from 'date-fns'
-import { useState } from 'react'
 import { formatCurrency, formatDate } from '@/lib/utils'
 
 interface DailyData {
@@ -28,11 +26,9 @@ const MONTH_NAMES = [
 ]
 const DAY_LABELS = ['M','T','W','T','F','S','S']
 
-// Interpolate from background to coral based on intensity
 function dayColor(amount: number, max: number): string {
   if (amount === 0 || max === 0) return 'transparent'
   const intensity = Math.min(1, amount / max)
-  // From --border (#E4E6EB) toward --c-primary (#2563EB)
   const r = Math.round(228 + (37  - 228) * intensity)
   const g = Math.round(230 + (99  - 230) * intensity)
   const b = Math.round(235 + (235 - 235) * intensity)
@@ -40,10 +36,7 @@ function dayColor(amount: number, max: number): string {
 }
 
 export function YearlyClient({ year, dailyData, maxDay, currency, onYearChange }: YearlyClientProps) {
-  const [tooltip, setTooltip] = useState<{ date: string; total: number; x: number; y: number } | null>(null)
-
   const navigate = (newYear: number) => onYearChange(newYear)
-
   const dayMap = new Map(dailyData.map((d) => [d.date, d.total]))
 
   return (
@@ -75,8 +68,11 @@ export function YearlyClient({ year, dailyData, maxDay, currency, onYearChange }
         </div>
       </div>
 
-      {/* 12-month grid */}
-      <div className="apple-card p-5 relative">
+      {/* 12-month grid
+          overflow-visible: lets cell tooltips escape the card boundary.
+          apple-card normally clips with overflow:hidden, but none of the static
+          content overflows so border-radius/shadow are unaffected. */}
+      <div className="apple-card p-5 !overflow-visible">
         <div className="flex items-center gap-2 mb-5">
           <span className="section-bar" style={{ backgroundColor: 'var(--c-save)' }} />
           <h2 className="font-display text-base font-medium text-[var(--ink)]">Daily spend intensity</h2>
@@ -84,19 +80,17 @@ export function YearlyClient({ year, dailyData, maxDay, currency, onYearChange }
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {Array.from({ length: 12 }, (_, mi) => {
-            const monthNum = mi + 1
+            const monthNum  = mi + 1
             const monthStart = new Date(year, mi, 1)
-            const monthEnd   = endOfMonth(monthStart)
-            const days       = getDaysInMonth(monthStart)
-            // Day of week of month start (Mon=0)
-            const startDow = (getDay(monthStart) + 6) % 7  // convert Sun=0 to Mon=0
+            const days      = getDaysInMonth(monthStart)
+            const startDow  = (getDay(monthStart) + 6) % 7
 
             return (
               <div key={mi}>
                 <h3 className="text-xs font-semibold text-[var(--ink-muted)] uppercase tracking-wider mb-2">
                   {MONTH_NAMES[mi]}
                 </h3>
-                {/* Day labels */}
+                {/* Day-of-week labels */}
                 <div className="grid grid-cols-7 gap-0.5 mb-0.5">
                   {DAY_LABELS.map((d, i) => (
                     <div key={i} className="text-center text-[9px] text-[var(--ink-subtle)]">{d}</div>
@@ -104,11 +98,9 @@ export function YearlyClient({ year, dailyData, maxDay, currency, onYearChange }
                 </div>
                 {/* Day cells */}
                 <div className="grid grid-cols-7 gap-0.5">
-                  {/* Empty cells for offset */}
                   {Array.from({ length: startDow }, (_, i) => (
                     <div key={`empty-${i}`} />
                   ))}
-                  {/* Day cells */}
                   {Array.from({ length: days }, (_, di) => {
                     const dateStr = `${year}-${String(monthNum).padStart(2,'0')}-${String(di + 1).padStart(2,'0')}`
                     const total   = dayMap.get(dateStr) ?? 0
@@ -117,17 +109,34 @@ export function YearlyClient({ year, dailyData, maxDay, currency, onYearChange }
                     return (
                       <div
                         key={dateStr}
-                        className="relative aspect-square rounded-[1px] border cursor-default"
+                        className="group/cell relative aspect-square rounded-[1px] border cursor-default"
                         style={{
                           backgroundColor: color || 'var(--elevated)',
                           borderColor: total > 0 ? 'transparent' : 'var(--border)',
                         }}
-                        onMouseEnter={(e) => {
-                          const rect = e.currentTarget.getBoundingClientRect()
-                          setTooltip({ date: dateStr, total, x: rect.left, y: rect.top })
-                        }}
-                        onMouseLeave={() => setTooltip(null)}
-                      />
+                      >
+                        {/* Tooltip — absolute so it's never clipped by transforms or
+                            scroll containers. Centered above the cell via left-1/2 +
+                            -translate-x-1/2, and lifted above via bottom-[calc(100%+6px)]. */}
+                        <div
+                          className="pointer-events-none absolute bottom-[calc(100%+6px)] left-1/2
+                            -translate-x-1/2 z-50 whitespace-nowrap
+                            hidden group-hover/cell:block
+                            rounded-[var(--radius-md)] border border-[var(--border)]
+                            shadow-lg px-3 py-2 text-xs space-y-0.5"
+                          style={{ backgroundColor: 'var(--elevated)' }}
+                        >
+                          <div className="text-[var(--ink-muted)]">
+                            {formatDate(dateStr, 'EEE, dd MMM yyyy')}
+                          </div>
+                          <div
+                            className="font-semibold tabular-nums"
+                            style={{ color: total > 0 ? 'var(--c-need)' : 'var(--ink-subtle)' }}
+                          >
+                            {total > 0 ? formatCurrency(total, currency) : 'No spend'}
+                          </div>
+                        </div>
+                      </div>
                     )
                   })}
                 </div>
@@ -151,30 +160,6 @@ export function YearlyClient({ year, dailyData, maxDay, currency, onYearChange }
           <span className="text-xs text-[var(--ink-muted)]">More</span>
         </div>
       </div>
-
-      {/* Tooltip */}
-      {tooltip && (
-        <div
-          className="fixed z-50 pointer-events-none rounded-[var(--radius-md)] border border-[var(--border)]
-            shadow-lg px-3 py-2 text-xs space-y-1"
-          style={{
-            backgroundColor: 'var(--elevated)',
-            top: tooltip.y - 64,
-            left: tooltip.x,
-            transform: 'translateX(-50%)',
-          }}
-        >
-          <div className="text-[var(--ink-muted)] whitespace-nowrap">
-            {formatDate(tooltip.date, 'EEE, dd MMM yyyy')}
-          </div>
-          <div
-            className="font-semibold tabular-nums"
-            style={{ color: tooltip.total > 0 ? 'var(--c-need)' : 'var(--ink-subtle)' }}
-          >
-            {tooltip.total > 0 ? formatCurrency(tooltip.total, currency) : 'No spend'}
-          </div>
-        </div>
-      )}
     </div>
   )
 }
