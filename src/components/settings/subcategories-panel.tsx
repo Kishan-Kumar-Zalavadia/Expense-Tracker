@@ -81,6 +81,7 @@ function SortableSubcategory({
           <button
             {...listeners} {...attributes}
             className="p-1 cursor-grab active:cursor-grabbing text-[var(--ink-subtle)] shrink-0 touch-manipulation"
+            style={{ touchAction: 'none' }}
           >
             <GripVertical size={14} />
           </button>
@@ -116,6 +117,7 @@ function SortableSubcategory({
           <button
             {...listeners} {...attributes}
             className="p-1 cursor-grab active:cursor-grabbing text-[var(--ink-subtle)] shrink-0 touch-manipulation"
+            style={{ touchAction: 'none' }}
           >
             <GripVertical size={14} />
           </button>
@@ -169,7 +171,7 @@ export function SubcategoriesPanel({ userId, subcategories, usedSubcategoryIds, 
   useEffect(() => { setLocalSubs(subcategories) }, [subcategories])
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   )
 

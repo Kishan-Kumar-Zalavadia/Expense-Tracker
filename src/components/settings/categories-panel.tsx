@@ -83,6 +83,7 @@ function SortableCategory({
             <button
               {...listeners} {...attributes}
               className="p-1 cursor-grab active:cursor-grabbing text-[var(--ink-subtle)] shrink-0 touch-manipulation"
+            style={{ touchAction: 'none' }}
             >
               <GripVertical size={14} />
             </button>
@@ -115,6 +116,7 @@ function SortableCategory({
             <button
               {...listeners} {...attributes}
               className="p-1 cursor-grab active:cursor-grabbing text-[var(--ink-subtle)] shrink-0 touch-manipulation"
+            style={{ touchAction: 'none' }}
             >
               <GripVertical size={14} />
             </button>
@@ -160,6 +162,7 @@ function SortableCategory({
             <button
               {...listeners} {...attributes}
               className="p-1 cursor-grab active:cursor-grabbing text-[var(--ink-subtle)] shrink-0 touch-manipulation"
+            style={{ touchAction: 'none' }}
             >
               <GripVertical size={14} />
             </button>
@@ -232,7 +235,7 @@ export function CategoriesPanel({ userId, categories, usedCategoryIds, onSave }:
   useEffect(() => { setLocalCats(categories) }, [categories])
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   )
 

@@ -80,6 +80,7 @@ function SortableRow({
           <button
             {...listeners} {...attributes}
             className="p-1 cursor-grab active:cursor-grabbing text-[var(--ink-subtle)] shrink-0 touch-manipulation"
+            style={{ touchAction: 'none' }}
           >
             <GripVertical size={14} />
           </button>
@@ -105,6 +106,7 @@ function SortableRow({
             <button
               {...listeners} {...attributes}
               className="p-1 cursor-grab active:cursor-grabbing text-[var(--ink-subtle)] shrink-0 touch-manipulation"
+            style={{ touchAction: 'none' }}
             >
               <GripVertical size={14} />
             </button>
@@ -184,7 +186,7 @@ export function PaymentModesPanel({ userId, paymentModes, usedPaymentModeIds, on
   useEffect(() => { setLocalModes(paymentModes) }, [paymentModes])
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   )
 
