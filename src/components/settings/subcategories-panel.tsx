@@ -1,11 +1,28 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Check, X, Archive, Trash2 } from 'lucide-react'
+import { Plus, Check, X, Archive, Trash2, GripVertical, Star } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import type { Subcategory } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 
 interface SubcategoriesPanelProps {
   userId: string
@@ -19,6 +36,127 @@ const DEFAULT_COLORS = [
   '#2952B8', '#D4A636', '#5BA8B8', '#6685D9', '#F47A65',
 ]
 
+function SortableSubcategory({
+  sub,
+  usedSet,
+  editing,
+  editState,
+  onStartEdit,
+  onSaveEdit,
+  onCancelEdit,
+  onEditStateChange,
+  onArchive,
+  onDelete,
+  onSetDefault,
+}: {
+  sub: Subcategory
+  usedSet: Set<string>
+  editing: string | null
+  editState: { name: string; color: string } | null
+  onStartEdit: (sub: Subcategory) => void
+  onSaveEdit: () => void
+  onCancelEdit: () => void
+  onEditStateChange: (s: { name: string; color: string }) => void
+  onArchive: (sub: Subcategory) => void
+  onDelete: (sub: Subcategory) => void
+  onSetDefault: (sub: Subcategory) => void
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: sub.id })
+  const isEditingThis = editing === sub.id
+  const isUnused = !usedSet.has(sub.id)
+
+  const inputCls = cn(
+    'px-3 py-1.5 text-sm bg-[var(--elevated)] border border-[var(--border)] rounded-[var(--radius-md)]',
+    'text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[var(--c-primary)]',
+  )
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }}
+      className="flex flex-col gap-2 px-3 sm:px-4 py-3 bg-[var(--elevated)] border border-[var(--border)] rounded-[var(--radius-md)]"
+    >
+      {isEditingThis && editState ? (
+        <div className="flex items-center gap-2">
+          <button
+            {...listeners} {...attributes}
+            className="p-1 cursor-grab active:cursor-grabbing text-[var(--ink-subtle)] shrink-0 touch-manipulation"
+          >
+            <GripVertical size={14} />
+          </button>
+          <label
+            className="shrink-0 rounded-[var(--radius-md)] border-2 border-[var(--border)] cursor-pointer overflow-hidden touch-manipulation"
+            style={{ width: 44, height: 44, backgroundColor: editState.color }}
+            title="Pick colour"
+          >
+            <input
+              type="color"
+              value={editState.color}
+              onChange={(e) => onEditStateChange({ ...editState, color: e.target.value })}
+              className="opacity-0 w-full h-full cursor-pointer"
+            />
+          </label>
+          <input
+            value={editState.name}
+            onChange={(e) => onEditStateChange({ ...editState, name: e.target.value })}
+            className={cn(inputCls, 'flex-1')}
+            autoFocus
+          />
+          <button onClick={onSaveEdit}
+            className="p-2 rounded-[var(--radius-md)] text-[var(--c-save)] hover:bg-[var(--tint-save)] transition-colors shrink-0">
+            <Check size={14} />
+          </button>
+          <button onClick={onCancelEdit}
+            className="p-2 rounded-[var(--radius-md)] text-[var(--ink-muted)] hover:bg-[var(--surface)] transition-colors shrink-0">
+            <X size={14} />
+          </button>
+        </div>
+      ) : (
+        <div className="flex items-center gap-2">
+          <button
+            {...listeners} {...attributes}
+            className="p-1 cursor-grab active:cursor-grabbing text-[var(--ink-subtle)] shrink-0 touch-manipulation"
+          >
+            <GripVertical size={14} />
+          </button>
+          <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: sub.color }} />
+          <span className="flex-1 text-sm text-[var(--ink)] truncate">{sub.name}</span>
+          <button
+            onClick={() => !sub.is_default && onSetDefault(sub)}
+            title={sub.is_default ? 'Default selection in forms' : 'Set as default'}
+            className="shrink-0 p-1 transition-colors touch-manipulation"
+            style={{ color: sub.is_default ? 'var(--c-warn)' : 'var(--ink-subtle)' }}
+          >
+            <Star size={13} fill={sub.is_default ? 'currentColor' : 'none'} />
+          </button>
+          <button onClick={() => onStartEdit(sub)}
+            className="px-2 py-1 text-xs text-[var(--ink-muted)] hover:text-[var(--ink)]
+              border border-[var(--border)] rounded-[var(--radius-md)] hover:bg-[var(--surface)] transition-colors shrink-0">
+            Edit
+          </button>
+          {isUnused ? (
+            <button
+              onClick={() => onDelete(sub)}
+              className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)] hover:text-[var(--c-want)]
+                hover:bg-[var(--tint-want)] transition-colors shrink-0"
+              title="Delete permanently (never used)">
+              <Trash2 size={13} />
+            </button>
+          ) : (
+            <button
+              onClick={() => onArchive(sub)}
+              className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)] hover:text-[var(--c-warn)]
+                hover:bg-[var(--tint-warn)] transition-colors shrink-0"
+              title="Archive (has existing entries)">
+              <Archive size={13} />
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function SubcategoriesPanel({ userId, subcategories, usedSubcategoryIds, onSave }: SubcategoriesPanelProps) {
   const supabase = createClient()
   const [editing, setEditing] = useState<string | null>(null)
@@ -29,6 +167,14 @@ export function SubcategoriesPanel({ userId, subcategories, usedSubcategoryIds, 
   const usedSet = new Set(usedSubcategoryIds)
   const [localSubs, setLocalSubs] = useState(subcategories)
   useEffect(() => { setLocalSubs(subcategories) }, [subcategories])
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
+
+  const active = localSubs.filter((s) => !s.archived)
+  const archived = localSubs.filter((s) => s.archived)
 
   const inputCls = cn(
     'px-3 py-1.5 text-sm bg-[var(--elevated)] border border-[var(--border)] rounded-[var(--radius-md)]',
@@ -79,9 +225,24 @@ export function SubcategoriesPanel({ userId, subcategories, usedSubcategoryIds, 
     onSave()
   }
 
+  const setDefault = async (sub: Subcategory) => {
+    if (sub.is_default) return
+    setLocalSubs(prev => prev.map(s => ({ ...s, is_default: s.id === sub.id })))
+    const [r1, r2] = await Promise.all([
+      supabase.from('subcategories').update({ is_default: false }).eq('user_id', userId).neq('id', sub.id),
+      supabase.from('subcategories').update({ is_default: true }).eq('id', sub.id),
+    ])
+    if (r1.error || r2.error) {
+      toast.error('Failed to set default')
+      setLocalSubs(subcategories)
+    } else {
+      onSave()
+    }
+  }
+
   const saveNew = async () => {
     if (!newSub.name.trim()) { toast.error('Name is required'); return }
-    const maxOrder = Math.max(0, ...localSubs.map((s) => s.sort_order))
+    const maxOrder = active.length > 0 ? Math.max(...active.map((s) => s.sort_order)) : 0
     const { error } = await supabase.from('subcategories').insert({
       user_id: userId,
       name: newSub.name,
@@ -95,8 +256,28 @@ export function SubcategoriesPanel({ userId, subcategories, usedSubcategoryIds, 
     onSave()
   }
 
-  const active = [...localSubs].filter((s) => !s.archived).reverse()
-  const archived = localSubs.filter((s) => s.archived)
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active: dragActive, over } = event
+    if (!over || dragActive.id === over.id) return
+
+    const oldIndex = active.findIndex((s) => s.id === dragActive.id)
+    const newIndex = active.findIndex((s) => s.id === over.id)
+    const reordered = arrayMove(active, oldIndex, newIndex)
+
+    setLocalSubs([...reordered, ...archived])
+
+    const results = await Promise.all(
+      reordered.map((s, i) =>
+        supabase.from('subcategories').update({ sort_order: i + 1 }).eq('id', s.id)
+      )
+    )
+    if (results.some((r) => r.error)) {
+      toast.error('Failed to save order')
+      setLocalSubs(subcategories)
+    } else {
+      onSave()
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -117,20 +298,26 @@ export function SubcategoriesPanel({ userId, subcategories, usedSubcategoryIds, 
       </div>
 
       <p className="text-xs text-[var(--ink-muted)]">
-        Subcategories are optional labels you can attach to any expense or income entry for finer-grained tracking.
+        Subcategories are optional labels for finer-grained tracking.
+        Drag <GripVertical size={10} className="inline" /> to reorder — the top item is the default in add forms.
       </p>
 
-      {/* Add form */}
       {adding && (
         <div className="border border-[var(--border)] rounded-[var(--radius-md)] p-4 bg-[var(--elevated)] space-y-3">
           <h3 className="text-sm font-medium text-[var(--ink)]">New subcategory</h3>
-          <div className="flex gap-2 items-center">
-            <input
-              type="color"
-              value={newSub.color}
-              onChange={(e) => setNewSub({ ...newSub, color: e.target.value })}
-              className="w-9 h-9 rounded-[var(--radius-md)] cursor-pointer border border-[var(--border)] p-0.5"
-            />
+          <div className="flex gap-3 items-center">
+            <label
+              className="shrink-0 rounded-[var(--radius-md)] border-2 border-[var(--border)] cursor-pointer overflow-hidden touch-manipulation"
+              style={{ width: 44, height: 44, backgroundColor: newSub.color }}
+              title="Pick colour"
+            >
+              <input
+                type="color"
+                value={newSub.color}
+                onChange={(e) => setNewSub({ ...newSub, color: e.target.value })}
+                className="opacity-0 w-full h-full cursor-pointer"
+              />
+            </label>
             <input
               type="text"
               value={newSub.name}
@@ -145,7 +332,7 @@ export function SubcategoriesPanel({ userId, subcategories, usedSubcategoryIds, 
               <button
                 key={c}
                 onClick={() => setNewSub({ ...newSub, color: c })}
-                className="w-5 h-5 rounded-full border-2 transition-all"
+                className="w-6 h-6 rounded-full border-2 transition-all touch-manipulation"
                 style={{
                   backgroundColor: c,
                   borderColor: newSub.color === c ? 'var(--ink)' : 'transparent',
@@ -164,74 +351,32 @@ export function SubcategoriesPanel({ userId, subcategories, usedSubcategoryIds, 
         </div>
       )}
 
-      {/* Active list */}
-      <div className="space-y-2">
-        {active.length === 0 && !adding && (
-          <p className="text-sm text-[var(--ink-muted)] py-4 text-center">No subcategories yet.</p>
-        )}
-        {active.map((sub) => {
-          const isEditingThis = editing === sub.id
-          const isUnused = !usedSet.has(sub.id)
-          return (
-            <div key={sub.id}
-              className="flex flex-col gap-2 px-3 sm:px-4 py-3 bg-[var(--elevated)] border border-[var(--border)] rounded-[var(--radius-md)]">
-              {isEditingThis ? (
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={editState!.color}
-                    onChange={(e) => setEditState({ ...editState!, color: e.target.value })}
-                    className="w-8 h-8 rounded-[var(--radius-md)] cursor-pointer border border-[var(--border)] p-0.5 shrink-0"
-                  />
-                  <input
-                    value={editState!.name}
-                    onChange={(e) => setEditState({ ...editState!, name: e.target.value })}
-                    className={cn(inputCls, 'flex-1')}
-                    autoFocus
-                  />
-                  <button onClick={saveEdit}
-                    className="p-2 rounded-[var(--radius-md)] text-[var(--c-save)] hover:bg-[var(--tint-save)] transition-colors shrink-0">
-                    <Check size={14} />
-                  </button>
-                  <button onClick={() => setEditing(null)}
-                    className="p-2 rounded-[var(--radius-md)] text-[var(--ink-muted)] hover:bg-[var(--surface)] transition-colors shrink-0">
-                    <X size={14} />
-                  </button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: sub.color }} />
-                  <span className="flex-1 text-sm text-[var(--ink)] truncate">{sub.name}</span>
-                  <button onClick={() => startEdit(sub)}
-                    className="px-2 py-1 text-xs text-[var(--ink-muted)] hover:text-[var(--ink)]
-                      border border-[var(--border)] rounded-[var(--radius-md)] hover:bg-[var(--surface)] transition-colors shrink-0">
-                    Edit
-                  </button>
-                  {isUnused ? (
-                    <button
-                      onClick={() => deleteSubcategory(sub)}
-                      className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)] hover:text-[var(--c-want)]
-                        hover:bg-[var(--tint-want)] transition-colors shrink-0"
-                      title="Delete permanently (never used)">
-                      <Trash2 size={13} />
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => archive(sub)}
-                      className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)] hover:text-[var(--c-warn)]
-                        hover:bg-[var(--tint-warn)] transition-colors shrink-0"
-                      title="Archive (has existing entries)">
-                      <Archive size={13} />
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          )
-        })}
-      </div>
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={active.map((s) => s.id)} strategy={verticalListSortingStrategy}>
+          <div className="space-y-2">
+            {active.length === 0 && !adding && (
+              <p className="text-sm text-[var(--ink-muted)] py-4 text-center">No subcategories yet.</p>
+            )}
+            {active.map((sub) => (
+              <SortableSubcategory
+                key={sub.id}
+                sub={sub}
+                usedSet={usedSet}
+                editing={editing}
+                editState={editState}
+                onStartEdit={startEdit}
+                onSaveEdit={saveEdit}
+                onCancelEdit={() => setEditing(null)}
+                onEditStateChange={setEditState}
+                onArchive={archive}
+                onDelete={deleteSubcategory}
+                onSetDefault={setDefault}
+              />
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
 
-      {/* Archived */}
       {archived.length > 0 && (
         <div className="mt-6">
           <p className="text-xs font-medium text-[var(--ink-muted)] uppercase tracking-wide mb-2">Archived</p>

@@ -3,13 +3,13 @@
 import { useEffect, useState, useRef } from 'react'
 import {
   Lightbulb, Bug, MessageSquare, Clock, CheckCircle2,
-  Circle, Trash2, ChevronDown, Shield,
+  Circle, Trash2, ChevronDown, Shield, Users,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
 import { cn } from '@/lib/utils'
 import {
-  fetchAllFeedback, updateFeedbackStatus, deleteFeedback,
+  fetchAllFeedback, updateFeedbackStatus, deleteFeedback, fetchUserCount,
   type FeedbackItem, type FeedbackType, type FeedbackStatus,
 } from '@/app/(app)/dashboard/actions/feedback'
 
@@ -51,12 +51,14 @@ export function AdminPanel() {
   const [items, setItems]         = useState<FeedbackItem[]>([])
   const [loading, setLoading]     = useState(true)
   const [typeFilter, setTypeFilter]     = useState('all')
-  const [statusFilter, setStatusFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState('new')
+  const [userCount, setUserCount]       = useState<number | null>(null)
 
   const load = async () => {
     setLoading(true)
-    const data = await fetchAllFeedback()
+    const [data, count] = await Promise.all([fetchAllFeedback(), fetchUserCount()])
     setItems(data)
+    setUserCount(count)
     setLoading(false)
   }
 
@@ -119,6 +121,13 @@ export function AdminPanel() {
 
         {/* Stats chips */}
         <div className="flex items-center gap-2 flex-wrap justify-end shrink-0">
+          {userCount !== null && (
+            <div className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium"
+              style={{ backgroundColor: 'var(--tint-save)', color: 'var(--c-save)' }}>
+              <Users size={10} />
+              {userCount} {userCount === 1 ? 'user' : 'users'}
+            </div>
+          )}
           {Object.entries(STATUS_CONFIG).map(([key, cfg]) => {
             const Icon = cfg.icon
             const count = counts[key as FeedbackStatus]

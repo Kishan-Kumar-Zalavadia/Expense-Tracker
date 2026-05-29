@@ -77,7 +77,7 @@ export async function fetchExpenses(filters: ExpensesFilters, page: number): Pro
   ] = await Promise.all([
     query,
     supabase.from('categories').select('*').eq('user_id', user.id).eq('archived', false).order('sort_order'),
-    supabase.from('payment_modes').select('*').eq('user_id', user.id).eq('archived', false),
+    supabase.from('payment_modes').select('*').eq('user_id', user.id).eq('archived', false).order('sort_order'),
     supabase.from('user_settings').select('currency, enable_subcategories').eq('user_id', user.id).single(),
     summaryQuery,
     supabase.from('subcategories').select('*').eq('user_id', user.id).eq('archived', false).order('sort_order'),

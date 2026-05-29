@@ -1,17 +1,175 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Check, X, Archive, CreditCard, Trash2 } from 'lucide-react'
+import { Plus, Check, X, Archive, CreditCard, Trash2, GripVertical, Star } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import type { PaymentMode } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 
 interface PaymentModesPanelProps {
   userId: string
   paymentModes: PaymentMode[]
   usedPaymentModeIds: string[]
   onSave: () => void
+}
+
+function SortableRow({
+  pm,
+  usedSet,
+  editing,
+  editName,
+  onStartEdit,
+  onSaveEdit,
+  onCancelEdit,
+  onEditNameChange,
+  onToggleCreditCard,
+  onToggleShowInBalance,
+  onArchive,
+  onDelete,
+  onSetDefault,
+}: {
+  pm: PaymentMode
+  usedSet: Set<string>
+  editing: string | null
+  editName: string
+  onStartEdit: (pm: PaymentMode) => void
+  onSaveEdit: () => void
+  onCancelEdit: () => void
+  onEditNameChange: (v: string) => void
+  onToggleCreditCard: (pm: PaymentMode) => void
+  onToggleShowInBalance: (pm: PaymentMode) => void
+  onArchive: (id: string) => void
+  onDelete: (pm: PaymentMode) => void
+  onSetDefault: (pm: PaymentMode) => void
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: pm.id })
+  const isUnused = !usedSet.has(pm.id)
+  const isEditingThis = editing === pm.id
+
+  const inputCls = cn(
+    'px-3 py-1.5 text-sm bg-[var(--elevated)] border border-[var(--border)] rounded-[var(--radius-md)]',
+    'text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[var(--c-primary)]',
+  )
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }}
+      className="flex flex-col gap-2 px-3 sm:px-4 py-3 bg-[var(--elevated)] border border-[var(--border)] rounded-[var(--radius-md)]"
+    >
+      {isEditingThis ? (
+        <div className="flex items-center gap-2">
+          <button
+            {...listeners} {...attributes}
+            className="p-1 cursor-grab active:cursor-grabbing text-[var(--ink-subtle)] shrink-0 touch-manipulation"
+          >
+            <GripVertical size={14} />
+          </button>
+          <input
+            value={editName}
+            onChange={(e) => onEditNameChange(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && onSaveEdit()}
+            className={cn(inputCls, 'flex-1')}
+            autoFocus
+          />
+          <button onClick={onSaveEdit}
+            className="p-2 rounded-[var(--radius-md)] text-[var(--c-save)] hover:bg-[var(--tint-save)] transition-colors">
+            <Check size={14} />
+          </button>
+          <button onClick={onCancelEdit}
+            className="p-2 rounded-[var(--radius-md)] text-[var(--ink-muted)] hover:bg-[var(--surface)] transition-colors">
+            <X size={14} />
+          </button>
+        </div>
+      ) : (
+        <>
+          <div className="flex items-center gap-2">
+            <button
+              {...listeners} {...attributes}
+              className="p-1 cursor-grab active:cursor-grabbing text-[var(--ink-subtle)] shrink-0 touch-manipulation"
+            >
+              <GripVertical size={14} />
+            </button>
+            <span className="flex-1 text-sm font-medium text-[var(--ink)] truncate">{pm.name}</span>
+            <button
+              onClick={() => !pm.is_default && onSetDefault(pm)}
+              title={pm.is_default ? 'Default selection in forms' : 'Set as default'}
+              className="shrink-0 p-1 transition-colors touch-manipulation"
+              style={{ color: pm.is_default ? 'var(--c-warn)' : 'var(--ink-subtle)' }}
+            >
+              <Star size={13} fill={pm.is_default ? 'currentColor' : 'none'} />
+            </button>
+            <button onClick={() => onStartEdit(pm)}
+              className="px-2 py-1 text-xs text-[var(--ink-muted)] hover:text-[var(--ink)]
+                border border-[var(--border)] rounded-[var(--radius-md)] hover:bg-[var(--surface)] transition-colors shrink-0">
+              Edit
+            </button>
+            {isUnused ? (
+              <button
+                onClick={() => onDelete(pm)}
+                className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)] hover:text-[var(--c-want)]
+                  hover:bg-[var(--tint-want)] transition-colors shrink-0"
+                title="Delete permanently (never used)">
+                <Trash2 size={13} />
+              </button>
+            ) : (
+              <button onClick={() => onArchive(pm.id)}
+                className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)] hover:text-[var(--c-warn)]
+                  hover:bg-[var(--tint-warn)] transition-colors shrink-0"
+                title="Archive (has existing transactions)">
+                <Archive size={13} />
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-2 flex-wrap pl-6">
+            <button
+              onClick={() => onToggleCreditCard(pm)}
+              title={pm.is_credit_card ? 'Credit card — tap to switch to debit' : 'Debit/bank — tap to mark as credit card'}
+              className={cn(
+                'flex items-center gap-1 px-2 py-1 text-[10px] font-semibold rounded-[var(--radius-md)] border transition-colors',
+                pm.is_credit_card
+                  ? 'border-[var(--c-need)] text-[var(--c-need)] bg-[var(--tint-need)]'
+                  : 'border-[var(--border)] text-[var(--ink-subtle)] hover:border-[var(--border-strong)]',
+              )}
+            >
+              <CreditCard size={10} />
+              {pm.is_credit_card ? 'Credit card' : 'Debit / bank'}
+            </button>
+            <button
+              onClick={() => onToggleShowInBalance(pm)}
+              title={pm.show_in_balance ? 'Shown in balance cards — tap to hide' : 'Hidden from balance cards — tap to show'}
+              className={cn(
+                'px-2 py-1 text-[10px] font-semibold rounded-[var(--radius-md)] border transition-colors',
+                pm.show_in_balance
+                  ? 'border-[var(--c-save)] text-[var(--c-save)] bg-[var(--tint-save)]'
+                  : 'border-[var(--border)] text-[var(--ink-subtle)] hover:border-[var(--border-strong)]',
+              )}
+            >
+              {pm.show_in_balance ? 'Shown in balance' : 'Hidden from balance'}
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  )
 }
 
 export function PaymentModesPanel({ userId, paymentModes, usedPaymentModeIds, onSave }: PaymentModesPanelProps) {
@@ -24,6 +182,14 @@ export function PaymentModesPanel({ userId, paymentModes, usedPaymentModeIds, on
 
   const [localModes, setLocalModes] = useState(paymentModes)
   useEffect(() => { setLocalModes(paymentModes) }, [paymentModes])
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
+
+  const active   = localModes.filter((pm) => !pm.archived)
+  const archived = localModes.filter((pm) => pm.archived)
 
   const startEdit = (pm: PaymentMode) => {
     setEditing(pm.id)
@@ -79,9 +245,29 @@ export function PaymentModesPanel({ userId, paymentModes, usedPaymentModeIds, on
     onSave()
   }
 
+  const setDefault = async (pm: PaymentMode) => {
+    if (pm.is_default) return
+    setLocalModes(prev => prev.map(m => ({ ...m, is_default: m.id === pm.id })))
+    const [r1, r2] = await Promise.all([
+      supabase.from('payment_modes').update({ is_default: false }).eq('user_id', userId).neq('id', pm.id),
+      supabase.from('payment_modes').update({ is_default: true }).eq('id', pm.id),
+    ])
+    if (r1.error || r2.error) {
+      toast.error('Failed to set default')
+      setLocalModes(paymentModes)
+    } else {
+      onSave()
+    }
+  }
+
   const saveNew = async () => {
     if (!newName.trim()) { toast.error('Name is required'); return }
-    const { error } = await supabase.from('payment_modes').insert({ user_id: userId, name: newName.trim() })
+    const maxOrder = active.length > 0 ? Math.max(...active.map((m) => m.sort_order)) : 0
+    const { error } = await supabase.from('payment_modes').insert({
+      user_id: userId,
+      name: newName.trim(),
+      sort_order: maxOrder + 1,
+    })
     if (error) { toast.error(error.message); return }
     toast.success('Payment mode added')
     setAdding(false)
@@ -89,13 +275,35 @@ export function PaymentModesPanel({ userId, paymentModes, usedPaymentModeIds, on
     onSave()
   }
 
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active: dragActive, over } = event
+    if (!over || dragActive.id === over.id) return
+
+    const oldIndex = active.findIndex((m) => m.id === dragActive.id)
+    const newIndex = active.findIndex((m) => m.id === over.id)
+    const reordered = arrayMove(active, oldIndex, newIndex)
+
+    // Optimistic update
+    setLocalModes([...reordered, ...archived])
+
+    // Batch update sort_orders
+    const results = await Promise.all(
+      reordered.map((m, i) =>
+        supabase.from('payment_modes').update({ sort_order: i + 1 }).eq('id', m.id)
+      )
+    )
+    if (results.some((r) => r.error)) {
+      toast.error('Failed to save order')
+      setLocalModes(paymentModes)
+    } else {
+      onSave()
+    }
+  }
+
   const inputCls = cn(
     'px-3 py-1.5 text-sm bg-[var(--elevated)] border border-[var(--border)] rounded-[var(--radius-md)]',
     'text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[var(--c-primary)]',
   )
-
-  const active   = [...localModes].filter((pm) => !pm.archived).reverse()
-  const archived = localModes.filter((pm) => pm.archived)
 
   return (
     <div className="space-y-6">
@@ -117,6 +325,7 @@ export function PaymentModesPanel({ userId, paymentModes, usedPaymentModeIds, on
       <p className="text-xs text-[var(--ink-muted)]">
         Toggle <span className="font-medium">Shown / Hidden</span> to control which accounts appear in the balance cards.
         Mark an account as <span className="font-medium">Credit Card</span> to enable the "Pay credit card" button on the dashboard.
+        Drag <GripVertical size={10} className="inline" /> to reorder — the top item is the default in add forms.
       </p>
 
       {adding && (
@@ -139,93 +348,30 @@ export function PaymentModesPanel({ userId, paymentModes, usedPaymentModeIds, on
         </div>
       )}
 
-      <div className="space-y-2">
-        {active.map((pm) => {
-          const isUnused = !usedSet.has(pm.id)
-          return (
-            <div key={pm.id}
-              className="flex flex-col gap-2 px-3 sm:px-4 py-3 bg-[var(--elevated)] border border-[var(--border)] rounded-[var(--radius-md)]">
-              {editing === pm.id ? (
-                /* Edit mode — single row, works fine on mobile */
-                <div className="flex items-center gap-2">
-                  <input
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && saveEdit()}
-                    className={cn(inputCls, 'flex-1')}
-                    autoFocus
-                  />
-                  <button onClick={saveEdit}
-                    className="p-2 rounded-[var(--radius-md)] text-[var(--c-save)] hover:bg-[var(--tint-save)] transition-colors">
-                    <Check size={14} />
-                  </button>
-                  <button onClick={() => setEditing(null)}
-                    className="p-2 rounded-[var(--radius-md)] text-[var(--ink-muted)] hover:bg-[var(--surface)] transition-colors">
-                    <X size={14} />
-                  </button>
-                </div>
-              ) : (
-                <>
-                  {/* Row 1: name + edit/delete actions */}
-                  <div className="flex items-center gap-2">
-                    <span className="flex-1 text-sm font-medium text-[var(--ink)] truncate">{pm.name}</span>
-                    <button onClick={() => startEdit(pm)}
-                      className="px-2 py-1 text-xs text-[var(--ink-muted)] hover:text-[var(--ink)]
-                        border border-[var(--border)] rounded-[var(--radius-md)] hover:bg-[var(--surface)] transition-colors shrink-0">
-                      Edit
-                    </button>
-                    {isUnused ? (
-                      <button
-                        onClick={() => deleteMode(pm)}
-                        className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)] hover:text-[var(--c-want)]
-                          hover:bg-[var(--tint-want)] transition-colors shrink-0"
-                        title="Delete permanently (never used)">
-                        <Trash2 size={13} />
-                      </button>
-                    ) : (
-                      <button onClick={() => archive(pm.id)}
-                        className="p-1.5 rounded-[var(--radius-md)] text-[var(--ink-subtle)] hover:text-[var(--c-warn)]
-                          hover:bg-[var(--tint-warn)] transition-colors shrink-0"
-                        title="Archive (has existing transactions)">
-                        <Archive size={13} />
-                      </button>
-                    )}
-                  </div>
-                  {/* Row 2: toggles */}
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <button
-                      onClick={() => toggleCreditCard(pm)}
-                      title={pm.is_credit_card ? 'Credit card — tap to switch to debit' : 'Debit/bank — tap to mark as credit card'}
-                      className={cn(
-                        'flex items-center gap-1 px-2 py-1 text-[10px] font-semibold rounded-[var(--radius-md)] border transition-colors',
-                        pm.is_credit_card
-                          ? 'border-[var(--c-need)] text-[var(--c-need)] bg-[var(--tint-need)]'
-                          : 'border-[var(--border)] text-[var(--ink-subtle)] hover:border-[var(--border-strong)]',
-                      )}
-                    >
-                      <CreditCard size={10} />
-                      {pm.is_credit_card ? 'Credit card' : 'Debit / bank'}
-                    </button>
-                    <button
-                      onClick={() => toggleShowInBalance(pm)}
-                      title={pm.show_in_balance ? 'Shown in balance cards — tap to hide' : 'Hidden from balance cards — tap to show'}
-                      className={cn(
-                        'px-2 py-1 text-[10px] font-semibold rounded-[var(--radius-md)] border transition-colors',
-                        pm.show_in_balance
-                          ? 'border-[var(--c-save)] text-[var(--c-save)] bg-[var(--tint-save)]'
-                          : 'border-[var(--border)] text-[var(--ink-subtle)] hover:border-[var(--border-strong)]',
-                      )}
-                    >
-                      {pm.show_in_balance ? 'Shown in balance' : 'Hidden from balance'}
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          )
-        })}
-      </div>
-
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={active.map((m) => m.id)} strategy={verticalListSortingStrategy}>
+          <div className="space-y-2">
+            {active.map((pm) => (
+              <SortableRow
+                key={pm.id}
+                pm={pm}
+                usedSet={usedSet}
+                editing={editing}
+                editName={editName}
+                onStartEdit={startEdit}
+                onSaveEdit={saveEdit}
+                onCancelEdit={() => setEditing(null)}
+                onEditNameChange={setEditName}
+                onToggleCreditCard={toggleCreditCard}
+                onToggleShowInBalance={toggleShowInBalance}
+                onArchive={archive}
+                onDelete={deleteMode}
+                onSetDefault={setDefault}
+              />
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
 
       {archived.length > 0 && (
         <div className="mt-6">

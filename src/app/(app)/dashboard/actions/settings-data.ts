@@ -36,7 +36,7 @@ export async function fetchSettingsData(): Promise<SettingsData | null> {
   ] = await Promise.all([
     supabase.from('user_settings').select('*').eq('user_id', user.id).single(),
     supabase.from('categories').select('*').eq('user_id', user.id).order('sort_order'),
-    supabase.from('payment_modes').select('*').eq('user_id', user.id),
+    supabase.from('payment_modes').select('*').eq('user_id', user.id).order('sort_order'),
     supabase.from('budget_periods').select('*').eq('user_id', user.id).order('start_month', { ascending: false }),
     supabase.from('recurring_items')
       .select('*, payment_mode:payment_modes(id,name,initial_balance,archived,show_in_balance,is_credit_card), category:categories(id,name,color,type,sort_order,archived,is_system,show_in_cards,user_id)')

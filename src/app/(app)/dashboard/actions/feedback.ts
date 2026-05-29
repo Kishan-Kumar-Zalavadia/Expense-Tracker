@@ -94,6 +94,17 @@ export async function updateFeedbackStatus(
   return error ? { error: error.message } : {}
 }
 
+// ─── User count (admin only) ──────────────────────────────────────────────────
+export async function fetchUserCount(): Promise<number> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || user.email !== ADMIN_EMAIL) return 0
+
+  const admin = createAdminClient()
+  const { data } = await admin.auth.admin.listUsers({ perPage: 1 })
+  return ('total' in data && typeof data.total === 'number') ? data.total : 0
+}
+
 // ─── Delete feedback (admin only) ─────────────────────────────────────────────
 export async function deleteFeedback(id: string): Promise<{ error?: string }> {
   const supabase = await createClient()

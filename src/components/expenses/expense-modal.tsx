@@ -94,10 +94,10 @@ export function ExpenseModal({
         reset({
           date: todayISO(),
           description: '',
-          category_id: categories[0]?.id ?? '',
-          type: categories[0]?.type ?? undefined,
+          category_id: (categories.find(c => c.is_default) ?? categories[0])?.id ?? '',
+          type: (categories.find(c => c.is_default) ?? categories[0])?.type ?? undefined,
           amount: '',
-          payment_mode_id: paymentModes[0]?.id ?? '',
+          payment_mode_id: (paymentModes.find(pm => pm.is_default) ?? paymentModes[0])?.id ?? '',
           subcategory_id: '',
           notes: '',
         })

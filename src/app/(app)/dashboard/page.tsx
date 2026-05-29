@@ -21,7 +21,7 @@ export default async function DashboardPage() {
   ] = await Promise.all([
     getDashboardData(year, month),
     supabase.from('categories').select('*').eq('user_id', user.id).eq('archived', false).order('sort_order'),
-    supabase.from('payment_modes').select('*').eq('user_id', user.id),
+    supabase.from('payment_modes').select('*').eq('user_id', user.id).order('sort_order'),
     supabase.from('budget_periods').select('*').eq('user_id', user.id).order('start_month', { ascending: true }),
     supabase.from('user_settings').select('*').eq('user_id', user.id).single(),
     supabase.from('subcategories').select('*').eq('user_id', user.id).eq('archived', false).order('sort_order'),

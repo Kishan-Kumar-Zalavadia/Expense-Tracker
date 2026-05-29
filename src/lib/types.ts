@@ -8,6 +8,7 @@ export interface Subcategory {
   color: string
   sort_order: number
   archived: boolean
+  is_default: boolean
   created_at: string
 }
 
@@ -21,6 +22,7 @@ export interface Category {
   archived: boolean
   is_system: boolean
   show_in_cards: boolean
+  is_default: boolean
 }
 
 export interface PaymentMode {
@@ -31,6 +33,8 @@ export interface PaymentMode {
   archived: boolean
   show_in_balance: boolean
   is_credit_card: boolean
+  sort_order: number
+  is_default: boolean
 }
 
 export interface Expense {

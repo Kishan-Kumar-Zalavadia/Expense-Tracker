@@ -86,7 +86,7 @@ export function IncomeModal({
           description: '',
           category_id: '',
           amount: '',
-          payment_mode_id: paymentModes[0]?.id ?? '',
+          payment_mode_id: (paymentModes.find(pm => pm.is_default) ?? paymentModes[0])?.id ?? '',
           budget_period_id: '',
           subcategory_id: '',
           notes: '',
