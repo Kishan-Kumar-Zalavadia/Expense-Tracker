@@ -1,6 +1,6 @@
 'use client'
 
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts'
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 import { formatCurrency } from '@/lib/utils'
 import type { CategorySpend } from '@/lib/types'
 
@@ -58,42 +58,62 @@ export function CategoryPie({ data, currency }: CategoryPieProps) {
   const total = data.reduce((s, d) => s + d.total, 0)
 
   return (
-    <ResponsiveContainer width="100%" height={240}>
-      <PieChart>
-        <Pie
-          data={data}
-          cx="50%"
-          cy="50%"
-          innerRadius={60}
-          outerRadius={90}
-          paddingAngle={2}
-          dataKey="total"
-          nameKey="category_name"
-          stroke="none"
-        >
-          {data.map((entry) => (
-            <Cell key={entry.category_id} fill={entry.color} />
-          ))}
-        </Pie>
-        <Tooltip
-          animationDuration={0}
-          content={(props) => (
-            <CustomTooltip
-              active={props.active}
-              payload={props.payload as unknown as { value: number; payload: CategorySpend }[]}
-              currency={currency}
-              total={total}
-            />
-          )}
-        />
-        <Legend
-          iconType="circle"
-          iconSize={8}
-          formatter={(value) => (
-            <span style={{ color: 'var(--ink-muted)', fontSize: '12px' }}>{value}</span>
-          )}
-        />
-      </PieChart>
-    </ResponsiveContainer>
+    <div className="flex flex-col gap-5">
+      {/* Donut chart — fixed height, no built-in legend (it overlaps on mobile) */}
+      <ResponsiveContainer width="100%" height={200}>
+        <PieChart>
+          <Pie
+            data={data}
+            cx="50%"
+            cy="50%"
+            innerRadius={55}
+            outerRadius={85}
+            paddingAngle={2}
+            dataKey="total"
+            nameKey="category_name"
+            stroke="none"
+          >
+            {data.map((entry) => (
+              <Cell key={entry.category_id} fill={entry.color} />
+            ))}
+          </Pie>
+          <Tooltip
+            animationDuration={0}
+            content={(props) => (
+              <CustomTooltip
+                active={props.active}
+                payload={props.payload as unknown as { value: number; payload: CategorySpend }[]}
+                currency={currency}
+                total={total}
+              />
+            )}
+          />
+        </PieChart>
+      </ResponsiveContainer>
+
+      {/* Custom legend — rendered outside the SVG so it never overlaps the chart */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+        {data.map((item) => {
+          const pct = total > 0 ? ((item.total / total) * 100).toFixed(1) : '0'
+          return (
+            <div key={item.category_id} className="flex items-center gap-2 min-w-0">
+              <span
+                className="w-2 h-2 rounded-full shrink-0"
+                style={{ backgroundColor: item.color }}
+              />
+              <span className="text-xs text-[var(--ink-muted)] truncate flex-1">
+                {item.category_name}
+              </span>
+              <span className="text-xs tabular-nums font-medium text-[var(--ink)] shrink-0">
+                {formatCurrency(item.total, currency)}
+              </span>
+              <span className="text-[10px] tabular-nums text-[var(--ink-subtle)] shrink-0 w-9 text-right">
+                {pct}%
+              </span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
   )
 }
