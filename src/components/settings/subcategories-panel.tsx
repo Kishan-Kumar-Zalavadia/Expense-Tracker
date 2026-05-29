@@ -77,41 +77,54 @@ function SortableSubcategory({
       className="flex flex-col gap-2 px-3 sm:px-4 py-3 bg-[var(--elevated)] border border-[var(--border)] rounded-[var(--radius-md)]"
     >
       {isEditingThis && editState ? (
-        <div className="flex items-center gap-2">
-          <button
-            {...listeners} {...attributes}
-            className="p-1 cursor-grab active:cursor-grabbing text-[var(--ink-subtle)] shrink-0 touch-manipulation"
-            style={{ touchAction: 'none' }}
-          >
-            <GripVertical size={14} />
-          </button>
-          <label
-            className="shrink-0 rounded-[var(--radius-md)] border-2 border-[var(--border)] cursor-pointer overflow-hidden touch-manipulation"
-            style={{ width: 44, height: 44, backgroundColor: editState.color }}
-            title="Pick colour"
-          >
+        <>
+          {/* Row 1: grip + colour swatch + name input */}
+          <div className="flex items-center gap-2">
+            <button
+              {...listeners} {...attributes}
+              className="p-1 cursor-grab active:cursor-grabbing text-[var(--ink-subtle)] shrink-0 touch-manipulation"
+              style={{ touchAction: 'none' }}
+            >
+              <GripVertical size={14} />
+            </button>
+            <label
+              className="shrink-0 rounded-[var(--radius-md)] border-2 border-[var(--border)] cursor-pointer overflow-hidden touch-manipulation"
+              style={{ width: 44, height: 44, backgroundColor: editState.color }}
+              title="Pick colour"
+            >
+              <input
+                type="color"
+                value={editState.color}
+                onChange={(e) => onEditStateChange({ ...editState, color: e.target.value })}
+                className="opacity-0 w-full h-full cursor-pointer"
+              />
+            </label>
             <input
-              type="color"
-              value={editState.color}
-              onChange={(e) => onEditStateChange({ ...editState, color: e.target.value })}
-              className="opacity-0 w-full h-full cursor-pointer"
+              value={editState.name}
+              onChange={(e) => onEditStateChange({ ...editState, name: e.target.value })}
+              className={cn(inputCls, 'flex-1')}
+              autoFocus
             />
-          </label>
-          <input
-            value={editState.name}
-            onChange={(e) => onEditStateChange({ ...editState, name: e.target.value })}
-            className={cn(inputCls, 'flex-1')}
-            autoFocus
-          />
-          <button onClick={onSaveEdit}
-            className="p-2 rounded-[var(--radius-md)] text-[var(--c-save)] hover:bg-[var(--tint-save)] transition-colors shrink-0">
-            <Check size={14} />
-          </button>
-          <button onClick={onCancelEdit}
-            className="p-2 rounded-[var(--radius-md)] text-[var(--ink-muted)] hover:bg-[var(--surface)] transition-colors shrink-0">
-            <X size={14} />
-          </button>
-        </div>
+          </div>
+          {/* Row 2: Cancel / Save changes */}
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onCancelEdit}
+              className="flex-1 px-4 py-2 text-sm text-[var(--ink-muted)] border border-[var(--border)]
+                rounded-[var(--radius-xl)] hover:bg-[var(--surface-2)] transition-colors min-h-[44px] touch-manipulation"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={onSaveEdit}
+              className="flex-1 btn-primary justify-center touch-manipulation"
+            >
+              Save changes
+            </button>
+          </div>
+        </>
       ) : (
         <div className="flex items-center gap-2">
           <button

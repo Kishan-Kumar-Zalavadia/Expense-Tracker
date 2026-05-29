@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Check, X, Archive, CreditCard, Trash2, GripVertical, Star } from 'lucide-react'
+import { Plus, Archive, CreditCard, Trash2, GripVertical, Star } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import type { PaymentMode } from '@/lib/types'
@@ -76,30 +76,41 @@ function SortableRow({
       className="flex flex-col gap-2 px-3 sm:px-4 py-3 bg-[var(--elevated)] border border-[var(--border)] rounded-[var(--radius-md)]"
     >
       {isEditingThis ? (
-        <div className="flex items-center gap-2">
-          <button
-            {...listeners} {...attributes}
-            className="p-1 cursor-grab active:cursor-grabbing text-[var(--ink-subtle)] shrink-0 touch-manipulation"
-            style={{ touchAction: 'none' }}
-          >
-            <GripVertical size={14} />
-          </button>
-          <input
-            value={editName}
-            onChange={(e) => onEditNameChange(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && onSaveEdit()}
-            className={cn(inputCls, 'flex-1')}
-            autoFocus
-          />
-          <button onClick={onSaveEdit}
-            className="p-2 rounded-[var(--radius-md)] text-[var(--c-save)] hover:bg-[var(--tint-save)] transition-colors">
-            <Check size={14} />
-          </button>
-          <button onClick={onCancelEdit}
-            className="p-2 rounded-[var(--radius-md)] text-[var(--ink-muted)] hover:bg-[var(--surface)] transition-colors">
-            <X size={14} />
-          </button>
-        </div>
+        <>
+          <div className="flex items-center gap-2">
+            <button
+              {...listeners} {...attributes}
+              className="p-1 cursor-grab active:cursor-grabbing text-[var(--ink-subtle)] shrink-0 touch-manipulation"
+              style={{ touchAction: 'none' }}
+            >
+              <GripVertical size={14} />
+            </button>
+            <input
+              value={editName}
+              onChange={(e) => onEditNameChange(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && onSaveEdit()}
+              className={cn(inputCls, 'flex-1')}
+              autoFocus
+            />
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onCancelEdit}
+              className="flex-1 px-4 py-2 text-sm text-[var(--ink-muted)] border border-[var(--border)]
+                rounded-[var(--radius-xl)] hover:bg-[var(--surface-2)] transition-colors min-h-[44px] touch-manipulation"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={onSaveEdit}
+              className="flex-1 btn-primary justify-center touch-manipulation"
+            >
+              Save changes
+            </button>
+          </div>
+        </>
       ) : (
         <>
           <div className="flex items-center gap-2">

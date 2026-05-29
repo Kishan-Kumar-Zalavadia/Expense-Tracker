@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Check, X, Archive, Trash2, Lock, GripVertical, Star } from 'lucide-react'
+import { Plus, Archive, Trash2, Lock, GripVertical, Star } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { typeColor } from '@/lib/utils'
@@ -138,21 +138,28 @@ function SortableCategory({
               className={cn(inputCls, 'flex-1')}
             />
           </div>
-          <div className="flex items-center gap-2">
-            <select
-              value={editState.type}
-              onChange={(e) => onEditStateChange({ ...editState, type: e.target.value as ExpenseType })}
-              className={cn(inputCls, 'flex-1')}
+          <select
+            value={editState.type}
+            onChange={(e) => onEditStateChange({ ...editState, type: e.target.value as ExpenseType })}
+            className={inputCls}
+          >
+            {TYPE_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onCancelEdit}
+              className="flex-1 px-4 py-2 text-sm text-[var(--ink-muted)] border border-[var(--border)]
+                rounded-[var(--radius-xl)] hover:bg-[var(--surface-2)] transition-colors min-h-[44px] touch-manipulation"
             >
-              {TYPE_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
-            </select>
-            <button onClick={onSaveEdit}
-              className="p-2.5 rounded-[var(--radius-md)] text-[var(--c-save)] hover:bg-[var(--tint-save)] transition-colors shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center">
-              <Check size={16} />
+              Cancel
             </button>
-            <button onClick={onCancelEdit}
-              className="p-2.5 rounded-[var(--radius-md)] text-[var(--ink-muted)] hover:bg-[var(--surface)] transition-colors shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center">
-              <X size={16} />
+            <button
+              type="button"
+              onClick={onSaveEdit}
+              className="flex-1 btn-primary justify-center touch-manipulation"
+            >
+              Save changes
             </button>
           </div>
         </>
