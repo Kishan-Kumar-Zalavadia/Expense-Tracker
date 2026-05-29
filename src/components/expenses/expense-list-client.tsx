@@ -374,8 +374,12 @@ export function ExpenseListClient({
       )}
 
       <ExpenseModal
+        key={editTarget?.id ?? 'new'}
         open={modalOpen}
-        onOpenChange={setModalOpen}
+        onOpenChange={(open) => {
+          setModalOpen(open)
+          if (!open) setEditTarget(null)
+        }}
         expense={editTarget}
         categories={categories}
         paymentModes={paymentModes}

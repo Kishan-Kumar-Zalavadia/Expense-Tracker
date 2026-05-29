@@ -47,11 +47,15 @@ function DialogContent({
 }: DialogPrimitive.Popup.Props & {
   showCloseButton?: boolean
 }) {
-  // Detect mobile to apply bottom-sheet class via JS (avoids CSS specificity fights)
-  const [isMobile, setIsMobile] = React.useState(false)
+  // Detect mobile to apply bottom-sheet class via JS (avoids CSS specificity fights).
+  // Initialise synchronously so the first render already has the correct value —
+  // without this, isMobile starts false, the dialog opens as a desktop modal, then
+  // immediately re-renders as a bottom sheet, cancelling the open animation on mobile.
+  const [isMobile, setIsMobile] = React.useState(
+    () => typeof window !== 'undefined' && window.matchMedia("(max-width: 767px)").matches
+  )
   React.useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)")
-    setIsMobile(mq.matches)
     const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
     mq.addEventListener("change", handler)
     return () => mq.removeEventListener("change", handler)

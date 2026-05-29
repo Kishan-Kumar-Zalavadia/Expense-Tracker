@@ -384,6 +384,7 @@ export function IncomeListClient({
       )}
 
       <IncomeModal
+        key={editTarget?.id ?? 'new'}
         open={modalOpen}
         onOpenChange={(open) => {
           setModalOpen(open)

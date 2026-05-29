@@ -253,6 +253,13 @@
   transition: border-color 150ms, box-shadow 150ms;
   min-height: 44px;
 }
+/* iOS Safari: inputs with font-size < 16px trigger auto-zoom on focus.
+   Force 16px on mobile for every input/select/textarea to suppress this. */
+@media (max-width: 767px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
 /* iOS Safari: date input value drifts right without this */
 .apple-input[type="date"] {
   -webkit-appearance: none;

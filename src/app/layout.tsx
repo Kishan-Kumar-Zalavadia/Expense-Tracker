@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Fraunces, Hanken_Grotesk, JetBrains_Mono } from 'next/font/google'
 import { Toaster } from '@/components/ui/sonner'
 import { ThemeScript } from '@/components/theme-script'
@@ -21,6 +21,11 @@ const jetbrains = JetBrains_Mono({
   subsets: ['latin'],
   weight: ['400', '500', '600'],
 })
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+}
 
 export const metadata: Metadata = {
   title: 'Ledger — Personal Finance Tracker',
