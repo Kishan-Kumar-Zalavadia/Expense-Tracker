@@ -32,7 +32,7 @@ import { WeeklyClient } from '@/components/analysis/weekly-client'
 import { YearlyClient } from '@/components/analysis/yearly-client'
 import { SettingsClient } from '@/components/settings/settings-client'
 import { FeedbackPanel } from '@/components/feedback/feedback-panel'
-import { AdminPanel } from '@/components/feedback/admin-panel'
+import { AdminShell } from '@/components/feedback/admin-shell'
 
 import type { Category, PaymentMode, BudgetPeriod, Subcategory } from '@/lib/types'
 import { Plus } from 'lucide-react'
@@ -498,7 +498,7 @@ function FeedbackSection() {
 
 // ─── Admin section ────────────────────────────────────────────────
 function AdminSection() {
-  return <AdminPanel />
+  return <AdminShell />
 }
 
 // ─── Main shell ───────────────────────────────────────────────────
