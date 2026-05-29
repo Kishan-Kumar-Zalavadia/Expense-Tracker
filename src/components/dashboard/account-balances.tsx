@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { TrendingUp, TrendingDown, Wallet, CreditCard, LayoutList, Banknote } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import type { PaymentMode, PaymentModeBalance } from '@/lib/types'
@@ -14,10 +13,10 @@ interface AccountBalancesProps {
   paymentModes: PaymentMode[]
   currency: string
   userId: string
+  onSuccess?: () => void
 }
 
-export function AccountBalances({ balances, creditCardTotal, paymentModes, currency, userId }: AccountBalancesProps) {
-  const router = useRouter()
+export function AccountBalances({ balances, creditCardTotal, paymentModes, currency, userId, onSuccess }: AccountBalancesProps) {
   const [payTarget, setPayTarget] = useState<PaymentModeBalance | null>(null)
 
   if (balances.length === 0 && creditCardTotal.cardCount === 0) return null
@@ -195,7 +194,7 @@ export function AccountBalances({ balances, creditCardTotal, paymentModes, curre
           paymentModes={nonCreditModes}
           currency={currency}
           userId={userId}
-          onSuccess={() => router.refresh()}
+          onSuccess={() => { setPayTarget(null); onSuccess?.() }}
         />
       )}
     </>

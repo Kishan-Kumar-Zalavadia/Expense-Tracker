@@ -116,7 +116,7 @@ export function CreditCardPaymentModal({
         category_id: categoryId,
         amount: amt,
         payment_mode_id: fromId,
-        type: 'Saving',
+        type: null,
         notes: `Paid from ${fromName}`,
       })
       if (expErr) throw expErr

@@ -60,7 +60,7 @@ export function ExpenseModal({
       date: todayISO(),
       description: '',
       category_id: '',
-      type: 'Need',
+      type: undefined,
       amount: '',
       payment_mode_id: '',
       subcategory_id: '',
@@ -84,7 +84,7 @@ export function ExpenseModal({
           date: expense.date,
           description: expense.description ?? '',
           category_id: expense.category_id,
-          type: expense.type,
+          type: expense.type ?? undefined,
           amount: String(expense.amount),
           payment_mode_id: expense.payment_mode_id,
           subcategory_id: expense.subcategory_id ?? '',
@@ -95,7 +95,7 @@ export function ExpenseModal({
           date: todayISO(),
           description: '',
           category_id: categories[0]?.id ?? '',
-          type: categories[0]?.type ?? 'Need',
+          type: categories[0]?.type ?? undefined,
           amount: '',
           payment_mode_id: paymentModes[0]?.id ?? '',
           subcategory_id: '',
@@ -125,7 +125,7 @@ export function ExpenseModal({
       date: values.date,
       description: values.description || null,
       category_id: values.category_id,
-      type: values.type,
+      type: values.type ?? null,
       amount: parsedAmount,
       payment_mode_id: values.payment_mode_id,
       subcategory_id: values.subcategory_id || null,
@@ -215,12 +215,13 @@ export function ExpenseModal({
               </Field>
             )}
 
-            <Field label="Type" required error={errors.type?.message}>
+            <Field label="Type" error={errors.type?.message}>
               <select
                 {...register('type')}
                 className={inputCls(!!errors.type)}
                 style={{ borderLeftColor: accentColor, borderLeftWidth: '3px' }}
               >
+                <option value="">None (optional)</option>
                 {EXPENSE_TYPES.map((t) => (
                   <option key={t} value={t}>{t}</option>
                 ))}

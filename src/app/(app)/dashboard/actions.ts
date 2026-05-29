@@ -61,6 +61,7 @@ export async function getDashboardData(year: number, month: number): Promise<Das
 
   let needSpent = 0, wantSpent = 0, saveSpent = 0
   for (const e of expenseList) {
+    if (e.category?.is_system) continue   // exclude CC Payment and other system categories
     if (e.type === 'Need')   needSpent  += Number(e.amount)
     if (e.type === 'Want')   wantSpent  += Number(e.amount)
     if (e.type === 'Saving') saveSpent  += Number(e.amount)
@@ -82,7 +83,7 @@ export async function getDashboardData(year: number, month: number): Promise<Das
 
   const catMap = new Map<string, CategorySpend>()
   for (const e of expenseList) {
-    if (!e.category) continue
+    if (!e.category || e.category.is_system) continue
     const existing = catMap.get(e.category_id)
     if (existing) {
       existing.total += Number(e.amount)
@@ -99,6 +100,7 @@ export async function getDashboardData(year: number, month: number): Promise<Das
 
   const dayMap = new Map<string, { need: number; want: number }>()
   for (const e of expenseList) {
+    if (e.category?.is_system) continue   // exclude system category from daily chart
     if (e.type === 'Saving') continue
     const entry = dayMap.get(e.date) ?? { need: 0, want: 0 }
     if (e.type === 'Need') entry.need += Number(e.amount)

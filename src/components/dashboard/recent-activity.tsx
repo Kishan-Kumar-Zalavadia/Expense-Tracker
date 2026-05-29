@@ -71,15 +71,17 @@ export function RecentActivity({
                   {expense.category?.name}
                 </span>
                 {/* Type badge */}
-                <span
-                  className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-[var(--radius-xs)]"
-                  style={{
-                    backgroundColor: typeTint(expense.type),
-                    color: typeColor(expense.type),
-                  }}
-                >
-                  {expense.type}
-                </span>
+                {expense.type && (
+                  <span
+                    className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-[var(--radius-xs)]"
+                    style={{
+                      backgroundColor: typeTint(expense.type),
+                      color: typeColor(expense.type),
+                    }}
+                  >
+                    {expense.type}
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-2 mt-0.5">
                 {expense.description && (

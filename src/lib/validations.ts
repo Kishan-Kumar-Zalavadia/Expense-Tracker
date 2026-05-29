@@ -7,7 +7,7 @@ export const expenseSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date'),
   description: z.string().max(200).optional(),
   category_id: z.string().min(1, 'Select a category'),
-  type: z.enum(['Need', 'Want', 'Saving']),
+  type: z.preprocess((v) => (v === '' ? undefined : v), z.enum(['Need', 'Want', 'Saving']).optional()),
   amount: z.string().min(1, 'Amount is required'),
   payment_mode_id: z.string().min(1, 'Select a payment mode'),
   subcategory_id: z.string().optional(),

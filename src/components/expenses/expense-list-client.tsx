@@ -238,12 +238,14 @@ export function ExpenseListClient({
                       {expense.payment_mode?.name}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <span
-                        className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-[var(--radius-sm)]"
-                        style={{ backgroundColor: typeTint(expense.type), color: typeColor(expense.type) }}
-                      >
-                        {expense.type}
-                      </span>
+                      {expense.type && (
+                        <span
+                          className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-[var(--radius-sm)]"
+                          style={{ backgroundColor: typeTint(expense.type), color: typeColor(expense.type) }}
+                        >
+                          {expense.type}
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex items-center gap-1 flex">
@@ -286,12 +288,14 @@ export function ExpenseListClient({
                     <span className="text-sm font-medium text-[var(--ink)] truncate">
                       {expense.category?.name}
                     </span>
-                    <span
-                      className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-[var(--radius-xs)] shrink-0"
-                      style={{ backgroundColor: typeTint(expense.type), color: typeColor(expense.type) }}
-                    >
-                      {expense.type}
-                    </span>
+                    {expense.type && (
+                      <span
+                        className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-[var(--radius-xs)] shrink-0"
+                        style={{ backgroundColor: typeTint(expense.type), color: typeColor(expense.type) }}
+                      >
+                        {expense.type}
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                     {enableSubcategories && expense.subcategory && (

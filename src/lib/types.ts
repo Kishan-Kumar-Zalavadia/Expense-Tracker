@@ -41,7 +41,7 @@ export interface Expense {
   category_id: string
   amount: number
   payment_mode_id: string
-  type: ExpenseType
+  type: ExpenseType | null
   notes: string | null
   recurring_item_id: string | null
   subcategory_id: string | null
