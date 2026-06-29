@@ -49,6 +49,7 @@ function SortableCategory({
   onCancelEdit,
   onEditStateChange,
   onToggleShowInCards,
+  onToggleExcludeFromTotals,
   onArchive,
   onDelete,
   onSetDefault,
@@ -62,6 +63,7 @@ function SortableCategory({
   onCancelEdit: () => void
   onEditStateChange: (s: { name: string; type: ExpenseType; color: string }) => void
   onToggleShowInCards: (cat: Category) => void
+  onToggleExcludeFromTotals: (cat: Category) => void
   onArchive: (cat: Category) => void
   onDelete: (cat: Category) => void
   onSetDefault: (cat: Category) => void
@@ -107,6 +109,17 @@ function SortableCategory({
               )}
             >
               {cat.show_in_cards ? 'Shown in cards' : 'Hidden from cards'}
+            </button>
+            <button
+              onClick={() => onToggleExcludeFromTotals(cat)}
+              className={cn(
+                'px-2 py-1 text-[10px] font-semibold rounded-[var(--radius-md)] border transition-colors',
+                cat.exclude_from_totals
+                  ? 'border-[var(--c-want)] text-[var(--c-want)] bg-[var(--tint-want)]'
+                  : 'border-[var(--border)] text-[var(--ink-subtle)] hover:border-[var(--border-strong)]',
+              )}
+            >
+              {cat.exclude_from_totals ? 'Excluded from totals' : 'Counted in totals'}
             </button>
           </div>
         </>
@@ -222,6 +235,17 @@ function SortableCategory({
             >
               {cat.show_in_cards ? 'Shown in cards' : 'Hidden from cards'}
             </button>
+            <button
+              onClick={() => onToggleExcludeFromTotals(cat)}
+              className={cn(
+                'px-2 py-1 text-[10px] font-semibold rounded-[var(--radius-md)] border transition-colors',
+                cat.exclude_from_totals
+                  ? 'border-[var(--c-want)] text-[var(--c-want)] bg-[var(--tint-want)]'
+                  : 'border-[var(--border)] text-[var(--ink-subtle)] hover:border-[var(--border-strong)]',
+              )}
+            >
+              {cat.exclude_from_totals ? 'Excluded from totals' : 'Counted in totals'}
+            </button>
           </div>
         </>
       )}
@@ -304,6 +328,15 @@ export function CategoriesPanel({ userId, categories, usedCategoryIds, onSave }:
     onSave()
   }
 
+  const toggleExcludeFromTotals = async (cat: Category) => {
+    const newVal = !cat.exclude_from_totals
+    setLocalCats(prev => prev.map(c => c.id === cat.id ? { ...c, exclude_from_totals: newVal } : c))
+    const { error } = await supabase.from('categories').update({ exclude_from_totals: newVal }).eq('id', cat.id)
+    if (error) { toast.error(error.message); setLocalCats(prev => prev.map(c => c.id === cat.id ? { ...c, exclude_from_totals: cat.exclude_from_totals } : c)); return }
+    toast.success(newVal ? 'Category excluded from totals' : 'Category counted in totals')
+    onSave()
+  }
+
   const setDefault = async (cat: Category) => {
     if (cat.is_default || cat.is_system) return
     setLocalCats(prev => prev.map(c => ({ ...c, is_default: c.id === cat.id })))
@@ -381,6 +414,8 @@ export function CategoriesPanel({ userId, categories, usedCategoryIds, onSave }:
       <p className="text-xs text-[var(--ink-muted)]">
         Toggle <span className="font-medium">Shown / Hidden</span> to control which categories appear as spend summary
         cards on the Expenses and Income tabs.
+        Toggle <span className="font-medium">Excluded from totals</span> to record transactions without counting them
+        toward your expense or income totals on the dashboard.
         Drag <GripVertical size={10} className="inline" /> to reorder — the top item is the default in add forms.
       </p>
 
@@ -454,6 +489,7 @@ export function CategoriesPanel({ userId, categories, usedCategoryIds, onSave }:
                 onCancelEdit={() => setEditing(null)}
                 onEditStateChange={setEditState}
                 onToggleShowInCards={toggleShowInCards}
+                onToggleExcludeFromTotals={toggleExcludeFromTotals}
                 onArchive={archive}
                 onDelete={deleteCategory}
                 onSetDefault={setDefault}

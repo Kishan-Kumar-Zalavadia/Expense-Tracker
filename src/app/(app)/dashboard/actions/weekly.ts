@@ -23,13 +23,15 @@ export async function fetchWeekly(year: number): Promise<WeeklyData | null> {
   if (!user) return null
 
   const [{ data: expenses }, { data: settings }] = await Promise.all([
-    supabase.from('expenses').select('date, amount, type').eq('user_id', user.id)
+    supabase.from('expenses').select('date, amount, type, category:categories(exclude_from_totals)').eq('user_id', user.id)
       .gte('date', `${year}-01-01`).lte('date', `${year}-12-31`).in('type', ['Need', 'Want']).order('date'),
     supabase.from('user_settings').select('*').eq('user_id', user.id).single(),
   ])
 
   const dayTotals = new Map<string, number>()
   for (const e of expenses ?? []) {
+    const cat = (Array.isArray(e.category) ? e.category[0] : e.category) as { exclude_from_totals?: boolean } | null
+    if (cat?.exclude_from_totals) continue
     dayTotals.set(e.date, (dayTotals.get(e.date) ?? 0) + Number(e.amount))
   }
 

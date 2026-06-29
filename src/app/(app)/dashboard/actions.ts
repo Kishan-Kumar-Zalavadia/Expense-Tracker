@@ -44,7 +44,7 @@ export async function getDashboardData(year: number, month: number): Promise<Das
     supabase.from('budget_periods').select('*').eq('user_id', user.id).order('start_month', { ascending: true }),
     supabase.from('user_settings').select('*').eq('user_id', user.id).single(),
     supabase.from('expenses').select('*, category:categories(*), payment_mode:payment_modes(*)').eq('user_id', user.id).gte('date', startDate).lte('date', endDateStr).order('date', { ascending: false }),
-    supabase.from('incomes').select('amount, category:categories(is_system)').eq('user_id', user.id).gte('date', startDate).lte('date', endDateStr),
+    supabase.from('incomes').select('amount, category:categories(is_system, exclude_from_totals)').eq('user_id', user.id).gte('date', startDate).lte('date', endDateStr),
     supabase.from('payment_modes').select('*').eq('user_id', user.id).order('sort_order'),
     supabase.from('expenses').select('amount, payment_mode_id').eq('user_id', user.id),
     supabase.from('incomes').select('amount, payment_mode_id').eq('user_id', user.id),
@@ -61,15 +61,16 @@ export async function getDashboardData(year: number, month: number): Promise<Das
 
   let needSpent = 0, wantSpent = 0, saveSpent = 0
   for (const e of expenseList) {
-    if (e.category?.is_system) continue   // exclude CC Payment and other system categories
+    if (e.category?.is_system) continue             // exclude system categories (e.g. CC Payment)
+    if (e.category?.exclude_from_totals) continue   // exclude user-flagged categories
     if (e.type === 'Need')   needSpent  += Number(e.amount)
     if (e.type === 'Want')   wantSpent  += Number(e.amount)
     if (e.type === 'Saving') saveSpent  += Number(e.amount)
   }
   const totalSpent = needSpent + wantSpent + saveSpent
   const incomeTotal = (monthIncomes ?? []).reduce((s, r) => {
-    const cat = r.category as { is_system?: boolean } | null
-    if (cat?.is_system) return s
+    const cat = r.category as { is_system?: boolean; exclude_from_totals?: boolean } | null
+    if (cat?.is_system || cat?.exclude_from_totals) return s
     return s + Number(r.amount)
   }, 0)
 
@@ -87,7 +88,7 @@ export async function getDashboardData(year: number, month: number): Promise<Das
 
   const catMap = new Map<string, CategorySpend>()
   for (const e of expenseList) {
-    if (!e.category || e.category.is_system) continue
+    if (!e.category || e.category.is_system || e.category.exclude_from_totals) continue
     const existing = catMap.get(e.category_id)
     if (existing) {
       existing.total += Number(e.amount)
@@ -104,7 +105,7 @@ export async function getDashboardData(year: number, month: number): Promise<Das
 
   const dayMap = new Map<string, { need: number; want: number }>()
   for (const e of expenseList) {
-    if (e.category?.is_system) continue   // exclude system category from daily chart
+    if (e.category?.is_system || e.category?.exclude_from_totals) continue
     if (e.type === 'Saving') continue
     const entry = dayMap.get(e.date) ?? { need: 0, want: 0 }
     if (e.type === 'Need') entry.need += Number(e.amount)

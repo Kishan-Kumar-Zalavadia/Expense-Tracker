@@ -23,6 +23,7 @@ export interface Category {
   is_system: boolean
   show_in_cards: boolean
   is_default: boolean
+  exclude_from_totals: boolean
 }
 
 export interface PaymentMode {
