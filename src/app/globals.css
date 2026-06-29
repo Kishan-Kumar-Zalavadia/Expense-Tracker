@@ -232,8 +232,12 @@
   gap: 6px;
   min-height: 44px;   /* Apple minimum tap target */
   letter-spacing: -0.1px;
+  touch-action: manipulation; /* prevents 300ms tap delay on iOS */
 }
-.btn-primary:hover  { opacity: 0.88; }
+/* Only apply hover on devices that truly support it (not iOS touch) */
+@media (hover: hover) {
+  .btn-primary:hover { opacity: 0.88; }
+}
 .btn-primary:active { transform: scale(0.97); opacity: 0.80; }
 .btn-primary:focus-visible { outline: 3px solid var(--c-primary); outline-offset: 3px; }
 .btn-primary:disabled { opacity: 0.38; cursor: not-allowed; transform: none; }

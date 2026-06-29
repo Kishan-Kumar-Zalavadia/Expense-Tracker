@@ -8,6 +8,7 @@ export function ThemeScript() {
         try {
           var theme = localStorage.getItem('ledger-theme') || 'light';
           document.documentElement.setAttribute('data-theme', theme);
+          document.documentElement.style.background = theme === 'dark' ? '#000000' : '#F2F2F7';
         } catch(e) {}
       })();
     `}</Script>
