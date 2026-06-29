@@ -44,7 +44,7 @@ export async function getDashboardData(year: number, month: number): Promise<Das
     supabase.from('budget_periods').select('*').eq('user_id', user.id).order('start_month', { ascending: true }),
     supabase.from('user_settings').select('*').eq('user_id', user.id).single(),
     supabase.from('expenses').select('*, category:categories(*), payment_mode:payment_modes(*)').eq('user_id', user.id).gte('date', startDate).lte('date', endDateStr).order('date', { ascending: false }),
-    supabase.from('incomes').select('amount').eq('user_id', user.id).gte('date', startDate).lte('date', endDateStr),
+    supabase.from('incomes').select('amount, category:categories(is_system)').eq('user_id', user.id).gte('date', startDate).lte('date', endDateStr),
     supabase.from('payment_modes').select('*').eq('user_id', user.id).order('sort_order'),
     supabase.from('expenses').select('amount, payment_mode_id').eq('user_id', user.id),
     supabase.from('incomes').select('amount, payment_mode_id').eq('user_id', user.id),
@@ -67,7 +67,11 @@ export async function getDashboardData(year: number, month: number): Promise<Das
     if (e.type === 'Saving') saveSpent  += Number(e.amount)
   }
   const totalSpent = needSpent + wantSpent + saveSpent
-  const incomeTotal = (monthIncomes ?? []).reduce((s, r) => s + Number(r.amount), 0)
+  const incomeTotal = (monthIncomes ?? []).reduce((s, r) => {
+    const cat = r.category as { is_system?: boolean } | null
+    if (cat?.is_system) return s
+    return s + Number(r.amount)
+  }, 0)
 
   const summary: MonthSummary = {
     total_spent: totalSpent,

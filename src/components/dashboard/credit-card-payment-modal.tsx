@@ -84,8 +84,9 @@ export function CreditCardPaymentModal({
         description: `Credit card payment – ${creditCard.name}`,
         amount: amt,
         payment_mode_id: creditCard.id,
+        category_id: categoryId,
         budget_period_id: null,
-        auto_generated: false,
+        auto_generated: true,
         notes: null,
       })
       if (incErr) throw incErr
